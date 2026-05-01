@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doira Chat V3.7.3</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6a5af9">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; overflow: hidden; }
+   .login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+   .login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); text-align: center; width: 90%; max-width: 400px; }
+   .login-box h1 { color: #6a5af9; margin-bottom: 10px; font-size: 32px; }
+   .login-box p { color: #666; margin-bottom: 30px; }
+   .login-box input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; margin-bottom: 20px; outline: none; }
+   .login-box input:focus { border-color: #6a5af9; }
+   .login-box button { width: 100%; padding: 15px; background: #6a5af9; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+   .login-box button:hover { background: #5a4ae9; }
+   .clear-btn { background: #ff4757; margin-top: 10px; font-size: 14px; }
+   .clear-btn:hover { background: #e63946; }
+   .sidebar { width: 300px; background: rgba(255,255,255,0.95); border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+   .sidebar-header { padding: 20px; background: #6a5af9; color: white; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+   .notif-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+   .logout-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-left: 5px; }
+   .my-name { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
+   .my-name-avatar { width: 40px; height: 40px; background: #6a5af9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; flex-shrink: 0; }
+   .my-name-text { font-weight: bold; color: #333; }
+   .user-list { flex: 1; overflow-y: auto; }
+   .user-item { padding: 15px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 12px; position: relative; }
+   .user-item:hover { background: #f5f5ff; }
+   .user-item.active { background: #e8e5ff; border-left: 3px solid #6a5af9; }
+   .user-avatar { width: 40px; height: 40px; background: #6a5af9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; position: relative; }
+   .online-dot { width: 10px; height: 10px; background: #4caf50; border-radius: 50%; border: 2px solid white; position: absolute; bottom: 0; right: 0; }
+   .unread-badge { position: absolute; right: 45px; top: 50%; transform: translateY(-50%); background: #ff4757; color: white; border-radius: 10px; padding: 2px 8px; font-size: 12px; font-weight: bold; }
+   .delete-user { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #ff4757; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 1; color: white; font-weight: bold; }
+   .delete-user:hover { background: #e63946; transform: translateY(-50%) scale(1.1); }
+   .chat-container { flex: 1; display: flex; justify-content: center; align-items: center; }
+   .chat-window { width: 100%; max-width: 700px; height: 95vh; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: flex; flex-direction: column; overflow: hidden; }
+   .chat-header { background: linear-gradient(135deg, #6a5af9 0%, #8b5cf6 100%); color: white; padding: 20px; font-size: 18px; font-weight: bold; }
+   .messages { flex: 1; padding: 20px; overflow-y: auto; background: #f8f9fa; }
+   .message { margin-bottom: 15px; display: flex; flex-direction: column; }
+   .message.mine { align-items: flex-end; }
+   .message-bubble { max-width: 70%; padding: 12px 16px; border-radius: 18px; background: #e9ecef; word-wrap: break-word; }
+   .message.mine.message-bubble { background: #6a5af9; color: white; }
+   .message-name { font-size: 12px; color: #6c757d; margin: 0 10px 4px; }
+   .message-time { font-size: 11px; color: #999; margin: 4px 10px 0; }
+   .input-area { display: flex; padding: 15px; background: white; border-top: 1px solid #eee; gap: 10px; }
+   .input-area input { flex: 1; padding: 12px 20px; border: 1px solid #ddd; border-radius: 25px; outline: none; }
+   .input-area button { width: 50px; height: 50px; border: none; background: #6a5af9; color: white; border-radius: 50%; cursor: pointer; font-size: 20px; }
+   .no-chat { text-align: center; color: #999; margin-top: 100px; }
+        @media (max-width: 768px) {.sidebar { width: 80px; }.user-item span,.my-name-text { display: none; }.delete-user { display: none!important; } }
+    </style>
+</head>
+<body>
+    <div class="login-screen" id="loginScreen">
+        <div class="login-box">
+            <h1>💬 Doira Chat</h1>
+            <p>Чатга кириш учун исмингни ёз</p>
+            <input type="text" id="loginNameInput" placeholder="Исминг..." maxlength="20">
+            <button id="loginBtn">Кириш ➤</button>
+            <button class="clear-btn" id="clearBtn">Эски маълумотни тозалаш</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <span>💬 Doira V3.7.3</span>
+            <div>
+                <button class="notif-btn" id="notifBtn">🔔</button>
+                <button class="logout-btn" id="logoutBtn">🚪</button>
+            </div>
+        <div class="my-name">
+            <div class="my-name-avatar" id="myAvatar">U</div>
+            <div class="my-name-text" id="myNameText">Усмон</div>
+        </div>
+        <div class="user-list" id="userList"></div>
+    </div>
+    <div class="chat-container">
+        <div class="chat-window">
+            <div class="chat-header" id="chatHeader">🌐 Умумий чат</div>
+            <div class="messages" id="messages"></div>
+            <div class="input-area">
+                <input type="text" id="messageInput" placeholder="Хабар ёзинг...">
+                <button id="sendBtn">➤</button>
+            </div>
+        </div>
+    </div>
+    <audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2c6410e9c7.mp3" preload="auto"></audio>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, onDisconnect, set, serverTimestamp, onChildAdded, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBtfJkwYGALNHJbeXpw2ToBJMzsv25BH1A", authDomain: "doira-chat.firebaseapp.com", databaseURL: "https://doira-chat-default-rtdb.firebaseio.com", projectId: "doira-chat", storageBucket: "doira-chat.appspot.com", messagingSenderId: "1028069474673", appId: "1:1028069474673:web:eee7d9a67300c0d5f4d5ac" };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let myName = localStorage.getItem('doiraName');
+        let myId = localStorage.getItem('doiraId');
+        let currentRoom = 'general';
+        let notifEnabled = false;
+        let hiddenUsers = JSON.parse(localStorage.getItem('hiddenUsers') || '[]');
+        let lastReadTimestamps = JSON.parse(localStorage.getItem('lastRead') || '{}');
+        let initialLoad = true;
+
+        const loginScreen = document.getElementById('loginScreen');
+        const loginNameInput = document.getElementById('loginNameInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const userList = document.getElementById('userList');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatHeader = document.getElementById('chatHeader');
+        const notifSound = document.getElementById('notifSound');
+        const myAvatar = document.getElementById('myAvatar');
+        const myNameText = document.getElementById('myNameText');
+        const notifBtn = document.getElementById('notifBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        loginBtn.onclick = login;
+        clearBtn.onclick = clearData;
+        sendBtn.onclick = sendMessage;
+        notifBtn.onclick = enableNotif;
+        logoutBtn.onclick = logout;
+        loginNameInput.onkeypress = (e) => { if(e.key==='Enter') login(); };
+        messageInput.onkeypress = (e) => { if(e.key==='Enter') sendMessage(); };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('logout')) {
+            clearData();
+        } else if (myName && myId) {
+            startChat();
+        }
+
+        function login() {
+            const name = loginNameInput.value.trim();
+            if (!name) {
+                alert('Исм ёзинг!');
+                return;
+            }
+            myName = name;
+            myId = 'user_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('doiraName', myName);
+            localStorage.setItem('doiraId', myId);
+            startChat();
+        }
+
+        function clearData() {
+            localStorage.removeItem('doiraName');
+            localStorage.removeItem('doiraId');
+            localStorage.removeItem('hiddenUsers');
+            localStorage.removeItem('lastRead');
+            alert('Тозаланди! Энди исм ёзиб кир');
+            location.href = location.pathname;
+        }
+
+        function logout() {
+            if (confirm('Чатдан чиқасанми?')) {
+                remove(ref(db, `users/${myId}`)); // ФИКС: Чиқанда ўзини ўчиради
+                location.href = '?logout=1';
+            }
+        }
+
+        function startChat() {
+            loginScreen.style.display = 'none';
+            myAvatar.textContent = myName[0].toUpperCase();
+            myNameText.textContent = myName;
+            initFirebase();
+        }
+
+        document.body.onclick = () => { notifSound.play().then(() => notifSound.pause()); document.body.onclick = null; };
+
+        function enableNotif() {
+            Notification.requestPermission().then(p => {
+                if (p === 'granted') {
+                    notifEnabled = true;
+                    alert('Уведомления ёқилди!');
+                }
+            });
+        }
+
+        function initFirebase() {
+            const userRef = ref(db, `users/${myId}`);
+            set(userRef, { name: myName, online: true, lastSeen: serverTimestamp() });
+            onDisconnect(userRef).remove(); // ФИКС: Браузер ёпилса ўзи ўчади
+
+            onValue(ref(db, 'users'), (snapshot) => {
+                const users = snapshot.val() || {};
+                userList.innerHTML = `<div class="user-item ${currentRoom==='general'?'active':''}" data-room="general"><div class="user-avatar">🌐</div><span>Умумий чат</span></div>`;
+
+                const now = Date.now();
+                Object.entries(users).forEach(([id, user]) => {
+                    // ФИКС: Фақат 5 дақиқа ичида онлайн бўлганларни кўрсат
+                    if (id === myId || hiddenUsers.includes(id)) return;
+                    if (!user.online && user.lastSeen && now - user.lastSeen > 5 * 60 * 1000) return;
+
+                    const roomId = [myId, id].sort().join('_');
+                    const userDiv = document.createElement('div');
+                    userDiv.className = `user-item ${currentRoom===roomId?'active':''}`;
+                    userDiv.dataset.room = roomId;
+                    userDiv.dataset.userid = id;
+                    userDiv.innerHTML = `<div style="position:relative"><div class="user-avatar">${user.name[0].toUpperCase()}</div>${user.online? '<div class="online-dot"></div>' : ''}</div><span>${user.name}</span><button class="delete-user" onclick="hideUser('${id}', event)" title="Ўчириш">✕</button>`;
+                    userDiv.onclick = (e) => { if(!e.target.classList.contains('delete-user')) switchRoom(roomId, user.name); };
+                    userList.appendChild(userDiv);
+
+                    onChildAdded(ref(db, `messages/private/${roomId}`), (snap) => {
+                        const msg = snap.val();
+                        const lastRead = lastReadTimestamps[roomId] || 0;
+                        if (msg.timestamp <= lastRead || msg.userId === myId || currentRoom === roomId || initialLoad) return;
+                        notifSound.play().catch(e => console.log('Овоз блокланди'));
+                        if (notifEnabled) new Notification(`${msg.name}`, { body: msg.text, icon: 'icon-192.png' });
+                        updateUnreadBadge(roomId);
+                    });
+                });
+                document.querySelector('[data-room="general"]').onclick = () => switchRoom('general', 'Умумий чат');
+                initialLoad = false;
+                updateAllUnreadBadges();
+            });
+
+            loadMessages();
+        }
+
+        window.hideUser = (userId, e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const userName = document.querySelector(`[data-userid="${userId}"] span`)?.textContent || 'Бу контакт';
+            if (confirm(`"${userName}" ни рўйхатдан ўчирасанми?`)) {
+                hiddenUsers.push(userId);
+                localStorage.setItem('hiddenUsers', JSON.stringify(hiddenUsers));
+                document.querySelector(`[data-userid="${userId}"]`)?.remove();
+                if (currentRoom === [myId, userId].sort().join('_')) {
+                    switchRoom('general', 'Умумий чат');
+                }
+            }
+        }
+
+        function updateUnreadBadge(roomId) {
+            const item = document.querySelector(`[data-room="${roomId}"]`);
+            if (!item) return;
+            let badge = item.querySelector('.unread-badge');
+            if (!badge) {
+                item.insertAdjacentHTML('beforeend', `<div class="unread-badge">1</div>`);
+            } else {
+                badge.textContent = parseInt(badge.textContent) + 1;
+            }
+        }
+
+        function updateAllUnreadBadges() {
+            document.querySelectorAll('.user-item[data-room]').forEach(item => {
+                const roomId = item.dataset.room;
+                if (roomId === 'general') return;
+                const lastRead = lastReadTimestamps[roomId] || 0;
+                onValue(ref(db, `messages/private/${roomId}`), (snap) => {
+                    const msgs = snap.val() || {};
+                    const unreadCount = Object.values(msgs).filter(m => m.timestamp > lastRead && m.userId!== myId).length;
+                    let badge = item.querySelector('.unread-badge');
+                    if (unreadCount > 0) {
+                        if (badge) badge.textContent = unreadCount;
+                        else item.insertAdjacentHTML('beforeend', `<div class="unread-badge">${unreadCount}</div>`);
+                    } else if (badge) badge.remove();
+                }, { onlyOnce: true });
+            });
+        }
+
+        function switchRoom(roomId, name) {
+            currentRoom = roomId;
+            chatHeader.textContent = name === 'Умумий чат'? '🌐 Умумий чат' : `💬 ${name}`;
+            document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-room="${roomId}"]`)?.classList.add('active');
+            document.querySelector(`[data-room="${roomId}"].unread-badge`)?.remove();
+            lastReadTimestamps[roomId] = Date.now();
+            localStorage.setItem('lastRead', JSON.stringify(lastReadTimestamps));
+            loadMessages();
+        }
+
+        let messagesUnsub = null;
+        function loadMessages() {
+            if (messagesUnsub) messagesUnsub();
+            messagesDiv.innerHTML = '<div class="no-chat">Юкланяпти...</div>';
+            const roomPath = currentRoom === 'general'? 'messages/general' : `messages/private/${currentRoom}`;
+            messagesUnsub = onValue(ref(db, roomPath), (snapshot) => {
+                messagesDiv.innerHTML = '';
+                const msgs = snapshot.val();
+                if (!msgs) {
+                    messagesDiv.innerHTML = '<div class="no-chat">Ҳали хабар йўқ. Биринчи бўлиб ёзинг!</div>';
+                    return;
+                }
+                Object.values(msgs).sort((a,b) => a.timestamp - b.timestamp).forEach(msg => {
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `message ${msg.userId === myId? 'mine' : ''}`;
+                    const time = new Date(msg.timestamp).toLocaleTimeString('uz-UZ', {hour:'2-digit', minute:'2-digit'});
+                    msgDiv.innerHTML = `<div class="message-name">${msg.userId === myId? 'Сен' : msg.name}</div><div class="message-bubble">${msg.text}</div><div class="message-time">${time}</div>`;
+                    messagesDiv.appendChild(msgDiv);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+            const roomPath = currentRoom === 'general'? 'messages/general' : `messages/private/${currentRoom}`;
+            push(ref(db, roomPath), { text: text, name: myName, userId: myId, timestamp: Date.now() });
+            messageInput.value = '';
+        }
+    </script>
+</body>
+</html>
