@@ -23,13 +23,13 @@
                 <div class="emoji" data-emoji="👑">👑</div>
                 <div class="emoji" data-emoji="💎">💎</div>
             </div>
-            <button onclick="joinChat()">Чатга кириш</button>
+            <button id="joinBtn">Чатга кириш</button>
         </div>
         <div id="chatScreen" style="display:none;flex:1;display:flex;flex-direction:column">
             <div class="header"><h1>💬 Doira Chat</h1><div class="online">🟢 <span id="onlineCount">0</span> онлайн</div></div>
             <div class="messages" id="messages"></div>
             <div class="typing" id="typing"></div>
-            <div class="input-area"><input type="text" id="msgInput" placeholder="Хабар ёзинг..." maxlength="500"><button onclick="sendMsg()">➤</button></div>
+            <div class="input-area"><input type="text" id="msgInput" placeholder="Хабар ёзинг..." maxlength="500"><button id="sendBtn">➤</button></div>
         </div>
     </div>
     <script type="module">
@@ -45,7 +45,39 @@
           appId: "1:24569627793:web:b1a8acb36d17adc180ab30"
         };
 
-        const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getDatabase(app);let currentUser=null;let selectedEmoji='😎';document.querySelectorAll('.emoji').forEach(e=>{e.onclick=()=>{document.querySelectorAll('.emoji').forEach(x=>x.classList.remove('selected'));e.classList.add('selected');selectedEmoji=e.dataset.emoji}});window.joinChat=async()=>{const name=document.getElementById('nameInput').value.trim();if(!name)return alert('Исм киритинг!');await signInAnonymously(auth);currentUser={name,emoji:selectedEmoji,id:auth.currentUser.uid};const userRef=ref(db,`users/${currentUser.id}`);await set(userRef,{name,emoji:selectedEmoji,online:true,timestamp:serverTimestamp()});onDisconnect(userRef).remove();document.getElementById('loginScreen').style.display='none';document.getElementById('chatScreen').style.display='flex';loadMessages();loadOnlineUsers();loadTyping();if(Notification.permission==='default')Notification.requestPermission()};window.sendMsg=async()=>{const input=document.getElementById('msgInput');const text=input.value.trim();if(!text)return;await push(ref(db,'messages'),{text,name:currentUser.name,emoji:currentUser.emoji,userId:currentUser.id,timestamp:serverTimestamp()});input.value='';set(ref(db,`typing/${currentUser.id}`),null)};document.getElementById('msgInput').onkeypress=e=>{if(e.key==='Enter')sendMsg()};let typingTimeout;document.getElementById('msgInput').oninput=()=>{set(ref(db,`typing/${currentUser.id}`),currentUser.name);clearTimeout(typingTimeout);typingTimeout=setTimeout(()=>{set(ref(db,`typing/${currentUser.id}`),null)},2000)};function loadMessages(){onChildAdded(ref(db,'messages'),snapshot=>{const msg=snapshot.val();const isOwn=msg.userId===currentUser.id;const time=msg.timestamp?new Date(msg.timestamp).toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'}):'';const div=document.createElement('div');div.className=`msg ${isOwn?'own':''}`;div.innerHTML=`<div class="msg-avatar">${msg.emoji}</div><div class="msg-content"><div class="msg-name">${msg.name}</div><div class="msg-text">${msg.text}</div><div class="msg-time">${time}</div></div>`;document.getElementById('messages').appendChild(div);document.getElementById('messages').scrollTop=999999;if(!isOwn&&Notification.permission==='granted'){new Notification(`${msg.emoji} ${msg.name}`,{body:msg.text});new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE').play()}})}function loadOnlineUsers(){onValue(ref(db,'users'),snapshot=>{const users=snapshot.val()||{};document.getElementById('onlineCount').textContent=Object.keys(users).length})}function loadTyping(){onValue(ref(db,'typing'),snapshot=>{const typing=snapshot.val()||{};const names=Object.values(typing).filter(n=>n&&n!==currentUser.name);document.getElementById('typing').textContent=names.length?`${names.join(', ')} ёзяпти...`:''})}
+        const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getDatabase(app);let currentUser=null;let selectedEmoji='😎';document.querySelectorAll('.emoji').forEach(e=>{e.onclick=()=>{document.querySelectorAll('.emoji').forEach(x=>x.classList.remove('selected'));e.classList.add('selected');selectedEmoji=e.dataset.emoji}});
+        
+        document.getElementById('joinBtn').onclick=async()=>{
+            const name=document.getElementById('nameInput').value.trim();
+            if(!name)return alert('Исм киритинг!');
+            try{
+                await signInAnonymously(auth);
+                currentUser={name,emoji:selectedEmoji,id:auth.currentUser.uid};
+                const userRef=ref(db,`users/${currentUser.id}`);
+                await set(userRef,{name,emoji:selectedEmoji,online:true,timestamp:serverTimestamp()});
+                onDisconnect(userRef).remove();
+                document.getElementById('loginScreen').style.display='none';
+                document.getElementById('chatScreen').style.display='flex';
+                loadMessages();loadOnlineUsers();loadTyping();
+                if(Notification.permission==='default')Notification.requestPermission()
+            }catch(e){alert('Хатолик: '+e.message)}
+        };
+        
+        document.getElementById('sendBtn').onclick=async()=>{
+            const input=document.getElementById('msgInput');
+            const text=input.value.trim();
+            if(!text)return;
+            await push(ref(db,'messages'),{text,name:currentUser.name,emoji:currentUser.emoji,userId:currentUser.id,timestamp:serverTimestamp()});
+            input.value='';
+            set(ref(db,`typing/${currentUser.id}`),null)
+        };
+        
+        document.getElementById('msgInput').onkeypress=e=>{if(e.key==='Enter')document.getElementById('sendBtn').click()};
+        let typingTimeout;document.getElementById('msgInput').oninput=()=>{set(ref(db,`typing/${currentUser.id}`),currentUser.name);clearTimeout(typingTimeout);typingTimeout=setTimeout(()=>{set(ref(db,`typing/${currentUser.id}`),null)},2000)};
+        
+        function loadMessages(){onChildAdded(ref(db,'messages'),snapshot=>{const msg=snapshot.val();const isOwn=msg.userId===currentUser.id;const time=msg.timestamp?new Date(msg.timestamp).toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit'}):'';const div=document.createElement('div');div.className=`msg ${isOwn?'own':''}`;div.innerHTML=`<div class="msg-avatar">${msg.emoji}</div><div class="msg-content"><div class="msg-name">${msg.name}</div><div class="msg-text">${msg.text}</div><div class="msg-time">${time}</div></div>`;document.getElementById('messages').appendChild(div);document.getElementById('messages').scrollTop=999999;if(!isOwn&&Notification.permission==='granted'){new Notification(`${msg.emoji} ${msg.name}`,{body:msg.text})}})}
+        function loadOnlineUsers(){onValue(ref(db,'users'),snapshot=>{const users=snapshot.val()||{};document.getElementById('onlineCount').textContent=Object.keys(users).length})}
+        function loadTyping(){onValue(ref(db,'typing'),snapshot=>{const typing=snapshot.val()||{};const names=Object.values(typing).filter(n=>n&&n!==currentUser.name);document.getElementById('typing').textContent=names.length?`${names.join(', ')} ёзяпти...`:''})}
     </script>
 </body>
 </html>
