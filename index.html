@@ -198,7 +198,7 @@ function sendMessage() {
   if (!text || !currentUser) return;
   
   push(ref(db, 'messages'), {
-    user: currentUser,
+    name: currentUser,
     uid: currentUid,
     text: text,
     time: serverTimestamp()
