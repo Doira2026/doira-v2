@@ -211,8 +211,8 @@ function loadMessages() {
  const messagesRef = ref(db, 'messages');
    document.getElementById('messages').innerHTML = '';
 onChildAdded(messagesRef, (snapshot) => {    
-    let timeStr = '';
-    if (msg.time) {
+    const msg = snapshot.val(); 
+    if (!msg.name && !msg.user) return;
       const date = new Date(msg.time);
       timeStr = date.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
     }
