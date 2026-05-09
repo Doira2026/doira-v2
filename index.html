@@ -6,9 +6,7 @@
     <title>DOIRA Chat</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -18,7 +16,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-        
         #login, #chat {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
@@ -29,19 +26,16 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             animation: slideUp 0.5s ease;
         }
-        
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
         #chat { 
             display: none; 
             flex-direction: column; 
             height: 85vh;
             max-width: 600px;
         }
-        
         h1 { 
             color: #667eea;
             text-align: center; 
@@ -49,14 +43,24 @@
             font-size: 32px;
             font-weight: 600;
         }
-        
         .subtitle { 
             text-align: center; 
             margin-bottom: 30px; 
             color: #64748b;
             font-size: 14px;
         }
-        
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #logoutBtn {
+            width: auto;
+            padding: 8px 16px;
+            background: #ef4444;
+            font-size: 14px;
+        }
         input {
             width: 100%;
             padding: 14px 18px;
@@ -67,13 +71,11 @@
             font-size: 15px;
             transition: all 0.3s;
         }
-        
         input:focus {
             outline: none;
             border-color: #667eea;
             background: white;
         }
-        
         button {
             width: 100%;
             padding: 14px;
@@ -86,10 +88,8 @@
             cursor: pointer;
             transition: transform 0.2s;
         }
-        
         button:hover { transform: translateY(-2px); }
         button:active { transform: translateY(0); }
-        
         #messages {
             flex: 1;
             overflow-y: auto;
@@ -98,13 +98,8 @@
             background: #f8fafc;
             border-radius: 16px;
         }
-        
         #messages::-webkit-scrollbar { width: 6px; }
-        #messages::-webkit-scrollbar-thumb { 
-            background: #cbd5e1; 
-            border-radius: 3px; 
-        }
-        
+        #messages::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         .message {
             padding: 12px 16px;
             margin-bottom: 12px;
@@ -114,18 +109,15 @@
             animation: msgIn 0.3s ease;
             word-wrap: break-word;
         }
-        
         @keyframes msgIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
         .msg-header {
             display: flex;
             align-items: center;
             margin-bottom: 6px;
         }
-        
         .avatar {
             width: 32px;
             height: 32px;
@@ -139,41 +131,17 @@
             font-size: 14px;
             margin-right: 10px;
         }
-        
-        .user-name { 
-            color: #667eea; 
-            font-weight: 600; 
-            font-size: 14px;
-        }
-        
-        .time { 
-            color: #94a3b8; 
-            font-size: 11px;
-            margin-left: auto;
-        }
-        
+        .user-name { color: #667eea; font-weight: 600; font-size: 14px; }
+        .time { color: #94a3b8; font-size: 11px; margin-left: auto; }
         .msg-text {
             color: #334155;
             font-size: 15px;
             line-height: 1.5;
             margin-left: 42px;
         }
-        
-        #inputArea { 
-            display: flex; 
-            gap: 10px; 
-        }
-        
-        #msgInput { 
-            flex: 1; 
-            margin: 0; 
-        }
-        
-        #sendBtn { 
-            width: 110px; 
-            margin: 0;
-            padding: 14px;
-        }
+        #inputArea { display: flex; gap: 10px; }
+        #msgInput { flex: 1; margin: 0; }
+        #sendBtn { width: 110px; margin: 0; padding: 14px; }
     </style>
 </head>
 <body>
@@ -185,7 +153,10 @@
     </div>
 
     <div id="chat">
-        <h1>DOIRA Чат</h1>
+        <div class="header-bar">
+            <h1>DOIRA Чат</h1>
+            <button id="logoutBtn">Чиқиш</button>
+        </div>
         <p class="subtitle">Онлайн мулоқот</p>
         <div id="messages"></div>
         <div id="inputArea">
@@ -198,7 +169,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
         import { getDatabase, ref, push, onChildAdded, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-        // ⚠️ БУ ЕРГА ЎЗИНГНИНГ FIREBASE CONFIG ИНГНИ ҚЎЙ!
+        // ⚠️ FIREBASE CONFIG - ЎЗИНГНИКИНИ ҚЎЙ!
         const firebaseConfig = {
             apiKey: "SENING-API-KEY",
             authDomain: "SENING-PROJECT.firebaseapp.com",
@@ -213,6 +184,17 @@
         const db = getDatabase(app);
         let currentUser = '';
 
+        // АГАР ОЛДИН КИРГАН БЎЛСА - АВТОМАТ КИРДИ
+        window.onload = () => {
+            const savedName = localStorage.getItem('doiraUser');
+            if (savedName) {
+                currentUser = savedName;
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('chat').style.display = 'flex';
+                loadMessages();
+            }
+        };
+
         document.getElementById('joinBtn').onclick = () => {
             const name = document.getElementById('nameInput').value.trim();
             if (!name) {
@@ -220,9 +202,15 @@
                 return;
             }
             currentUser = name;
+            localStorage.setItem('doiraUser', name); // ЭСЛАБ ҚОЛДИ
             document.getElementById('login').style.display = 'none';
             document.getElementById('chat').style.display = 'flex';
             loadMessages();
+        };
+
+        document.getElementById('logoutBtn').onclick = () => {
+            localStorage.removeItem('doiraUser');
+            location.reload();
         };
 
         function loadMessages() {
