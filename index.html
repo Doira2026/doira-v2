@@ -64,20 +64,20 @@
             font-size: 28px;
             font-weight: 600;
         }
-      .subtitle {
+     .subtitle {
             text-align: center;
             margin-bottom: 15px;
             color: #64748b;
             font-size: 14px;
         }
-      .header-bar {
+     .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 10px;
             gap: 10px;
         }
-      .header-controls {
+     .header-controls {
             display: flex;
             gap: 8px;
         }
@@ -119,14 +119,14 @@
             padding: 12px;
             margin-bottom: 10px;
         }
-       .room-btn {
+     .room-btn {
             width: auto;
             padding: 6px 12px;
             font-size: 13px;
             margin: 4px;
             background: #64748b;
         }
-       .room-btn.active {
+     .room-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
@@ -180,7 +180,7 @@
             padding: 0 5px;
         }
 
-      .message {
+     .message {
             padding: 10px 14px;
             margin-bottom: 10px;
             background: var(--msg-bg);
@@ -190,7 +190,7 @@
             word-wrap: break-word;
             position: relative;
         }
-       .message.highlight {
+     .message.highlight {
             background: #fef3c7;
             border: 2px solid #f59e0b;
         }
@@ -198,12 +198,12 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-      .msg-header {
+     .msg-header {
             display: flex;
             align-items: center;
             margin-bottom: 6px;
         }
-      .avatar {
+     .avatar {
             width: 30px;
             height: 30px;
             border-radius: 50%;
@@ -216,21 +216,21 @@
             font-size: 13px;
             margin-right: 8px;
         }
-      .user-name { color: #667eea; font-weight: 600; font-size: 13px; cursor: pointer; }
-      .user-name:hover { text-decoration: underline; }
-      .time { color: #94a3b8; font-size: 10px; margin-left: auto; }
-      .msg-actions {
+     .user-name { color: #667eea; font-weight: 600; font-size: 13px; cursor: pointer; }
+     .user-name:hover { text-decoration: underline; }
+     .time { color: #94a3b8; font-size: 10px; margin-left: auto; }
+     .msg-actions {
             display: flex;
             gap: 6px;
             margin-left: 8px;
         }
-      .msg-btn {
+     .msg-btn {
             width: auto;
             padding: 3px 7px;
             font-size: 11px;
             background: #64748b;
         }
-      .reply-preview {
+     .reply-preview {
             background: rgba(102, 126, 234, 0.1);
             border-left: 3px solid #667eea;
             padding: 6px 10px;
@@ -240,13 +240,13 @@
             font-size: 12px;
             color: #64748b;
         }
-      .msg-text {
+     .msg-text {
             color: var(--text-color);
             font-size: 14px;
             line-height: 1.5;
             margin-left: 38px;
         }
-      .msg-image {
+     .msg-image {
             max-width: 100%;
             max-height: 300px;
             border-radius: 12px;
@@ -254,19 +254,19 @@
             margin-top: 6px;
             cursor: pointer;
         }
-      .msg-audio {
+     .msg-audio {
             margin-left: 38px;
             margin-top: 6px;
             width: calc(100% - 38px);
         }
-      .reactions {
+     .reactions {
             display: flex;
             gap: 6px;
             margin-left: 38px;
             margin-top: 6px;
             flex-wrap: wrap;
         }
-      .reaction-btn {
+     .reaction-btn {
             width: auto;
             padding: 4px 8px;
             font-size: 13px;
@@ -274,7 +274,7 @@
             border: 1px solid var(--border);
             color: var(--text-color);
         }
-      .reaction-btn.active {
+     .reaction-btn.active {
             background: #667eea;
             color: white;
         }
@@ -285,7 +285,7 @@
             align-items: center;
         }
         #msgInput { flex: 1; margin: 0; }
-      .icon-btn {
+     .icon-btn {
             width: 40px;
             height: 40px;
             padding: 0;
@@ -304,14 +304,14 @@
             max-height: 150px;
             overflow-y: auto;
         }
-      .sticker {
+     .sticker {
             font-size: 32px;
             cursor: pointer;
             padding: 5px;
             display: inline-block;
             transition: transform 0.2s;
         }
-      .sticker:hover { transform: scale(1.2); }
+     .sticker:hover { transform: scale(1.2); }
 
         #replyingTo {
             display: none;
@@ -329,7 +329,7 @@
             color: #ef4444;
         }
 
-      .recording {
+     .recording {
             background: #ef4444!important;
             animation: pulse 1s infinite;
         }
@@ -356,6 +356,7 @@
                 <button id="themeBtn">🌙</button>
                 <button id="logoutBtn">Чиқиш</button>
             </div>
+        </div>
         <div id="onlineList">🟢 Онлайн: </div>
 
         <div id="searchBox">
@@ -667,9 +668,12 @@
             btn.onclick = () => {
                 document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+                currentRoom = `dm_${users[0]}_${users[1]}`;
                 loadMessages();
             };
             document.getElementById('privateRooms').appendChild(btn);
+            document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
             loadMessages();
         };
 
