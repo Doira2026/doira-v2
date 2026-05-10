@@ -134,9 +134,6 @@
      .room-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-     .room-btn.locked::after {
-            content: ' 🔒';
-        }
 
         input {
             width: 100%;
@@ -343,19 +340,7 @@
             color: #ef4444;
         }
 
-        #encryptedBadge {
-            display: none;
-            background: #10b981;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 10px;
-            margin-bottom: 6px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-     .recording {
+    .recording {
             background: #ef4444!important;
             animation: pulse 1s infinite;
         }
@@ -375,7 +360,7 @@
 
     <div id="chat">
         <div class="header-bar">
-            <h1>DOIRA Чат</h1>
+            <h1 id="chatTitle">DOIRA Чат</h1>
             <div class="header-controls">
                 <button id="roomsBtn">💬</button>
                 <button id="searchBtn">🔍</button>
@@ -383,7 +368,6 @@
                 <button id="logoutBtn">Чиқиш</button>
             </div>
         </div>
-        <div id="encryptedBadge">🔒 Махфий чат - шифрланган</div>
         <div id="onlineList">🟢 Онлайн: </div>
 
         <div id="searchBox">
@@ -447,61 +431,8 @@
         let audioChunks = [];
         let messageElements = {};
         let allMessages = {};
-        let encryptionKey = null;
 
-        async function generateKey(roomName) {
-            const encoder = new TextEncoder();
-            const keyMaterial = await crypto.subtle.importKey(
-                'raw',
-                encoder.encode(roomName + 'DOIRA_SECRET_2026'),
-                { name: 'PBKDF2' },
-                false,
-                ['deriveKey']
-            );
-            return crypto.subtle.deriveKey(
-                {
-                    name: 'PBKDF2',
-                    salt: encoder.encode('DOIRA_SALT'),
-                    iterations: 100000,
-                    hash: 'SHA-256'
-                },
-                keyMaterial,
-                { name: 'AES-GCM', length: 256 },
-                false,
-                ['encrypt', 'decrypt']
-            );
-        }
-
-        async function encryptText(text, key) {
-            const encoder = new TextEncoder();
-            const iv = crypto.getRandomValues(new Uint8Array(12));
-            const encrypted = await crypto.subtle.encrypt(
-                { name: 'AES-GCM', iv: iv },
-                key,
-                encoder.encode(text)
-            );
-            const combined = new Uint8Array(iv.length + encrypted.byteLength);
-            combined.set(iv);
-            combined.set(new Uint8Array(encrypted), iv.length);
-            return btoa(String.fromCharCode(...combined));
-        }
-
-        async function decryptText(encryptedData, key) {
-            try {
-                const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
-                const iv = combined.slice(0, 12);
-                const data = combined.slice(12);
-                const decrypted = await crypto.subtle.decrypt(
-                    { name: 'AES-GCM', iv: iv },
-                    key,
-                    data
-                );
-                return new TextDecoder().decode(decrypted);
-            } catch (e) {
-                return '[Шифрланган хабар]';
-            }
-        }
-
+        // ТЕМНЫЙ РЕЖИМ
         if (localStorage.getItem('darkMode') === 'true') {
             document.body.classList.add('dark');
             document.getElementById('themeBtn').textContent = '☀️';
@@ -514,23 +445,32 @@
             document.getElementById('themeBtn').textContent = isDark? '☀️' : '🌙';
         };
 
+        // ХОНАЛАР
         document.getElementById('roomsBtn').onclick = () => {
             const panel = document.getElementById('roomsPanel');
             panel.style.display = panel.style.display === 'none'? 'block' : 'none';
         };
 
         document.querySelectorAll('.room-btn').forEach(btn => {
-            btn.onclick = async () => {
+            btn.onclick = () => {
                 document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 currentRoom = btn.dataset.room;
-                encryptionKey = currentRoom.startsWith('dm_')? await generateKey(currentRoom) : null;
-                document.getElementById('encryptedBadge').style.display = encryptionKey? 'block' : 'none';
+                updateChatTitle();
                 loadMessages();
                 document.getElementById('roomsPanel').style.display = 'none';
             };
         });
 
+        function updateChatTitle() {
+            const title = currentRoom === 'general'? 'DOIRA Чат - Умумий' :
+                         currentRoom === 'random'? 'DOIRA Чат - Суҳбат' :
+                         currentRoom === 'work'? 'DOIRA Чат - Иш' :
+                         `DOIRA Чат - ${currentRoom.replace('dm_', '').replace('_', ' ↔ ')}`;
+            document.getElementById('chatTitle').textContent = title;
+        }
+
+        // ҚИДИРУВ
         document.getElementById('searchBtn').onclick = () => {
             const box = document.getElementById('searchBox');
             box.style.display = box.style.display === 'none'? 'block' : 'none';
@@ -583,6 +523,7 @@
             location.reload();
         };
 
+        // ОНЛАЙН РЎЙХАТ
         function setupOnlineStatus() {
             const userStatusRef = ref(db, `status/${currentUser}`);
             const connectedRef = ref(db, '.info/connected');
@@ -603,20 +544,17 @@
             });
         }
 
-        async function loadMessages() {
+        // ХАБАРЛАРНИ ЮКЛАШ
+        function loadMessages() {
             const messagesRef = ref(db, `rooms/${currentRoom}/messages`);
             document.getElementById('messages').innerHTML = '';
             messageElements = {};
             allMessages = {};
 
-            onChildAdded(messagesRef, async (snapshot) => {
+            onChildAdded(messagesRef, (snapshot) => {
                 const msg = snapshot.val();
                 const msgId = snapshot.key;
                 if (!msg) return;
-
-                if (msg.encrypted && encryptionKey) {
-                    msg.text = await decryptText(msg.text, encryptionKey);
-                }
 
                 allMessages[msgId] = msg;
                 renderMessage(msgId, msg);
@@ -631,13 +569,9 @@
                 }
             });
 
-            onChildChanged(messagesRef, async (snapshot) => {
+            onChildChanged(messagesRef, (snapshot) => {
                 const msg = snapshot.val();
                 const msgId = snapshot.key;
-
-                if (msg.encrypted && encryptionKey) {
-                    msg.text = await decryptText(msg.text, encryptionKey);
-                }
 
                 allMessages[msgId] = msg;
                 if (messageElements[msgId]) {
@@ -699,7 +633,6 @@
                         <button class="msg-btn" onclick="addReaction('${msgId}')">❤️</button>
                         ${isOwn? `<button class="msg-btn" onclick="deleteMessage('${msgId}')">🗑️</button>` : ''}
                     </div>
-                </div>
                 ${content}
                 ${reactionHtml}
             `;
@@ -709,6 +642,7 @@
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
         }
 
+        // REPLY
         window.replyToMessage = (msgId) => {
             const msg = allMessages[msgId];
             replyingTo = msgId;
@@ -722,6 +656,7 @@
             document.getElementById('replyingTo').style.display = 'none';
         };
 
+        // REACTIONS
         window.addReaction = (msgId) => {
             const emoji = prompt('Реакция танланг: ❤️ 👍 😂 🔥 💯', '❤️');
             if (emoji) toggleReaction(msgId, emoji);
@@ -742,7 +677,8 @@
             update(ref(db, `rooms/${currentRoom}/messages/${msgId}`), { reactions });
         };
 
-        window.startPrivateChat = async (otherUser) => {
+        // 1-1 ЧАТ - TELEGRAM'ГА ЎХШАШ
+        window.startPrivateChat = (otherUser) => {
             if (otherUser === currentUser) return;
             const users = [currentUser, otherUser].sort();
             const newRoom = `dm_${users[0]}_${users[1]}`;
@@ -750,20 +686,18 @@
             if (currentRoom === newRoom) return;
 
             currentRoom = newRoom;
-            encryptionKey = await generateKey(currentRoom);
 
             const existingBtn = document.querySelector(`.room-btn[data-room="${currentRoom}"]`);
             if (!existingBtn) {
                 const btn = document.createElement('button');
-                btn.className = 'room-btn active locked';
+                btn.className = 'room-btn active';
                 btn.dataset.room = currentRoom;
                 btn.textContent = `💬 ${otherUser}`;
-                btn.onclick = async () => {
+                btn.onclick = () => {
                     document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     currentRoom = btn.dataset.room;
-                    encryptionKey = await generateKey(currentRoom);
-                    document.getElementById('encryptedBadge').style.display = 'block';
+                    updateChatTitle();
                     loadMessages();
                 };
                 document.getElementById('privateRooms').appendChild(btn);
@@ -772,32 +706,28 @@
             document.querySelectorAll('.room-btn').forEach(b => b.classList.remove('active'));
             const activeBtn = document.querySelector(`.room-btn[data-room="${currentRoom}"]`);
             if (activeBtn) activeBtn.classList.add('active');
-            document.getElementById('encryptedBadge').style.display = 'block';
+            updateChatTitle();
             loadMessages();
         };
 
+        // ХАБАРНИ ЎЧИРИШ
         window.deleteMessage = (msgId) => {
             if (confirm('Хабарни ўчиришни хоҳлайсизми?')) {
                 remove(ref(db, `rooms/${currentRoom}/messages/${msgId}`));
             }
         };
 
-        async function sendMessage() {
+        // ХАБАР ЮБОРИШ
+        function sendMessage() {
             const text = document.getElementById('msgInput').value.trim();
             if (!text ||!currentUser) return;
 
             let msgData = {
                 name: currentUser,
+                text: text,
                 time: serverTimestamp(),
                 type: 'text'
             };
-
-            if (encryptionKey) {
-                msgData.text = await encryptText(text, encryptionKey);
-                msgData.encrypted = true;
-            } else {
-                msgData.text = text;
-            }
 
             if (replyingTo) msgData.replyTo = replyingTo;
 
@@ -818,6 +748,7 @@
             }
         };
 
+        // "ЁЗЯПТИ..." ИНДИКАТОРИ
         document.getElementById('msgInput').oninput = () => {
             set(ref(db, `typing/${currentRoom}/${currentUser}`), true);
             clearTimeout(typingTimeout);
@@ -839,36 +770,32 @@
             });
         }
 
+        // СТИКЕРЛАР
         document.getElementById('stickerBtn').onclick = () => {
             const panel = document.getElementById('stickerPanel');
             panel.style.display = panel.style.display === 'none'? 'block' : 'none';
         };
 
         document.querySelectorAll('.sticker').forEach(sticker => {
-            sticker.onclick = async () => {
+            sticker.onclick = () => {
                 let msgData = {
                     name: currentUser,
+                    text: sticker.textContent,
                     time: serverTimestamp(),
                     type: 'sticker'
                 };
-
-                if (encryptionKey) {
-                    msgData.text = await encryptText(sticker.textContent, encryptionKey);
-                    msgData.encrypted = true;
-                } else {
-                    msgData.text = sticker.textContent;
-                }
 
                 push(ref(db, `rooms/${currentRoom}/messages`), msgData);
                 document.getElementById('stickerPanel').style.display = 'none';
             };
         });
 
+        // РАСМ ЮБОРИШ
         document.getElementById('imgBtn').onclick = () => {
             document.getElementById('fileInput').click();
         };
 
-        document.getElementById('fileInput').onchange = async (e) => {
+        document.getElementById('fileInput').onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
@@ -879,19 +806,13 @@
             }
 
             const reader = new FileReader();
-            reader.onload = async (event) => {
+            reader.onload = (event) => {
                 let msgData = {
                     name: currentUser,
+                    text: event.target.result,
                     time: serverTimestamp(),
                     type: 'image'
                 };
-
-                if (encryptionKey) {
-                    msgData.text = await encryptText(event.target.result, encryptionKey);
-                    msgData.encrypted = true;
-                } else {
-                    msgData.text = event.target.result;
-                }
 
                 push(ref(db, `rooms/${currentRoom}/messages`), msgData);
             };
@@ -899,6 +820,7 @@
             e.target.value = '';
         };
 
+        // ОВОЗЛИ ХАБАР
         document.getElementById('micBtn').onclick = async () => {
             if (mediaRecorder && mediaRecorder.state === 'recording') {
                 mediaRecorder.stop();
@@ -912,7 +834,7 @@
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                mediaRecorder.onstop = async () => {
+                mediaRecorder.onstop = () => {
                     const blob = new Blob(audioChunks, { type: 'audio/webm' });
 
                     if (blob.size > 5 * 1024 * 1024) {
@@ -922,19 +844,13 @@
                     }
 
                     const reader = new FileReader();
-                    reader.onload = async (event) => {
+                    reader.onload = (event) => {
                         let msgData = {
                             name: currentUser,
+                            text: event.target.result,
                             time: serverTimestamp(),
                             type: 'audio'
                         };
-
-                        if (encryptionKey) {
-                            msgData.text = await encryptText(event.target.result, encryptionKey);
-                            msgData.encrypted = true;
-                        } else {
-                            msgData.text = event.target.result;
-                        }
 
                         push(ref(db, `rooms/${currentRoom}/messages`), msgData);
                     };
