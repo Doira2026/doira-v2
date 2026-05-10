@@ -67,13 +67,13 @@
             font-size: 24px;
             font-weight: 600;
         }
-        .subtitle {
+      .subtitle {
             text-align: center;
             margin-bottom: 12px;
             color: #64748b;
             font-size: 13px;
         }
-        .header-bar {
+      .header-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -81,7 +81,7 @@
             gap: 8px;
             flex-shrink: 0;
         }
-        .header-controls {
+      .header-controls {
             display: flex;
             gap: 6px;
         }
@@ -124,17 +124,17 @@
             margin-bottom: 8px;
             flex-shrink: 0;
         }
-        .room-btn {
+      .room-btn {
             width: auto;
             padding: 6px 10px;
             font-size: 12px;
             margin: 3px;
             background: #64748b;
         }
-        .room-btn.active {
+      .room-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        .room-btn.locked::after {
+      .room-btn.locked::after {
             content: ' 🔒';
         }
 
@@ -190,7 +190,7 @@
             flex-shrink: 0;
         }
 
-        .message {
+      .message {
             padding: 9px 12px;
             margin-bottom: 8px;
             background: var(--msg-bg);
@@ -200,7 +200,7 @@
             word-wrap: break-word;
             position: relative;
         }
-        .message.highlight {
+      .message.highlight {
             background: #fef3c7;
             border: 2px solid #f59e0b;
         }
@@ -208,12 +208,12 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .msg-header {
+      .msg-header {
             display: flex;
             align-items: center;
             margin-bottom: 5px;
         }
-        .avatar {
+      .avatar {
             width: 28px;
             height: 28px;
             border-radius: 50%;
@@ -226,21 +226,21 @@
             font-size: 12px;
             margin-right: 7px;
         }
-        .user-name { color: #667eea; font-weight: 600; font-size: 12px; cursor: pointer; }
-        .user-name:hover { text-decoration: underline; }
-        .time { color: #94a3b8; font-size: 9px; margin-left: auto; }
-        .msg-actions {
+      .user-name { color: #667eea; font-weight: 600; font-size: 12px; cursor: pointer; }
+      .user-name:hover { text-decoration: underline; }
+      .time { color: #94a3b8; font-size: 9px; margin-left: auto; }
+      .msg-actions {
             display: flex;
             gap: 5px;
             margin-left: 6px;
         }
-        .msg-btn {
+      .msg-btn {
             width: auto;
             padding: 2px 6px;
             font-size: 10px;
             background: #64748b;
         }
-        .reply-preview {
+      .reply-preview {
             background: rgba(102, 126, 234, 0.1);
             border-left: 3px solid #667eea;
             padding: 5px 8px;
@@ -250,13 +250,13 @@
             font-size: 11px;
             color: #64748b;
         }
-        .msg-text {
+      .msg-text {
             color: var(--text-color);
             font-size: 14px;
             line-height: 1.4;
             margin-left: 35px;
         }
-        .msg-image {
+      .msg-image {
             max-width: 100%;
             max-height: 250px;
             border-radius: 12px;
@@ -264,19 +264,19 @@
             margin-top: 5px;
             cursor: pointer;
         }
-        .msg-audio {
+      .msg-audio {
             margin-left: 35px;
             margin-top: 5px;
             width: calc(100% - 35px);
         }
-        .reactions {
+      .reactions {
             display: flex;
             gap: 5px;
             margin-left: 35px;
             margin-top: 5px;
             flex-wrap: wrap;
         }
-        .reaction-btn {
+      .reaction-btn {
             width: auto;
             padding: 3px 7px;
             font-size: 12px;
@@ -284,7 +284,7 @@
             border: 1px solid var(--border);
             color: var(--text-color);
         }
-        .reaction-btn.active {
+      .reaction-btn.active {
             background: #667eea;
             color: white;
         }
@@ -297,7 +297,7 @@
             padding-top: 5px;
         }
         #msgInput { flex: 1; margin: 0; font-size: 16px; }
-        .icon-btn {
+      .icon-btn {
             width: 38px;
             height: 38px;
             padding: 0;
@@ -317,14 +317,14 @@
             overflow-y: auto;
             flex-shrink: 0;
         }
-        .sticker {
+      .sticker {
             font-size: 30px;
             cursor: pointer;
             padding: 4px;
             display: inline-block;
             transition: transform 0.2s;
         }
-        .sticker:hover { transform: scale(1.2); }
+      .sticker:hover { transform: scale(1.2); }
 
         #replyingTo {
             display: none;
@@ -355,8 +355,8 @@
             flex-shrink: 0;
         }
 
-        .recording {
-            background: #ef4444 !important;
+      .recording {
+            background: #ef4444!important;
             animation: pulse 1s infinite;
         }
         @keyframes pulse {
@@ -482,4 +482,32 @@
                 encoder.encode(text)
             );
             const combined = new Uint8Array(iv.length + encrypted.byteLength);
-            combined
+            combined.set(iv);
+            combined.set(new Uint8Array(encrypted), iv.length);
+            return btoa(String.fromCharCode(...combined));
+        }
+
+        async function decryptText(encryptedData, key) {
+            try {
+                const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+                const iv = combined.slice(0, 12);
+                const data = combined.slice(12);
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: iv },
+                    key,
+                    data
+                );
+                return new TextDecoder().decode(decrypted);
+            } catch (e) {
+                return '[Шифрланган хабар]';
+            }
+        }
+
+        // ТЕМНЫЙ РЕЖИМ
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark');
+            document.getElementById('themeBtn').textContent = '☀️';
+        }
+
+        document.getElementById('themeBtn').onclick = () => {
+            document.body.classList.toggle('dark');
