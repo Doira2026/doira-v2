@@ -235,3 +235,186 @@
         body.dark #addFriendInput { background: #334155; border-color: #475569; color: #e2e8f0; }
     </style>
 </head>
+<body>
+    <!-- LOGIN EKRANI -->
+    <div id="login">
+        <h1>DOIRA</h1>
+        <p>Дўстлар билан бирга-бир суҳбат</p>
+        <img id="avatarPreview" alt="Avatar">
+        <input type="text" id="nameInput" placeholder="Исм-фамилиянгиз" maxlength="30">
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+        <button onclick="document.getElementById('avatarInput').click()">Аватар танлаш</button>
+        <button onclick="login()" style="margin-top: 12px; background: #fff; color: #667eea;">Кириш</button>
+    </div>
+
+    <!-- ЧАТ EKRANI -->
+    <div id="chat" class="container">
+        <div class="header">
+            <div class="header-left">
+                <button class="icon-btn" onclick="toggleFriends()">👥</button>
+                <h2 id="chatTitle">Дўст танланг</h2>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" onclick="toggleDark()">🌙</button>
+            </div>
+        </div>
+
+        <!-- ДЎСТЛАР ПАНЕЛИ -->
+        <div id="friendsPanel">
+            <h3>ДЎСТЛАР</h3>
+            <div id="friendsList"></div>
+            <input type="text" id="addFriendInput" placeholder="Дўст исмини ёзинг">
+            <button id="addFriendBtn">Дўст қўшиш</button>
+        </div>
+
+        <!-- ХАБАРЛАР -->
+        <div id="messages">
+            <div class="empty-state">Чап тепадаги 👥 тугмани босиб, дўст қўшинг ва суҳбатни бошланг</div>
+        </div>
+
+        <!-- ЁЗИШ ЖОЙИ -->
+        <div class="input-area">
+            <button class="input-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+            <textarea id="msgInput" placeholder="Хабар ёзинг..." rows="1"></textarea>
+            <button class="input-btn" id="sendBtn">➤</button>
+            <input type="file" id="fileInput" accept="image/*,audio/*">
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getDatabase, ref, push, onValue, set, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+        import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDbsDFe8L_v-H_dKCv5m3rYWUOnymKJi14",
+            authDomain: "doira-chat-2026.firebaseapp.com",
+            databaseURL: "https://doira-chat-2026-default-rtdb.firebaseio.com",
+            projectId: "doira-chat-2026",
+            storageBucket: "doira-chat-2026.firebasestorage.app",
+            messagingSenderId: "24569627793",
+            appId: "1:24569627793:web:b1a8acb36d17adc180ab30"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const messaging = getMessaging(app);
+
+        let currentUser = '';
+        let currentUserAvatar = '';
+        let currentRoom = '';
+        let friends = [];
+
+        // AVATAR
+        document.getElementById('avatarInput').onchange = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                currentUserAvatar = ev.target.result;
+                document.getElementById('avatarPreview').src = currentUserAvatar;
+                document.getElementById('avatarPreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // LOGIN
+        window.login = () => {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) return alert('Исм киритинг');
+            currentUser = name;
+            localStorage.setItem('doiraUser', name);
+            if (currentUserAvatar) localStorage.setItem('doiraAvatar', currentUserAvatar);
+            showChat();
+        };
+
+        function showChat() {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('chat').style.display = 'flex';
+            loadFriends();
+            requestNotificationPermission();
+        }
+
+        // DARK MODE
+        window.toggleDark = () => {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('doiraDark', document.body.classList.contains('dark'));
+        };
+        if (localStorage.getItem('doiraDark') === 'true') document.body.classList.add('dark');
+
+        // FRIENDS
+        window.toggleFriends = () => {
+            const panel = document.getElementById('friendsPanel');
+            panel.style.display = panel.style.display === 'block'? 'none' : 'block';
+        };
+
+        function loadFriends() {
+            onValue(ref(db, `users/${currentUser}/friends`), (snapshot) => {
+                friends = [];
+                const list = document.getElementById('friendsList');
+                list.innerHTML = '';
+                snapshot.forEach(child => {
+                    const friendName = child.key;
+                    friends.push(friendName);
+                    const btn = document.createElement('button');
+                    btn.className = 'friend-btn';
+                    btn.innerHTML = `💬 ${friendName}`;
+                    btn.onclick = () => openDM(friendName);
+                    if (currentRoom === getDMRoom(friendName)) btn.classList.add('active');
+                    list.appendChild(btn);
+                });
+            });
+        }
+
+        document.getElementById('addFriendBtn').onclick = () => {
+            const friendName = document.getElementById('addFriendInput').value.trim();
+            if (!friendName || friendName === currentUser) return alert('Тўғри исм киритинг');
+            set(ref(db, `users/${currentUser}/friends/${friendName}`), true);
+            set(ref(db, `users/${friendName}/friends/${currentUser}`), true);
+            document.getElementById('addFriendInput').value = '';
+            openDM(friendName);
+        };
+
+        function getDMRoom(otherUser) {
+            const users = [currentUser, otherUser].sort();
+            return `dm_${users[0]}_${users[1]}`;
+        }
+
+        function openDM(otherUser) {
+            currentRoom = getDMRoom(otherUser);
+            document.getElementById('chatTitle').textContent = otherUser;
+            document.getElementById('friendsPanel').style.display = 'none';
+            loadMessages();
+            loadFriends(); // active класс учун
+        }
+
+        // MESSAGES
+        function loadMessages() {
+            if (!currentRoom) {
+                document.getElementById('messages').innerHTML = '<div class="empty-state">Дўст танлаб, суҳбатни бошланг 💬</div>';
+                return;
+            }
+            onValue(ref(db, `dms/${currentRoom}`), (snapshot) => {
+                const msgs = document.getElementById('messages');
+                msgs.innerHTML = '';
+                snapshot.forEach(child => {
+                    const m = child.val();
+                    const div = document.createElement('div');
+                    div.className = `msg ${m.user === currentUser? 'me' : ''}`;
+
+                    let content = '';
+                    if (m.avatar) content += `<img src="${m.avatar}" class="msg-avatar">`;
+                    content += `<div class="msg-content">`;
+                    if (m.user!== currentUser) content += `<div class="msg-name">${m.user}</div>`;
+                    if (m.text) content += `<div class="msg-text">${m.text}</div>`;
+                    if (m.image) content += `<img src="${m.image}">`;
+                    if (m.audio) content += `<audio controls src="${m.audio}"></audio>`;
+                    content += `<div class="msg-time">${new Date(m.time).toLocaleTimeString('uz-UZ', {hour:'2-digit',minute:'2-digit'})}</div>`;
+                    content += `</div>`;
+
+                    div.innerHTML = content;
+                    msgs.appendChild(div);
+                });
+                msgs.scrollTop = msgs.scrollHeight;
+            });
+        }
