@@ -273,12 +273,14 @@
         </div>
 
         <!-- ЁЗИШ ЖОЙИ -->
-        <div class="input-area">
-            <button class="input-btn" onclick="document.getElementById('fileInput').click()">📎</button>
-            <textarea id="msgInput" placeholder="Хабар ёзинг..." rows="1"></textarea>
-            <button class="input-btn" id="sendBtn">➤</button>
-            <input type="file" id="fileInput" accept="image/*,audio/*">
-        </div>
+     <div class="input-area">
+    <button class="input-btn" onclick="toggleStickers()">😊</button>
+    <button class="input-btn" onclick="toggleVoice()">🎤</button>
+    <button class="input-btn" onclick="document.getElementById('fileInput').click()">📎</button>
+    <textarea id="msgInput" placeholder="Хабар ёзинг..." rows="1"></textarea>
+    <button class="input-btn" id="sendBtn">➤</button>
+    <input type="file" id="fileInput" accept="image/*">
+</div>  
     </div>
 
     <script type="module">
@@ -319,20 +321,31 @@
         };
 
         // LOGIN
+     // LOGIN - энди user'ни базага ёзамиз
         window.login = () => {
             const name = document.getElementById('nameInput').value.trim();
             if (!name) return alert('Исм киритинг');
             currentUser = name;
             localStorage.setItem('doiraUser', name);
             if (currentUserAvatar) localStorage.setItem('doiraAvatar', currentUserAvatar);
+            // User'ни Firebase'га ёз. Шунда бошқалар кўради
+            set(ref(db, `users/${currentUser}/info`), {
+                name: currentUser,
+                avatar: currentUserAvatar || '',
+                online: Date.now()
+            });
             showChat();
         };
 
         function showChat() {
             document.getElementById('login').style.display = 'none';
             document.getElementById('chat').style.display = 'flex';
-            loadFriends();
+            loadAllUsers(); // Дўст қўшиш эмас, бор user'ларни чиқарамиз
             requestNotificationPermission();
+            // Ҳар 30 секундда online эканимни айтаман
+            setInterval(() => {
+                set(ref(db, `users/${currentUser}/info/online`), Date.now());
+            }, 30000);
         }
 
         // DARK MODE
@@ -342,38 +355,34 @@
         };
         if (localStorage.getItem('doiraDark') === 'true') document.body.classList.add('dark');
 
-        // FRIENDS
+        // FRIENDS - Энди "Дўст қўшиш" йўқ. Бор одамларни чиқарамиз
         window.toggleFriends = () => {
             const panel = document.getElementById('friendsPanel');
             panel.style.display = panel.style.display === 'block'? 'none' : 'block';
         };
 
-        function loadFriends() {
-            onValue(ref(db, `users/${currentUser}/friends`), (snapshot) => {
-                friends = [];
+        function loadAllUsers() {
+            onValue(ref(db, 'users'), (snapshot) => {
                 const list = document.getElementById('friendsList');
-                list.innerHTML = '';
+                list.innerHTML = '<h3>ЧАТДАГИЛАР</h3>';
                 snapshot.forEach(child => {
-                    const friendName = child.key;
-                    friends.push(friendName);
+                    const userName = child.key;
+                    if (userName === currentUser) return; // Ўзимни чиқарма
+                    const userData = child.val().info || {};
                     const btn = document.createElement('button');
                     btn.className = 'friend-btn';
-                    btn.innerHTML = `💬 ${friendName}`;
-                    btn.onclick = () => openDM(friendName);
-                    if (currentRoom === getDMRoom(friendName)) btn.classList.add('active');
+                    const isOnline = userData.online && Date.now() - userData.online < 60000; // 1 дақиқа
+                    btn.innerHTML = `
+                        ${userData.avatar? `<img src="${userData.avatar}" style="width:24px;height:24px;border-radius:50%;">` : '👤'}
+                        ${userName}
+                        <span style="margin-left:auto;font-size:10px;color:${isOnline?'#22c55e':'#9ca3af'}">${isOnline?'● online':''}</span>
+                    `;
+                    btn.onclick = () => openDM(userName);
+                    if (currentRoom === getDMRoom(userName)) btn.classList.add('active');
                     list.appendChild(btn);
                 });
             });
         }
-
-        document.getElementById('addFriendBtn').onclick = () => {
-            const friendName = document.getElementById('addFriendInput').value.trim();
-            if (!friendName || friendName === currentUser) return alert('Тўғри исм киритинг');
-            set(ref(db, `users/${currentUser}/friends/${friendName}`), true);
-            set(ref(db, `users/${friendName}/friends/${currentUser}`), true);
-            document.getElementById('addFriendInput').value = '';
-            openDM(friendName);
-        };
 
         function getDMRoom(otherUser) {
             const users = [currentUser, otherUser].sort();
@@ -385,13 +394,13 @@
             document.getElementById('chatTitle').textContent = otherUser;
             document.getElementById('friendsPanel').style.display = 'none';
             loadMessages();
-            loadFriends(); // active класс учун
+            loadAllUsers();
         }
 
         // MESSAGES
         function loadMessages() {
             if (!currentRoom) {
-                document.getElementById('messages').innerHTML = '<div class="empty-state">Дўст танлаб, суҳбатни бошланг 💬</div>';
+                document.getElementById('messages').innerHTML = '<div class="empty-state">Чап тепадаги 👥 тугмани босиб, одам танла 💬</div>';
                 return;
             }
             onValue(ref(db, `dms/${currentRoom}`), (snapshot) => {
@@ -401,7 +410,6 @@
                     const m = child.val();
                     const div = document.createElement('div');
                     div.className = `msg ${m.user === currentUser? 'me' : ''}`;
-
                     let content = '';
                     if (m.avatar) content += `<img src="${m.avatar}" class="msg-avatar">`;
                     content += `<div class="msg-content">`;
@@ -409,16 +417,17 @@
                     if (m.text) content += `<div class="msg-text">${m.text}</div>`;
                     if (m.image) content += `<img src="${m.image}">`;
                     if (m.audio) content += `<audio controls src="${m.audio}"></audio>`;
+                    if (m.sticker) content += `<div style="font-size:48px;">${m.sticker}</div>`;
                     content += `<div class="msg-time">${new Date(m.time).toLocaleTimeString('uz-UZ', {hour:'2-digit',minute:'2-digit'})}</div>`;
                     content += `</div>`;
-
                     div.innerHTML = content;
                     msgs.appendChild(div);
                 });
                 msgs.scrollTop = msgs.scrollHeight;
             });
         }
- // SEND MESSAGE
+
+        // SEND MESSAGE
         document.getElementById('sendBtn').onclick = sendMessage;
         document.getElementById('msgInput').onkeypress = (e) => {
             if (e.key === 'Enter' &&!e.shiftKey) {
@@ -428,7 +437,7 @@
         };
 
         function sendMessage() {
-            if (!currentRoom) return alert('Аввал дўст танланг');
+            if (!currentRoom) return alert('Аввал 👥 босиб одам танланг');
             const text = document.getElementById('msgInput').value.trim();
             const file = document.getElementById('fileInput').files[0];
             if (!text &&!file) return;
@@ -446,23 +455,85 @@
                     if (file.type.startsWith('image/')) msg.image = e.target.result;
                     if (file.type.startsWith('audio/')) msg.audio = e.target.result;
                     push(ref(db, `dms/${currentRoom}`), msg);
-                    sendPushToFriend(text || 'Файл юборди');
                 };
                 reader.readAsDataURL(file);
             } else {
                 push(ref(db, `dms/${currentRoom}`), msg);
-                sendPushToFriend(text);
             }
 
             document.getElementById('msgInput').value = '';
             document.getElementById('fileInput').value = '';
+            document.getElementById('msgInput').style.height = 'auto';
         }
+
+        // ОВОЗЛИ ХАБАР
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        window.toggleVoice = async () => {
+            if (!currentRoom) return alert('Аввал одам танланг');
+            if (!isRecording) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        push(ref(db, `dms/${currentRoom}`), {
+                            user: currentUser,
+                            avatar: currentUserAvatar,
+                            audio: e.target.result,
+                            time: Date.now()
+                        });
+                    };
+                    reader.readAsDataURL(audioBlob);
+                    audioChunks = [];
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                document.querySelector('.input-btn[onclick="toggleVoice()"]').style.background = '#ef4444';
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                document.querySelector('.input-btn[onclick="toggleVoice()"]').style.background = '#667eea';
+            }
+        };
+
+        // СТИКЕРЛАР
+        window.toggleStickers = () => {
+            let panel = document.getElementById('stickerPanel');
+            if (!panel) {
+                panel = document.createElement('div');
+                panel.id = 'stickerPanel';
+                panel.style.cssText = 'position:absolute;bottom:70px;left:12px;background:#fff;padding:12px;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,0.2);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;';
+                const stickers = ['😂','❤️','👍','🔥','😍','😢','😡','🎉','💯','👏','🤔','😎'];
+                stickers.forEach(s => {
+                    const btn = document.createElement('button');
+                    btn.textContent = s;
+                    btn.style.cssText = 'font-size:32px;border:none;background:none;cursor:pointer;';
+                    btn.onclick = () => {
+                        if (!currentRoom) return alert('Аввал одам танланг');
+                        push(ref(db, `dms/${currentRoom}`), {
+                            user: currentUser,
+                            avatar: currentUserAvatar,
+                            sticker: s,
+                            time: Date.now()
+                        });
+                        panel.remove();
+                    };
+                    panel.appendChild(btn);
+                });
+                document.querySelector('.input-area').appendChild(panel);
+            } else {
+                panel.remove();
+            }
+        };
 
         // FILE INPUT
         document.getElementById('fileInput').onchange = () => {
-            if (document.getElementById('fileInput').files[0]) {
-                sendMessage();
-            }
+            if (document.getElementById('fileInput').files[0]) sendMessage();
         };
 
         // AUTO RESIZE TEXTAREA
@@ -475,36 +546,19 @@
         function requestNotificationPermission() {
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
-                    // VAPID KEY'ни бу ерга қўясан. Ҳозирча бўш турсин
                     getToken(messaging, { vapidKey: 'BU_YERGA_VAPID_KEY_ЁЗАСАН' }).then((token) => {
-                        if (token) {
-                            set(ref(db, `users/${currentUser}/fcmToken`), token);
-                            console.log('FCM Token:', token);
-                        }
-                    }).catch((err) => console.log('Token олишда хато:', err));
+                        if (token) set(ref(db, `users/${currentUser}/info/fcmToken`), token);
+                    });
                 }
             });
         }
 
-        // Илова очиқ турганда келган push'ни кўрсат
         onMessage(messaging, (payload) => {
             new Notification(payload.notification.title, {
                 body: payload.notification.body,
                 icon: '/icon-192.png'
             });
         });
-
-        // Дўстга push юбориш учун
-        function sendPushToFriend(messageText) {
-            const otherUser = currentRoom.replace('dm_', '').replace(currentUser, '').replace('_', '');
-            get(ref(db, `users/${otherUser}/fcmToken`)).then((snapshot) => {
-                const token = snapshot.val();
-                if (!token) return;
-                // Бу жойда сервер керак. Ҳозирча фақат илова очиқ турганда ишлайди.
-                // Тўлиқ push учун Firebase Functions ёзиш керак.
-                console.log('Push юбориш керак:', otherUser, messageText);
-            });
-        }
 
         // AUTO LOGIN
         window.onload = () => {
@@ -522,10 +576,9 @@
             }
         };
 
-        // PWA
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.js');
         }
-    </script>
+    </script>  
 </body>
 </html>
