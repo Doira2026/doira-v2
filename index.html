@@ -418,3 +418,114 @@
                 msgs.scrollTop = msgs.scrollHeight;
             });
         }
+ // SEND MESSAGE
+        document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('msgInput').onkeypress = (e) => {
+            if (e.key === 'Enter' &&!e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        };
+
+        function sendMessage() {
+            if (!currentRoom) return alert('Аввал дўст танланг');
+            const text = document.getElementById('msgInput').value.trim();
+            const file = document.getElementById('fileInput').files[0];
+            if (!text &&!file) return;
+
+            const msg = {
+                user: currentUser,
+                text: text,
+                time: Date.now()
+            };
+            if (currentUserAvatar) msg.avatar = currentUserAvatar;
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (file.type.startsWith('image/')) msg.image = e.target.result;
+                    if (file.type.startsWith('audio/')) msg.audio = e.target.result;
+                    push(ref(db, `dms/${currentRoom}`), msg);
+                    sendPushToFriend(text || 'Файл юборди');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                push(ref(db, `dms/${currentRoom}`), msg);
+                sendPushToFriend(text);
+            }
+
+            document.getElementById('msgInput').value = '';
+            document.getElementById('fileInput').value = '';
+        }
+
+        // FILE INPUT
+        document.getElementById('fileInput').onchange = () => {
+            if (document.getElementById('fileInput').files[0]) {
+                sendMessage();
+            }
+        };
+
+        // AUTO RESIZE TEXTAREA
+        document.getElementById('msgInput').oninput = (e) => {
+            e.target.style.height = 'auto';
+            e.target.style.height = e.target.scrollHeight + 'px';
+        };
+
+        // PUSH NOTIFICATION
+        function requestNotificationPermission() {
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    // VAPID KEY'ни бу ерга қўясан. Ҳозирча бўш турсин
+                    getToken(messaging, { vapidKey: 'BU_YERGA_VAPID_KEY_ЁЗАСАН' }).then((token) => {
+                        if (token) {
+                            set(ref(db, `users/${currentUser}/fcmToken`), token);
+                            console.log('FCM Token:', token);
+                        }
+                    }).catch((err) => console.log('Token олишда хато:', err));
+                }
+            });
+        }
+
+        // Илова очиқ турганда келган push'ни кўрсат
+        onMessage(messaging, (payload) => {
+            new Notification(payload.notification.title, {
+                body: payload.notification.body,
+                icon: '/icon-192.png'
+            });
+        });
+
+        // Дўстга push юбориш учун
+        function sendPushToFriend(messageText) {
+            const otherUser = currentRoom.replace('dm_', '').replace(currentUser, '').replace('_', '');
+            get(ref(db, `users/${otherUser}/fcmToken`)).then((snapshot) => {
+                const token = snapshot.val();
+                if (!token) return;
+                // Бу жойда сервер керак. Ҳозирча фақат илова очиқ турганда ишлайди.
+                // Тўлиқ push учун Firebase Functions ёзиш керак.
+                console.log('Push юбориш керак:', otherUser, messageText);
+            });
+        }
+
+        // AUTO LOGIN
+        window.onload = () => {
+            const savedName = localStorage.getItem('doiraUser');
+            const savedAvatar = localStorage.getItem('doiraAvatar');
+            if (savedName) {
+                currentUser = savedName;
+                currentUserAvatar = savedAvatar || '';
+                document.getElementById('nameInput').value = currentUser;
+                if (currentUserAvatar) {
+                    document.getElementById('avatarPreview').src = currentUserAvatar;
+                    document.getElementById('avatarPreview').style.display = 'block';
+                }
+                showChat();
+            }
+        };
+
+        // PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js');
+        }
+    </script>
+</body>
+</html>
