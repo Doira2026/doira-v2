@@ -320,10 +320,9 @@ body.dark .friend-btn:hover {
             </div>
             <div class="header-right">
                 <button class="icon-btn" onclick="toggleDark()">🌙</button>
-            </div>
-        </div>
-
-        <!-- ДЎСТЛАР ПАНЕЛИ -->
+                     <button class="icon-btn" onclick="changeName()">👤</button>
+  </div>
+                  <!-- ДЎСТЛАР ПАНЕЛИ -->
         <div id="friendsPanel">
             <h3>ДЎСТЛАР</h3>
             <div id="friendsList"></div>
@@ -366,6 +365,28 @@ body.dark .friend-btn:hover {
         const messaging = getMessaging(app);
 
         let currentUser = '';
+    window.changeName = function() {
+    const user = auth.currentUser;
+    if (!user) {
+        alert('Аввал кириш керак');
+        return;
+    }
+    
+    const currentName = user.displayName || localStorage.getItem('displayName') || 'User';
+    const newName = prompt("Янги исм киритинг:", currentName);
+    
+    if (newName && newName.trim() !== '' && newName !== currentName) {
+        user.updateProfile({ displayName: newName.trim() }).then(() => {
+            localStorage.setItem('displayName', newName.trim());
+            set(ref(db, 'users/' + user.uid + '/name'), newName.trim());
+            document.getElementById('chatTitle').textContent = newName.trim();
+            alert('Исм ўзгартирилди: ' + newName.trim());
+            location.reload();
+        }).catch((error) => {
+            alert('Хатолик: ' + error.message);
+        });
+    }
+}
         let currentUserAvatar = '';
         let currentRoom = '';
         let friends = [];
