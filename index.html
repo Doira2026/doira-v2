@@ -94,7 +94,7 @@
     top: 60px;
     left: 0;
     width: 280px;
-    height: calc(100vh - 60px);
+    height: calc(100dvh - 60px);
     background: #fff;
     border-right: 1px solid #e5e7eb;
     padding: 16px;
@@ -419,9 +419,12 @@ body.dark .friend-btn:hover {
                         ${userName}
                         <span style="margin-left:auto;font-size:10px;color:${isOnline?'#22c55e':'#9ca3af'}">${isOnline?'● online':''}</span>
                     `;
-                    btn.onclick = () => openDM(userName);
-                    if (currentRoom === getDMRoom(userName)) btn.classList.add('active');
-                    list.appendChild(btn);
+                   btn.onclick = () => { 
+    openDM(userName); 
+    friendsPanel.style.display = 'none'; // Панель ёпилади
+};
+if (currentRoom === getDMRoom(userName)) btn.classList.add('active')
+list.appendChild(btn);
                 });
             });
         }
