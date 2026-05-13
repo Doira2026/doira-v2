@@ -368,7 +368,7 @@ body.dark .friend-btn:hover {
     window.changeName = function() {
     const user = auth.currentUser;
     if (!user) {
-        alert('Аввал кириш керак');
+        alert('Аввал Google орқали кириш керак');
         return;
     }
     
@@ -378,7 +378,7 @@ body.dark .friend-btn:hover {
     if (newName && newName.trim() !== '' && newName !== currentName) {
         user.updateProfile({ displayName: newName.trim() }).then(() => {
             localStorage.setItem('displayName', newName.trim());
-            set(ref(db, 'users/' + user.uid + '/name'), newName.trim());
+            // Firebase га ёзмаймиз ҳозирча, фақат локал ўзгаради
             document.getElementById('chatTitle').textContent = newName.trim();
             alert('Исм ўзгартирилди: ' + newName.trim());
             location.reload();
