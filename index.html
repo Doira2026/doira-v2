@@ -276,6 +276,27 @@ body.dark .friend-btn:hover {
         body.dark #friendsPanel { background: #1e293b; border-bottom-color: #334155; }
         body.dark .friend-btn { background: #334155; color: #e2e8f0; }
         body.dark #addFriendInput { background: #334155; border-color: #475569; color: #e2e8f0; }
+        /* Ёзиш жойи доим пастда турсин */
+#chat > div:last-child {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 100 !important;
+    background: #fff !important;
+}
+
+@media (max-width: 500px) {
+    #chat > div:last-child {
+        position: fixed !important;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-width: 440px;
+        margin: 0 auto;
+    }
+    #messages {
+        padding-bottom: 70px !important;
+    }
+}
     </style>
 </head>
 <body>
