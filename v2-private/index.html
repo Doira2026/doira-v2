@@ -3,26 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOIRA Чат - 1-1 ТЕСТ</title>
+  <title>DOIRA Чат - 1-1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    @media (max-width: 768px) {
+     .sidebar { width: 100%!important; position: absolute; z-index: 40; height: 100%; }
+     .chat-area { width: 100%!important; }
+     .hidden-mobile { display: none!important; }
+    }
     #userList { height: calc(100vh - 60px); overflow-y: auto; }
-    #messages { height: calc(100vh - 120px); overflow-y: auto; }
+    #messages { height: calc(100vh - 140px); overflow-y: auto; }
+   .sticker { font-size: 3rem; cursor: pointer; }
   </style>
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden">
 
-  <!-- Исм сўраш ойнаси -->
+  <!-- Исм сўраш -->
   <div id="loginBox" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-lg shadow-lg">
-      <h2 class="text-2xl font-bold mb-4">DOIRA Чатга кириш</h2>
-      <input id="nameInput" type="text" placeholder="Исмингизни ёзинг..." class="border px-4 py-2 rounded w-64 mb-4">
-      <button id="loginBtn" type="button" class="bg-blue-600 text-white px-6 py-2 rounded w-full">Кириш</button>
+    <div class="bg-white p-8 rounded-lg shadow-lg w-11/12 max-w-sm">
+      <h2 class="text-2xl font-bold mb-4 text-center">DOIRA Чат</h2>
+      <input id="nameInput" type="text" placeholder="Исмингизни ёзинг..." class="border px-4 py-2 rounded w-full mb-4">
+      <button id="loginBtn" type="button" class="bg-blue-600 text-white px-6 py-2 rounded w-full active:bg-blue-700">Кириш</button>
     </div>
   </div>
 
   <!-- ЧАП: Юзерлар -->
-  <div class="w-1/3 bg-white border-r flex flex-col">
+  <div id="sidebar" class="sidebar w-1/3 bg-white border-r flex flex-col md:relative">
     <div class="bg-blue-600 text-white p-4 font-bold text-lg flex justify-between items-center">
       <span>DOIRA Чат</span>
       <button onclick="logout()" type="button" class="text-sm bg-red-500 px-3 py-1 rounded">Чиқиш</button>
@@ -31,18 +37,41 @@
   </div>
 
   <!-- ЎНГ: Чат -->
-  <div class="w-2/3 flex flex-col">
-    <div id="chatHeader" class="bg-white p-4 border-b font-semibold">Суҳбатдош танланг</div>
+  <div id="chatArea" class="chat-area w-2/3 flex flex-col hidden-mobile md:flex">
+    <div id="chatHeader" class="bg-white p-4 border-b font-semibold flex items-center gap-3">
+      <button onclick="backToUsers()" class="md:hidden text-blue-600">← Орқага</button>
+      <span id="chatUserName">Суҳбатдош танланг</span>
+    </div>
     <div id="messages" class="flex-1 p-4 bg-gray-50"></div>
-    <div class="bg-white p-4 border-t flex gap-2">
-      <input id="msgInput" type="text" placeholder="Хабар ёзинг..." class="flex-1 border rounded-lg px-4 py-2">
-      <button onclick="sendMsg()" type="button" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Юбориш</button>
+
+    <!-- Стикерлар панели -->
+    <div id="stickerPanel" class="hidden bg-white border-t p-2 flex gap-2 overflow-x-auto">
+      <span class="sticker" onclick="sendSticker('😂')">😂</span>
+      <span class="sticker" onclick="sendSticker('❤️')">❤️</span>
+      <span class="sticker" onclick="sendSticker('👍')">👍</span>
+      <span class="sticker" onclick="sendSticker('🔥')">🔥</span>
+      <span class="sticker" onclick="sendSticker('😍')">😍</span>
+      <span class="sticker" onclick="sendSticker('😢')">😢</span>
+      <span class="sticker" onclick="sendSticker('🎉')">🎉</span>
+      <span class="sticker" onclick="sendSticker('💯')">💯</span>
+    </div>
+
+    <div class="bg-white p-2 md:p-4 border-t flex gap-1 md:gap-2 items-center">
+      <button onclick="toggleStickers()" type="button" class="text-2xl">😊</button>
+      <button onclick="document.getElementById('imgInput').click()" type="button" class="text-2xl">📷</button>
+      <input id="imgInput" type="file" accept="image/*" class="hidden" onchange="sendImage(event)">
+
+      <button id="micBtn" type="button" class="text-2xl" onmousedown="startRecord()" onmouseup="stopRecord()" ontouchstart="startRecord()" ontouchend="stopRecord()">🎤</button>
+
+      <input id="msgInput" type="text" placeholder="Хабар ёзинг..." class="flex-1 border rounded-lg px-3 py-2 text-sm md:text-base">
+      <button onclick="sendMsg()" type="button" class="bg-blue-600 text-white px-4 md:px-6 py-2 rounded-lg">Юбориш</button>
     </div>
   </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBneK7bIHL_eNezkLIDNe04xdQCeFLI3ok",
@@ -55,14 +84,17 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
+  const storage = getStorage(app);
 
   let currentUser = null;
   let currentChatUser = null;
   let unsubscribeMessages = null;
-  let unsubscribeUsers = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
 
-  // Кнопка ва Enter ишлаши учун
+  // Телефонда ҳам ишлаши учун
   document.getElementById('loginBtn').addEventListener('click', startChat);
+  document.getElementById('loginBtn').addEventListener('touchend', startChat);
   document.getElementById('nameInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') startChat();
   });
@@ -70,7 +102,6 @@
     if (e.key === 'Enter') sendMsg();
   });
 
-  // Аввалги сессияни текшир
   const savedName = localStorage.getItem('doira_name');
   if (savedName) {
     document.getElementById('nameInput').value = savedName;
@@ -80,27 +111,21 @@
   async function startChat() {
     const name = document.getElementById('nameInput').value.trim();
     if (!name) return alert('Исм ёзинг');
-    
+
     const uid = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
     currentUser = { uid: uid, name: name };
-    
-    await setDoc(doc(db, 'users', uid), { 
-      uid: uid, 
-      name: name, 
-      online: true,
-      lastSeen: serverTimestamp()
+
+    await setDoc(doc(db, 'users', uid), {
+      uid: uid, name: name, online: true, lastSeen: serverTimestamp()
     });
-    
+
     localStorage.setItem('doira_name', name);
     document.getElementById('loginBox').style.display = 'none';
-    document.getElementById('chatHeader').innerText = "Хуш келибсан: " + name;
     loadUsers();
   }
 
   function loadUsers() {
-    if (unsubscribeUsers) unsubscribeUsers();
     const usersRef = collection(db, 'users');
-    
     unsubscribeUsers = onSnapshot(usersRef, (snapshot) => {
       const list = document.getElementById('userList');
       list.innerHTML = '';
@@ -120,44 +145,103 @@
 
   window.openChat = (uid, name) => {
     currentChatUser = uid;
-    document.getElementById('chatHeader').innerText = name;
+    document.getElementById('chatUserName').innerText = name;
+    if (window.innerWidth < 768) {
+      document.getElementById('sidebar').classList.add('hidden-mobile');
+      document.getElementById('chatArea').classList.remove('hidden-mobile');
+    }
     loadMessages(uid);
+  }
+
+  window.backToUsers = () => {
+    document.getElementById('sidebar').classList.remove('hidden-mobile');
+    document.getElementById('chatArea').classList.add('hidden-mobile');
   }
 
   function loadMessages(otherUid) {
     if (unsubscribeMessages) unsubscribeMessages();
     const chatId = [currentUser.uid, otherUid].sort().join('_');
     const q = query(collection(db, 'private_messages', chatId, 'messages'), orderBy('time'));
-    
+
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
       const msgBox = document.getElementById('messages');
       msgBox.innerHTML = '';
       snapshot.forEach(doc => {
         const m = doc.data();
         const isMe = m.from === currentUser.uid;
-        msgBox.innerHTML += `
-          <div class="mb-2 flex ${isMe ? 'justify-end' : 'justify-start'}">
-            <span class="px-4 py-2 rounded-lg max-w-xs ${isMe ? 'bg-blue-600 text-white' : 'bg-gray-200'}">${m.text}</span>
-          </div>
-        `;
+        let content = '';
+
+        if (m.type === 'image') {
+          content = `<img src="${m.url}" class="max-w-[200px] rounded-lg">`;
+        } else if (m.type === 'audio') {
+          content = `<audio controls src="${m.url}" class="max-w-[200px]"></audio>`;
+        } else if (m.type === 'sticker') {
+          content = `<span class="text-5xl">${m.text}</span>`;
+        } else {
+          content = `<span class="px-3 py-2 rounded-lg max-w-[70%] text-sm ${isMe? 'bg-blue-600 text-white' : 'bg-gray-200'}">${m.text}</span>`;
+        }
+
+        msgBox.innerHTML += `<div class="mb-2 flex ${isMe? 'justify-end' : 'justify-start'}">${content}</div>`;
       });
       msgBox.scrollTop = msgBox.scrollHeight;
+    });
+  }
+
+  async function sendToFirestore(data) {
+    if (!currentChatUser) return alert('Аввал суҳбатдош танланг');
+    const chatId = [currentUser.uid, currentChatUser].sort().join('_');
+    await addDoc(collection(db, 'private_messages', chatId, 'messages'), {
+      from: currentUser.uid, fromName: currentUser.name, time: serverTimestamp(),...data
     });
   }
 
   window.sendMsg = async () => {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
-    if (!text || !currentChatUser) return alert('Аввал чапдан суҳбатдош танланг');
-    
-    const chatId = [currentUser.uid, currentChatUser].sort().join('_');
-    await addDoc(collection(db, 'private_messages', chatId, 'messages'), {
-      from: currentUser.uid,
-      fromName: currentUser.name,
-      text: text,
-      time: serverTimestamp()
-    });
+    if (!text) return;
+    await sendToFirestore({ type: 'text', text: text });
     input.value = '';
+  }
+
+  window.toggleStickers = () => {
+    document.getElementById('stickerPanel').classList.toggle('hidden');
+  }
+
+  window.sendSticker = async (emoji) => {
+    await sendToFirestore({ type: 'sticker', text: emoji });
+    document.getElementById('stickerPanel').classList.add('hidden');
+  }
+
+  window.sendImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const storageRef = ref(storage, `chat_images/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(storageRef);
+    await sendToFirestore({ type: 'image', url: url });
+    e.target.value = '';
+  }
+
+  window.startRecord = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.start();
+    document.getElementById('micBtn').classList.add('text-red-500');
+  }
+
+  window.stopRecord = async () => {
+    if (!mediaRecorder) return;
+    mediaRecorder.stop();
+    mediaRecorder.onstop = async () => {
+      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const storageRef = ref(storage, `chat_audio/${Date.now()}.webm`);
+      await uploadBytes(storageRef, audioBlob);
+      const url = await getDownloadURL(storageRef);
+      await sendToFirestore({ type: 'audio', url: url });
+      document.getElementById('micBtn').classList.remove('text-red-500');
+    };
   }
 
   window.logout = async () => {
