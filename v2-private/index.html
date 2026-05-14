@@ -32,49 +32,91 @@
       </div>
     </div>
   </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-  <script>
-    // Тест юзерлар - кейин Firebase дан оламиз
-    const users = [
-      { id: 1, name: "Алишер" },
-      { id: 2, name: "Бекзод" },
-      { id: 3, name: "Дилдора" },
-      { id: 4, name: "Усмон" }
-    ];
-    
-    let currentChat = null;
-    
-    function renderUsers() {
+  // БУ ЖОЙНИ КЕЙИН ТЎЛДИРАМИЗ
+ const firebaseConfig = {
+  apiKey: "AIzaSyDbsDFe8L_v-H_dKCv5m3rYmUOnymKj114",
+  authDomain: "doira-chat-2026.firebaseapp.com",
+  databaseURL: "https://doira-chat-2026-default-rtdb.firebaseio.com",
+  projectId: "doira-chat-2026",
+  storageBucket: "doira-chat-2026.firebasestorage.app",
+  messagingSenderId: "24569627793",
+  appId: "1:24569627793:web:b1a8acb36d17adc180ab30"
+};
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
+
+  let currentUser = null;
+  let currentChat = null;
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loadUsers();
+    } else {
+      window.location.href = "/doira-v2/";
+    }
+  });
+
+  function loadUsers() {
+    const usersRef = ref(db, 'users');
+    onValue(usersRef, (snapshot) => {
+      const users = snapshot.val();
       const list = document.getElementById('userList');
-      list.innerHTML = users.map(u => `
-        <div onclick="openChat(${u.id}, '${u.name}')" class="p-4 hover:bg-gray-100 cursor-pointer">
-          <div class="font-semibold">${u.name}</div>
-          <div class="text-sm text-gray-500">Онлайн</div>
-        </div>
-      `).join('');
-    }
-    
-    function openChat(userId, name) {
-      currentChat = userId;
-      document.getElementById('chatHeader').innerText = name;
-      document.getElementById('messages').innerHTML = `
-        <div class="text-center text-gray-400 text-sm mb-4">Сиз ва ${name} ўртасидаги чат</div>
-      `;
-    }
-    
-    function sendMsg() {
-      const input = document.getElementById('msgInput');
-      if (!input.value.trim() || !currentChat) return;
+      list.innerHTML = '';
+      for (let uid in users) {
+        if (uid === currentUser.uid) continue;
+        const u = users[uid];
+        list.innerHTML += `
+          <div onclick="window.openChat('${uid}', '${u.name}')" class="p-4 hover:bg-gray-100 cursor-pointer">
+            <div class="font-semibold">${u.name}</div>
+            <div class="text-sm text-gray-500">${u.online? 'Онлайн' : 'Оффлайн'}</div>
+          </div>
+        `;
+      }
+    });
+  }
+
+  window.openChat = function(userId, name) {
+    currentChat = userId;
+    document.getElementById('chatHeader').innerText = name;
+    document.getElementById('messages').innerHTML = 'Юкланмоқда...';
+    const chatId = [currentUser.uid, userId].sort().join('_');
+    const msgRef = ref(db, `private_chats/${chatId}`);
+    onValue(msgRef, (snapshot) => {
+      const messages = snapshot.val();
       const msgBox = document.getElementById('messages');
-      msgBox.innerHTML += `
-        <div class="mb-2 flex justify-end">
-          <span class="bg-blue-500 text-white px-4 py-2 rounded-lg max-w-xs">${input.value}</span>
-        </div>`;
-      input.value = '';
+      msgBox.innerHTML = '';
+      for (let key in messages) {
+        const msg = messages[key];
+        const isMe = msg.from === currentUser.uid;
+        msgBox.innerHTML += `
+          <div class="mb-2 flex ${isMe? 'justify-end' : 'justify-start'}">
+            <span class="${isMe? 'bg-blue-500 text-white' : 'bg-gray-200'} px-4 py-2 rounded-lg max-w-xs">${msg.text}</span>
+          </div>`;
+      }
       msgBox.scrollTop = msgBox.scrollHeight;
-    }
-    
-    renderUsers();
-  </script>
+    });
+  }
+
+  window.sendMsg = function() {
+    const input = document.getElementById('msgInput');
+    if (!input.value.trim() ||!currentChat) return;
+    const chatId = [currentUser.uid, currentChat].sort().join('_');
+    const msgRef = ref(db, `private_chats/${chatId}`);
+    push(msgRef, {
+      from: currentUser.uid,
+      text: input.value,
+      time: Date.now()
+    });
+    input.value = '';
+  }
+</script>
 </body>
 </html>
