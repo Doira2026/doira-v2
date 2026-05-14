@@ -3,118 +3,126 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOIRA 1-1 Чат</title>
+  <title>DOIRA Чат - 1-1</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: sans-serif; }
+    .msg-me { background: #3b82f6; color: white; }
+    .msg-other { background: #e5e7eb; }
+  </style>
 </head>
-<body class="bg-gray-100">
-  <div class="flex h-screen">
-    <!-- Чап: Юзерлар рўйхати -->
-    <div class="w-1/3 bg-white border-r overflow-y-auto">
-      <div class="p-4 border-b bg-blue-600 text-white font-bold text-lg">
-        DOIRA Чат
-      </div>
-      <div id="userList" class="divide-y">
-        <!-- Юзерлар шу ерга тушади -->
-      </div>
-    </div>
+<body class="bg-gray-100 h-screen flex">
 
-    <!-- Ўнг: Чат ойнаси -->
-    <div class="flex-1 flex flex-col">
-      <div id="chatHeader" class="p-4 bg-white border-b font-bold">
-        Суҳбатдош танланг
-      </div>
-      <div id="messages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
-        <p class="text-gray-400 text-center mt-20">Чапдан одам танланг</p>
-      </div>
-      <div class="p-4 bg-white border-t flex gap-2">
-        <input id="msgInput" type="text" placeholder="Хабар ёзинг..." class="flex-1 border rounded-lg px-3 py-2">
-        <button onclick="sendMsg()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Юбориш</button>
-      </div>
+  <!-- ЧАП: Юзерлар рўйхати -->
+  <div class="w-1/3 bg-white border-r overflow-y-auto">
+    <div class="bg-blue-600 text-white p-4 font-bold text-lg">DOIRA Чат</div>
+    <div id="userList">Юкланяпти...</div>
+  </div>
+
+  <!-- ЎНГ: Чат ойнаси -->
+  <div class="w-2/3 flex flex-col">
+    <div id="chatHeader" class="bg-white p-4 border-b font-semibold">Суҳбатдош танланг</div>
+    <div id="messages" class="flex-1 p-4 overflow-y-auto">
+      <div class="text-center text-gray-400 mt-10">Чапдан одам танланг</div>
+    </div>
+    <div class="bg-white p-4 border-t flex gap-2">
+      <input id="msgInput" type="text" placeholder="Хабар ёзинг..." class="flex-1 border rounded-lg px-4 py-2">
+      <button onclick="sendMsg()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Юбориш</button>
     </div>
   </div>
-<script type="module">
+  <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // БУ ЖОЙНИ КЕЙИН ТЎЛДИРАМИЗ
- const firebaseConfig = {
-  apiKey: "AIzaSyDbsDFe8L_v-H_dKCv5m3rYmUOnymKj114",
-  authDomain: "doira-chat-2026.firebaseapp.com",
-  databaseURL: "https://doira-chat-2026-default-rtdb.firebaseio.com",
-  projectId: "doira-chat-2026",
-  storageBucket: "doira-chat-2026.firebasestorage.app",
-  messagingSenderId: "24569627793",
-  appId: "1:24569627793:web:b1a8acb36d17adc180ab30"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyAujAPjcu8utXfduSm9ueWv9W7T9UoXDKc",
+    authDomain: "chatdoira.firebaseapp.com",
+    projectId: "chatdoira",
+    storageBucket: "chatdoira.appspot.com",
+    messagingSenderId: "977665234440",
+    appId: "1:977665234440:web:b50f5a46faff2f1ac89ef6",
+    measurementId: "G-DF17JSHH2G"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getDatabase(app);
+  const db = getFirestore(app);
 
   let currentUser = null;
-  let currentChat = null;
-
+  let currentChatUser = null;
+  let unsubscribeMessages = null;
+      // 1. Кирганми текшир. КИРМАСА - ҚАЙТАРМАЙДИ. Фақат ёзади.
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUser = user;
+      document.getElementById('chatHeader').innerText = "Хуш келибсан: " + user.displayName;
       loadUsers();
-   else {
-    console.log("Firebase: Кирмагансан");
-    document.getElementById('chatHeader').innerText = "Кириш керак";
-}
+    } else {
+      document.getElementById('chatHeader').innerText = "КИРМАГАН. Асосий сайтга кир: /doira-v2/";
+      document.getElementById('userList').innerHTML = '<div class="p-4 text-red-500">Аввал <a href="/doira-v2/" class="underline">асосий сайтга кир</a></div>';
+    }
   });
 
-  function loadUsers() {
-    const usersRef = ref(db, 'users');
-    onValue(usersRef, (snapshot) => {
-      const users = snapshot.val();
-      const list = document.getElementById('userList');
-      list.innerHTML = '';
-      for (let uid in users) {
-        if (uid === currentUser.uid) continue;
-        const u = users[uid];
-        list.innerHTML += `
-          <div onclick="window.openChat('${uid}', '${u.name}')" class="p-4 hover:bg-gray-100 cursor-pointer">
-            <div class="font-semibold">${u.name}</div>
-            <div class="text-sm text-gray-500">${u.online? 'Онлайн' : 'Оффлайн'}</div>
-          </div>
-        `;
-      }
+  // 2. Юзерларни юклаш
+  async function loadUsers() {
+    const list = document.getElementById('userList');
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+    
+    list.innerHTML = '';
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      if (u.uid === currentUser.uid) return; // Ўзингни кўрсатма
+      list.innerHTML += `
+        <div onclick="window.openChat('${u.uid}', '${u.name}')" class="p-4 hover:bg-gray-100 cursor-pointer border-b">
+          <div class="font-semibold">${u.name}</div>
+          <div class="text-sm text-gray-500">${u.online ? '🟢 Онлайн' : '⚫ Оффлайн'}</div>
+        </div>
+      `;
     });
   }
 
-  window.openChat = function(userId, name) {
-    currentChat = userId;
+  // 3. Чат очиш
+  window.openChat = (uid, name) => {
+    currentChatUser = uid;
     document.getElementById('chatHeader').innerText = name;
-    document.getElementById('messages').innerHTML = 'Юкланмоқда...';
-    const chatId = [currentUser.uid, userId].sort().join('_');
-    const msgRef = ref(db, `private_chats/${chatId}`);
-    onValue(msgRef, (snapshot) => {
-      const messages = snapshot.val();
+    loadMessages(uid);
+  }
+
+  // 4. Хабарларни юклаш
+  function loadMessages(otherUid) {
+    if (unsubscribeMessages) unsubscribeMessages();
+    const chatId = [currentUser.uid, otherUid].sort().join('_');
+    const q = query(collection(db, 'private_messages', chatId, 'messages'), orderBy('time'));
+    
+    unsubscribeMessages = onSnapshot(q, (snapshot) => {
       const msgBox = document.getElementById('messages');
       msgBox.innerHTML = '';
-      for (let key in messages) {
-        const msg = messages[key];
-        const isMe = msg.from === currentUser.uid;
+      snapshot.forEach(doc => {
+        const m = doc.data();
+        const isMe = m.from === currentUser.uid;
         msgBox.innerHTML += `
-          <div class="mb-2 flex ${isMe? 'justify-end' : 'justify-start'}">
-            <span class="${isMe? 'bg-blue-500 text-white' : 'bg-gray-200'} px-4 py-2 rounded-lg max-w-xs">${msg.text}</span>
-          </div>`;
-      }
+          <div class="mb-2 flex ${isMe ? 'justify-end' : 'justify-start'}">
+            <span class="px-4 py-2 rounded-lg max-w-xs ${isMe ? 'msg-me' : 'msg-other'}">${m.text}</span>
+          </div>
+        `;
+      });
       msgBox.scrollTop = msgBox.scrollHeight;
     });
   }
 
-  window.sendMsg = function() {
+  // 5. Хабар юбориш
+  window.sendMsg = async () => {
     const input = document.getElementById('msgInput');
-    if (!input.value.trim() ||!currentChat) return;
-    const chatId = [currentUser.uid, currentChat].sort().join('_');
-    const msgRef = ref(db, `private_chats/${chatId}`);
-    push(msgRef, {
+    const text = input.value.trim();
+    if (!text || !currentChatUser) return;
+    
+    const chatId = [currentUser.uid, currentChatUser].sort().join('_');
+    await addDoc(collection(db, 'private_messages', chatId, 'messages'), {
       from: currentUser.uid,
-      text: input.value,
-      time: Date.now()
+      text: text,
+      time: serverTimestamp()
     });
     input.value = '';
   }
