@@ -1,11 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="uz">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DOIRA 1-1 Чат</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>1-1 чат версия</h1>
-  <p>Бу ерда синов қиламиз. Асосий сайт синмайди.</p>
+<body class="bg-gray-100">
+  <div class="flex h-screen">
+    <!-- Чап: Юзерлар рўйхати -->
+    <div class="w-1/3 bg-white border-r overflow-y-auto">
+      <div class="p-4 border-b bg-blue-600 text-white font-bold text-lg">
+        DOIRA Чат
+      </div>
+      <div id="userList" class="divide-y">
+        <!-- Юзерлар шу ерга тушади -->
+      </div>
+    </div>
+
+    <!-- Ўнг: Чат ойнаси -->
+    <div class="flex-1 flex flex-col">
+      <div id="chatHeader" class="p-4 bg-white border-b font-bold">
+        Суҳбатдош танланг
+      </div>
+      <div id="messages" class="flex-1 p-4 overflow-y-auto bg-gray-50">
+        <p class="text-gray-400 text-center mt-20">Чапдан одам танланг</p>
+      </div>
+      <div class="p-4 bg-white border-t flex gap-2">
+        <input id="msgInput" type="text" placeholder="Хабар ёзинг..." class="flex-1 border rounded-lg px-3 py-2">
+        <button onclick="sendMsg()" class="bg-blue-600 text-white px-6 py-2 rounded-lg">Юбориш</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Тест юзерлар - кейин Firebase дан оламиз
+    const users = [
+      { id: 1, name: "Алишер" },
+      { id: 2, name: "Бекзод" },
+      { id: 3, name: "Дилдора" },
+      { id: 4, name: "Усмон" }
+    ];
+    
+    let currentChat = null;
+    
+    function renderUsers() {
+      const list = document.getElementById('userList');
+      list.innerHTML = users.map(u => `
+        <div onclick="openChat(${u.id}, '${u.name}')" class="p-4 hover:bg-gray-100 cursor-pointer">
+          <div class="font-semibold">${u.name}</div>
+          <div class="text-sm text-gray-500">Онлайн</div>
+        </div>
+      `).join('');
+    }
+    
+    function openChat(userId, name) {
+      currentChat = userId;
+      document.getElementById('chatHeader').innerText = name;
+      document.getElementById('messages').innerHTML = `
+        <div class="text-center text-gray-400 text-sm mb-4">Сиз ва ${name} ўртасидаги чат</div>
+      `;
+    }
+    
+    function sendMsg() {
+      const input = document.getElementById('msgInput');
+      if (!input.value.trim() || !currentChat) return;
+      const msgBox = document.getElementById('messages');
+      msgBox.innerHTML += `
+        <div class="mb-2 flex justify-end">
+          <span class="bg-blue-500 text-white px-4 py-2 rounded-lg max-w-xs">${input.value}</span>
+        </div>`;
+      input.value = '';
+      msgBox.scrollTop = msgBox.scrollHeight;
+    }
+    
+    renderUsers();
+  </script>
 </body>
 </html>
