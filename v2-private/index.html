@@ -59,9 +59,10 @@
     if (user) {
       currentUser = user;
       loadUsers();
-    } else {
-      window.location.href = "/doira-v2/";
-    }
+   else {
+    console.log("Firebase: Кирмагансан");
+    document.getElementById('chatHeader').innerText = "Кириш керак";
+}
   });
 
   function loadUsers() {
