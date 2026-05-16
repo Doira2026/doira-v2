@@ -2,14 +2,23 @@
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doira Private</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: sans-serif; }
-   .chat-bg { background: #0a1014; }
-   .msg-out { background: #005c4b; }
-   .msg-in { background: #202c33; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; overflow: hidden; }
+  .chat-bg { background: #0e1621; }
+  .msg-out { background: #2b5278; }
+  .msg-in { background: #182533; }
+  .sidebar { transition: transform 0.3s; }
+    @media (max-width: 768px) {
+    .sidebar { position: absolute; z-index: 50; height: 100%; transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); }
+    .chat-area { width: 100%; }
+    }
+  .sticker-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .sticker { font-size: 40px; cursor: pointer; text-align: center; padding: 5px; }
+  .sticker:hover { background: #1e2936; border-radius: 8px; }
   </style>
 </head>
 <body class="chat-bg text-white">
@@ -31,9 +40,6 @@
     appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
   };
 
-  // IMGBB API KEY
-  const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
@@ -41,17 +47,20 @@
   let currentUser = null;
   let currentChatId = null;
   let messagesUnsubscribe = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
 
   const appDiv = document.getElementById('app');
+  const stickers = ['😀','😂','😍','😘','😎','😭','😡','👍','👎','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','🤮','💩','👻','💀','🤡','👽','🤖'];
 
   function showLogin() {
     appDiv.innerHTML = `
-      <div class="flex items-center justify-center h-screen">
-        <div class="bg-[#1f2c34] p-8 rounded-lg w-96">
+      <div class="flex items-center justify-center h-screen p-4">
+        <div class="bg-[#17212b] p-8 rounded-2xl w-full max-w-sm">
           <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
           <input id="nameInput" type="text" placeholder="Исмингизни киритинг"
-            class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none">
-          <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold">Кириш</button>
+            class="w-full bg-[#232e3c] p-3 rounded-lg mb-4 outline-none text-white">
+          <button id="joinBtn" class="w-full bg-[#5288c1] p-3 rounded-lg font-bold active:scale-95">Кириш</button>
         </div>
       </div>
     `;
@@ -68,33 +77,67 @@
 
   function showChat() {
     appDiv.innerHTML = `
-      <div class="flex h-screen">
-        <div class="w-1/3 bg-[#111b21] border-r border-gray-700">
-          <div class="bg-[#202c33] p-4 flex justify-between items-center">
-            <h1 class="text-xl font-bold">DOIRA Чат</h1>
-            <button id="logoutBtn" class="bg-red-600 px-4 py-2 rounded text-sm">Чиқиш</button>
+      <div class="flex h-screen w-screen">
+        <div id="sidebar" class="sidebar w-full md:w-80 bg-[#17212b] border-r border-gray-800 flex flex-col">
+          <div class="bg-[#17212b] p-3 flex justify-between items-center border-b border-gray-800">
+            <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+            <h1 class="text-lg font-bold">DOIRA Чат</h1>
+            <button id="logoutBtn" class="bg-red-600 px-3 py-1.5 rounded-lg text-sm active:scale-95">Чиқиш</button>
           </div>
-          <div id="usersList" class="overflow-y-auto"></div>
+          <div id="usersList" class="overflow-y-auto flex-1"></div>
         </div>
-        <div class="flex-1 flex flex-col bg-[#0b141a]">
-          <div id="chatHeader" class="bg-[#202c33] p-4 text-center">Суҳбатдошни танланг</div>
-          <div id="messages" class="flex-1 overflow-y-auto p-4"></div>
-          <div id="inputArea" class="bg-[#202c33] p-4 hidden">
+
+        <div class="chat-area flex-1 flex flex-col bg-[#0e1621]">
+          <div id="chatHeader" class="bg-[#17212b] p-3 flex items-center gap-3 border-b border-gray-800">
+            <button id="backBtn" class="md:hidden text-2xl">←</button>
+            <div id="chatName" class="font-bold">Суҳбатдошни танланг</div>
+          </div>
+
+          <div id="messages" class="flex-1 overflow-y-auto p-3 space-y-2"></div>
+
+          <div id="stickerPanel" class="hidden bg-[#17212b] p-3 border-t border-gray-800">
+            <div class="sticker-grid">${stickers.map(s => `<div class="sticker" onclick="sendSticker('${s}')">${s}</div>`).join('')}</div>
+          </div>
+
+          <div id="inputArea" class="bg-[#17212b] p-2 hidden">
             <div class="flex gap-2 items-center">
-              <button id="attachBtn" class="text-2xl px-2">📎</button>
+              <button id="stickerBtn" class="text-2xl px-1">😀</button>
+              <button id="attachBtn" class="text-2xl px-1">📎</button>
               <input id="msgInput" type="text" placeholder="Хабар..."
-                class="flex-1 bg-[#2a3942] p-2 rounded outline-none">
-              <button id="sendBtn" class="bg-[#00a884] px-6 py-2 rounded">Юбор</button>
+                class="flex-1 bg-[#232e3c] px-4 py-2.5 rounded-full outline-none text-sm">
+              <button id="micBtn" class="text-2xl px-1">🎤</button>
+              <button id="sendBtn" class="bg-[#5288c1] w-10 h-10 rounded-full flex items-center justify-center active:scale-95">➤</button>
             </div>
-            <input type="file" id="fileInput" accept="image/*" class="hidden">
+            <input type="file" id="fileInput" accept="image/*,audio/*,video/*" class="hidden">
           </div>
         </div>
       </div>
     `;
+
     document.getElementById('logoutBtn').onclick = logout;
     document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
     document.getElementById('fileInput').onchange = uploadFile;
+    document.getElementById('stickerBtn').onclick = toggleStickers;
+    document.getElementById('micBtn').onclick = toggleRecording;
+    document.getElementById('menuBtn').onclick = () => document.getElementById('sidebar').classList.add('open');
+    document.getElementById('backBtn').onclick = () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('inputArea').classList.add('hidden');
+      document.getElementById('chatName').textContent = 'Суҳбатдошни танланг';
+    };
     loadUsers();
+  }
+
+  window.sendSticker = async (sticker) => {
+    if (!currentChatId) return;
+    await push(ref(db, `chats/${currentChatId}`), {
+      text: sticker, sender: currentUser.uid, time: serverTimestamp(), type: 'sticker'
+    });
+    toggleStickers();
+  }
+
+  function toggleStickers() {
+    document.getElementById('stickerPanel').classList.toggle('hidden');
   }
 
   function loadUsers() {
@@ -114,15 +157,18 @@
 
       Object.values(uniqueUsers).forEach(user => {
         const div = document.createElement('div');
-        div.className = 'p-4 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
+        div.className = 'p-3 border-b border-gray-800 hover:bg-[#232e3c] cursor-pointer flex items-center gap-3 active:bg-[#2b3d4f]';
         div.innerHTML = `
-          <div class="w-3 h-3 rounded-full ${user.online? 'bg-green-500' : 'bg-gray-500'}"></div>
-          <div>
+          <div class="w-12 h-12 rounded-full bg-[#5288c1] flex items-center justify-center text-xl font-bold">${user.name[0]}</div>
+          <div class="flex-1">
             <div class="font-bold">${user.name}</div>
             <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
           </div>
         `;
-        div.onclick = () => openChat(user.uid, user.name);
+        div.onclick = () => {
+          openChat(user.uid, user.name);
+          if (window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+        };
         list.appendChild(div);
       });
     });
@@ -130,7 +176,7 @@
 
   function openChat(otherUid, otherName) {
     currentChatId = [currentUser.uid, otherUid].sort().join('_');
-    document.getElementById('chatHeader').textContent = otherName;
+    document.getElementById('chatName').textContent = otherName;
     document.getElementById('inputArea').classList.remove('hidden');
     document.getElementById('sendBtn').onclick = sendMsg;
     document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
@@ -147,17 +193,21 @@
       Object.values(msgs).forEach(msg => {
         const div = document.createElement('div');
         const isMine = msg.sender === currentUser.uid;
-        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'}`;
+        div.className = `flex ${isMine? 'justify-end' : 'justify-start'}`;
 
         let content = '';
         if (msg.type === 'image') {
-          content = `<img src="${msg.url}" class="max-w-xs rounded-lg">`;
+          content = `<img src="${msg.url}" class="max-w-[70vw] md:max-w-xs rounded-lg">`;
+        } else if (msg.type === 'audio') {
+          content = `<audio controls src="${msg.url}" class="max-w-[70vw]"></audio>`;
+        } else if (msg.type === 'sticker') {
+          content = `<div class="text-6xl">${msg.text}</div>`;
         } else {
-          content = msg.text;
+          content = `<div class="break-words">${msg.text}</div>`;
         }
 
         div.innerHTML = `
-          <div class="max-w-xs px-4 py-2 rounded-lg ${isMine? 'msg-out' : 'msg-in'}">
+          <div class="max-w-[80%] px-3 py-2 rounded-2xl ${isMine? 'msg-out rounded-br-sm' : 'msg-in rounded-bl-sm'}">
             ${content}
           </div>
         `;
@@ -182,36 +232,75 @@
     if (!file ||!currentChatId) return;
 
     const sendBtn = document.getElementById('sendBtn');
-    sendBtn.textContent = 'Юкланмоқда...';
-    sendBtn.disabled = true;
+    sendBtn.innerHTML = '⏳';
 
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('reqtype', 'fileupload');
+    formData.append('fileToUpload', file);
 
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
+      const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: formData });
+      const url = await res.text();
 
-      if (data.success) {
+      if (url.startsWith('https://')) {
+        const type = file.type.startsWith('image')? 'image' : 'audio';
         await push(ref(db, `chats/${currentChatId}`), {
-          url: data.data.url, 
-          sender: currentUser.uid, 
-          time: serverTimestamp(), 
-          type: 'image'
+          url, sender: currentUser.uid, time: serverTimestamp(), type
         });
       } else {
-        alert('Расм юкланмади: ' + data.error?.message);
+        alert('Юклашда хато');
       }
     } catch (err) {
       alert('Хато: ' + err.message);
     }
-    
-    sendBtn.textContent = 'Юбор';
-    sendBtn.disabled = false;
+
+    sendBtn.innerHTML = '➤';
     e.target.value = '';
+  }
+
+  async function toggleRecording() {
+    const micBtn = document.getElementById('micBtn');
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      micBtn.textContent = '🎤';
+      micBtn.classList.remove('text-red-500');
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          const file = new File([audioBlob], 'voice.webm', { type: 'audio/webm' });
+
+          const formData = new FormData();
+          formData.append('reqtype', 'fileupload');
+          formData.append('fileToUpload', file);
+
+          micBtn.textContent = '⏳';
+          try {
+            const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: formData });
+            const url = await res.text();
+            if (url.startsWith('https://')) {
+              await push(ref(db, `chats/${currentChatId}`), {
+                url, sender: currentUser.uid, time: serverTimestamp(), type: 'audio'
+              });
+            }
+          } catch (err) { alert('Хато'); }
+          micBtn.textContent = '🎤';
+          stream.getTracks().forEach(t => t.stop());
+        };
+
+        mediaRecorder.start();
+        micBtn.textContent = '⏹️';
+        micBtn.classList.add('text-red-500');
+      } catch (err) {
+        alert('Микрофонга рухсат беринг');
+      }
+    }
   }
 
   async function logout() {
