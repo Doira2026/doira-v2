@@ -7,102 +7,59 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
     body { background: #0e1621; color: #fff; height: 100vh; overflow: hidden; }
-    
     .app { display: flex; height: 100vh; }
-    
-    /* Чапда одамлар рўйхати */
-    .sidebar { 
-      width: 320px; background: #17212b; border-right: 1px solid #0e1621; 
-      display: flex; flex-direction: column; transition: 0.3s;
-    }
-    .header { 
-      padding: 12px 16px; background: #17212b; border-bottom: 1px solid #0e1621;
-      display: flex; justify-content: space-between; align-items: center;
-    }
+    .sidebar { width: 320px; background: #17212b; border-right: 1px solid #0e1621; display: flex; flex-direction: column; transition: 0.3s; }
+    .header { padding: 12px 16px; background: #17212b; border-bottom: 1px solid #0e1621; display: flex; justify-content: space-between; align-items: center; }
     .header h1 { font-size: 18px; }
     .logout { background: #e53935; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-    
     .user-list { flex: 1; overflow-y: auto; }
-    .user-item { 
-      padding: 12px 16px; display: flex; align-items: center; gap: 12px; 
-      cursor: pointer; border-bottom: 1px solid #0e1621; transition: 0.2s;
-    }
+    .user-item { padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-bottom: 1px solid #0e1621; transition: 0.2s; }
     .user-item:hover { background: #202b36; }
     .user-item.active { background: #2b5278; }
-    .avatar { 
-      width: 42px; height: 42px; border-radius: 50%; background: #5288c1; 
-      display: flex; align-items: center; justify-content: center; font-weight: bold;
-    }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; background: #5288c1; display: flex; align-items: center; justify-content: center; font-weight: bold; }
     .user-info { flex: 1; }
     .user-name { font-size: 15px; margin-bottom: 2px; }
     .user-status { font-size: 12px; color: #708499; display: flex; align-items: center; gap: 4px; }
     .online-dot { width: 8px; height: 8px; background: #4dcd5e; border-radius: 50%; }
-    
-    /* Ўнгда чат */
     .chat { flex: 1; display: flex; flex-direction: column; background: #0e1621; }
-    .chat-header { 
-      padding: 12px 16px; background: #17212b; border-bottom: 1px solid #0e1621;
-      display: flex; align-items: center; gap: 12px;
-    }
+    .chat-header { padding: 12px 16px; background: #17212b; border-bottom: 1px solid #0e1621; display: flex; align-items: center; gap: 12px; }
     .back-btn { display: none; background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; }
     .chat-name { font-size: 16px; font-weight: 500; }
-    
-    .messages { 
-      flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px;
-      background-image: url('https://web.telegram.org/a/chat-bg-pattern-dark.ad38368a9e8140d0ac7d.png');
-    }
-    .msg { 
-      max-width: 70%; padding: 8px 12px; border-radius: 12px; position: relative;
-      word-wrap: break-word; animation: fadeIn 0.2s;
-    }
+    .messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px; background-image: url('https://web.telegram.org/a/chat-bg-pattern-dark.ad38368a9e8140d0ac7d.png'); }
+    .msg { max-width: 70%; padding: 8px 12px; border-radius: 12px; position: relative; word-wrap: break-word; animation: fadeIn 0.2s; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } }
     .msg.me { align-self: flex-end; background: #2b5278; border-bottom-right-radius: 4px; }
     .msg.other { align-self: flex-start; background: #182533; border-bottom-left-radius: 4px; }
     .msg img { max-width: 100%; border-radius: 8px; margin-top: 4px; }
     .msg-time { font-size: 11px; color: #708499; margin-top: 4px; text-align: right; }
-    .delete-btn { 
-      position: absolute; top: -8px; right: -8px; background: #e53935; 
-      border: none; color: white; width: 20px; height: 20px; border-radius: 50%; 
-      font-size: 12px; cursor: pointer; display: none;
-    }
+    .delete-btn { position: absolute; top: -8px; right: -8px; background: #e53935; border: none; color: white; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; cursor: pointer; display: none; }
     .msg:hover .delete-btn { display: block; }
     .deleted-msg { font-style: italic; color: #708499; }
-    
-    .input-area { 
-      padding: 8px 12px; background: #17212b; display: flex; gap: 8px; align-items: flex-end;
-    }
-    .input-area input[type="text"] { 
-      flex: 1; background: #242f3d; border: none; color: #fff; padding: 10px 14px; 
-      border-radius: 20px; outline: none; font-size: 15px;
-    }
-    .icon-btn { 
-      width: 40px; height: 40px; border-radius: 50%; background: #5288c1; border: none; 
-      color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    }
+    .input-area { padding: 8px 12px; background: #17212b; display: flex; gap: 8px; align-items: flex-end; }
+    .input-area input[type="text"] { flex: 1; background: #242f3d; border: none; color: #fff; padding: 10px 14px; border-radius: 20px; outline: none; font-size: 15px; }
+    .icon-btn { width: 40px; height: 40px; border-radius: 50%; background: #5288c1; border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .icon-btn:active { transform: scale(0.95); }
     #fileInput { display: none; }
-    
-    /* Телефон учун */
-    @media (max-width: 768px) {
-      .sidebar { position: absolute; width: 100%; z-index: 10; }
-      .sidebar.hidden { transform: translateX(-100%); }
-      .back-btn { display: block; }
-      .msg { max-width: 85%; }
-    }
-    
-    .welcome { 
-      flex: 1; display: flex; align-items: center; justify-content: center; 
-      color: #708499; font-size: 16px;
-    }
-    .toast {
-      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-      background: #323232; color: white; padding: 12px 20px; border-radius: 8px;
-      z-index: 1000; animation: slideUp 0.3s;
-    }
+    @media (max-width: 768px) { .sidebar { position: absolute; width: 100%; z-index: 10; } .sidebar.hidden { transform: translateX(-100%); } .back-btn { display: block; } .msg { max-width: 85%; } }
+    .welcome { flex: 1; display: flex; align-items: center; justify-content: center; color: #708499; font-size: 16px; }
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #323232; color: white; padding: 12px 20px; border-radius: 8px; z-index: 1000; animation: slideUp 0.3s; }
     @keyframes slideUp { from { opacity: 0; transform: translate(-50%, 20px); } }
+    .login-screen { position: fixed; inset: 0; background: #0e1621; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-box { background: #17212b; padding: 30px; border-radius: 16px; width: 90%; max-width: 320px; }
+    .login-box h2 { margin-bottom: 20px; text-align: center; }
+    .login-box input { width: 100%; padding: 12px; background: #242f3d; border: none; border-radius: 10px; color: #fff; font-size: 16px; margin-bottom: 12px; }
+    .login-box button { width: 100%; padding: 12px; background: #5288c1; border: none; border-radius: 10px; color: #fff; font-size: 16px; cursor: pointer; }
   </style>
 </head>
 <body>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-box">
+      <h2>DOIRA Чатга кириш</h2>
+      <input type="text" id="nameInput" placeholder="Исмингизни ёзинг" maxlength="20">
+      <button onclick="doLogin()">Кириш</button>
+    </div>
+  </div>
+
   <div class="app">
     <div class="sidebar" id="sidebar">
       <div class="header">
@@ -111,29 +68,31 @@
       </div>
       <div class="user-list" id="userList"></div>
     </div>
-    
     <div class="chat" id="chatArea">
       <div class="welcome" id="welcome">Суҳбатдошни танланг</div>
     </div>
   </div>
-
   <input type="file" id="fileInput" accept="image/*,audio/*">
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-    import { getDatabase, ref, push, onValue, set, remove, onDisconnect, serverTimestamp, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    import { getDatabase, ref, push, onValue, set, remove, onDisconnect, serverTimestamp, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-    // 1. FIREBASE CONFIG - ЎЗИНГНИКИНИ ҚЎЙ
+    // 1. FIREBASE CONFIG - БУНИ АЛБАТТА ЎЗИНГНИКИГА АЛМАШТИР!
+    // doira-chat-v2 лойиҳангдан олиб қўй
     const firebaseConfig = {
-      apiKey: "SENING-API-KEY",
+      apiKey: "AIzaSyDbsDFe8L_v-H_dKCv5m3rYWUOnymKJi14",
       authDomain: "doira-chat-v2.firebaseapp.com",
       databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
       projectId: "doira-chat-v2",
+      storageBucket: "doira-chat-v2.appspot.com",
+      messagingSenderId: "24569627793",
+      appId: "1:24569627793:web:b1a8acb36d17adc180ab30"
     };
 
-    // 2. CLOUDINARY CONFIG - cloudinary.com дан оласан
-    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/SENING-CLOUD-NAME/upload';
-    const CLOUDINARY_PRESET = 'SENING-UPLOAD-PRESET';
+    // 2. CLOUDINARY CONFIG
+    const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dkq3c5xrs/upload';
+    const CLOUDINARY_PRESET = 'doira_chat';
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
@@ -142,34 +101,44 @@
     let currentChatId = null;
     let currentChatUser = null;
 
-    // Кириш
-    function init() {
-      let name = localStorage.getItem('doira_name');
+    // Кириш ойнаси
+    window.doLogin = () => {
+      const name = document.getElementById('nameInput').value.trim();
       if (!name) {
-        name = prompt('Исмни киритинг:');
-        if (!name) return;
-        localStorage.setItem('doira_name', name);
+        alert('Исм киритинг!');
+        return;
       }
+      localStorage.setItem('doira_name', name);
+      document.getElementById('loginScreen').style.display = 'none';
+      startApp(name);
+    }
+
+    // Агар аввал кирган бўлса
+    window.onload = () => {
+      const savedName = localStorage.getItem('doira_name');
+      if (savedName) {
+        document.getElementById('loginScreen').style.display = 'none';
+        startApp(savedName);
+      }
+    }
+
+    function startApp(name) {
       currentUser = {
         id: btoa(name).replace(/=/g, ''),
         name: name
       };
-      
-      // Online статус
       const userRef = ref(db, `users/${currentUser.id}`);
       set(userRef, { name: currentUser.name, online: true, lastSeen: serverTimestamp() });
       onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
-      
       loadUsers();
+      listenNotifications();
     }
 
-    // Одамлар рўйхати
     function loadUsers() {
       onValue(ref(db, 'users'), (snapshot) => {
         const users = snapshot.val() || {};
         const list = document.getElementById('userList');
         list.innerHTML = '';
-        
         Object.entries(users).forEach(([id, user]) => {
           if (id === currentUser.id) return;
           const div = document.createElement('div');
@@ -189,14 +158,11 @@
       });
     }
 
-    // Чат очиш
     window.openChat = (userId, userName) => {
       currentChatUser = { id: userId, name: userName };
       currentChatId = [currentUser.id, userId].sort().join('_');
-      
       document.getElementById('welcome').style.display = 'none';
       document.getElementById('sidebar').classList.add('hidden');
-      
       const chatArea = document.getElementById('chatArea');
       chatArea.innerHTML = `
         <div class="chat-header">
@@ -211,7 +177,6 @@
           <button class="icon-btn" onclick="sendMessage()">➤</button>
         </div>
       `;
-      
       loadMessages();
     }
 
@@ -220,18 +185,16 @@
       currentChatId = null;
     }
 
-    // Хабарларни юклаш
     function loadMessages() {
       const msgsRef = ref(db, `messages/${currentChatId}`);
       onValue(msgsRef, (snapshot) => {
         const msgs = snapshot.val() || {};
         const container = document.getElementById('messages');
+        if (!container) return;
         container.innerHTML = '';
-        
         Object.entries(msgs).forEach(([key, msg]) => {
           const div = document.createElement('div');
           div.className = `msg ${msg.senderId === currentUser.id ? 'me' : 'other'}`;
-          
           if (msg.deleted) {
             div.innerHTML = `<div class="deleted-msg">Хабар ўчирилди</div>`;
           } else {
@@ -250,12 +213,10 @@
       });
     }
 
-    // Хабар юбориш
     window.sendMessage = () => {
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text || !currentChatId) return;
-      
       push(ref(db, `messages/${currentChatId}`), {
         text: text,
         senderId: currentUser.id,
@@ -265,28 +226,19 @@
       input.value = '';
     }
 
-    // Файл юбориш - Cloudinary
     document.getElementById('fileInput').onchange = async (e) => {
       const file = e.target.files[0];
       if (!file || !currentChatId) return;
-      
       showToast('Юклянмоқда...');
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', CLOUDINARY_PRESET);
-      
       try {
         const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
         const data = await res.json();
-        
-        const msgData = {
-          senderId: currentUser.id,
-          senderName: currentUser.name,
-          timestamp: Date.now()
-        };
+        const msgData = { senderId: currentUser.id, senderName: currentUser.name, timestamp: Date.now() };
         if (file.type.startsWith('image/')) msgData.imageUrl = data.secure_url;
         if (file.type.startsWith('audio/')) msgData.audioUrl = data.secure_url;
-        
         push(ref(db, `messages/${currentChatId}`), msgData);
         showToast('Юборилди');
       } catch (err) {
@@ -295,29 +247,26 @@
       e.target.value = '';
     }
 
-    // Хабар ўчириш + уведомление
     window.deleteMessage = async (msgKey) => {
       if (!confirm('Хабарни ўчирасизми?')) return;
-      await set(ref(db, `messages/${currentChatId}/${msgKey}/deleted`), true);
-      await set(ref(db, `messages/${currentChatId}/${msgKey}/deletedBy`), currentUser.name);
+      await update(ref(db, `messages/${currentChatId}/${msgKey}`), { deleted: true, deletedBy: currentUser.name });
       showToast('Хабар ўчирилди');
-      
-      // Иккинчи одамга уведомление
       push(ref(db, `notifications/${currentChatUser.id}`), {
         text: `${currentUser.name} хабарни ўчирди`,
         timestamp: Date.now()
       });
     }
 
-    // Уведомление тинглаш
-    onValue(ref(db, `notifications/${currentUser.id}`), (snapshot) => {
-      const notifs = snapshot.val();
-      if (!notifs) return;
-      Object.entries(notifs).forEach(([key, notif]) => {
-        showToast(notif.text);
-        remove(ref(db, `notifications/${currentUser.id}/${key}`));
+    function listenNotifications() {
+      onValue(ref(db, `notifications/${currentUser.id}`), (snapshot) => {
+        const notifs = snapshot.val();
+        if (!notifs) return;
+        Object.entries(notifs).forEach(([key, notif]) => {
+          showToast(notif.text);
+          remove(ref(db, `notifications/${currentUser.id}/${key}`));
+        });
       });
-    });
+    }
 
     function showToast(text) {
       const toast = document.createElement('div');
@@ -328,11 +277,10 @@
     }
 
     window.logout = () => {
+      update(ref(db, `users/${currentUser.id}`), { online: false });
       localStorage.removeItem('doira_name');
       location.reload();
     }
-
-    init();
   </script>
 </body>
 </html>
