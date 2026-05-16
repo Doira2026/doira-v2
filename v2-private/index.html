@@ -6,15 +6,16 @@
   <title>Doira Private</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: sans-serif; overflow: hidden; }
-   .chat-bg { background: #0a1014; }
-   .msg-out { background: #005c4b; }
-   .msg-in { background: #202c33; }
-    @media (max-width: 768px) {
-      .sidebar { position: absolute; width: 100%; z-index: 20; height: 100vh; }
-      .sidebar.hidden-mobile { display: none; }
-      .chat-area { width: 100%; }
-    }
+    body { font-family: sans-serif; }
+  .chat-bg { background: #0a1014; }
+  .msg-out { background: #005c4b; }
+  .msg-in { background: #202c33; }
+   @media (max-width: 768px) {
+    .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 80%!important; }
+    .sidebar.open { left: 0; }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+    .overlay.show { display: block; }
+   }
   </style>
 </head>
 <body class="chat-bg text-white">
@@ -37,6 +38,16 @@
   };
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
+  const CATBOX_URL = 'https://catbox.moe/user/api.php';
+
+  const STICKERS = [
+    'https://i.ibb.co/3F2r7jH/sticker1.png',
+    'https://i.ibb.co/5YkJtBb/sticker2.png',
+    'https://i.ibb.co/0jZQJzJ/sticker3.png',
+    'https://i.ibb.co/9tL6h2N/sticker4.png',
+    'https://i.ibb.co/3CgZtKJ/sticker5.png',
+    'https://i.ibb.co/7jXJtBb/sticker6.png'
+  ];
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -50,8 +61,8 @@
 
   function showLogin() {
     appDiv.innerHTML = `
-      <div class="flex items-center justify-center h-screen">
-        <div class="bg-[#1f2c34] p-8 rounded-lg w-11/12 max-w-sm">
+      <div class="flex items-center justify-center h-screen p-4">
+        <div class="bg-[#1f2c34] p-8 rounded-lg w-full max-w-sm">
           <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
           <input id="nameInput" type="text" placeholder="Исмингизни киритинг"
             class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none">
@@ -72,39 +83,67 @@
 
   function showChat() {
     appDiv.innerHTML = `
+      <div class="overlay" id="overlay"></div>
       <div class="flex h-screen">
-        <div id="sidebar" class="sidebar w-full md:w-1/3 bg-[#111b21] border-r border-gray-700">
+        <div class="sidebar w-1/3 bg-[#111b21] border-r border-gray-700 md:relative md:left-0" id="sidebar">
           <div class="bg-[#202c33] p-4 flex justify-between items-center">
             <h1 class="text-xl font-bold">DOIRA Чат</h1>
             <button id="logoutBtn" class="bg-red-600 px-4 py-2 rounded text-sm">Чиқиш</button>
           </div>
-          <div id="usersList" class="overflow-y-auto h-[calc(100vh-64px)]"></div>
+          <div id="usersList" class="overflow-y-auto"></div>
         </div>
-        <div id="chatArea" class="chat-area flex-1 flex-col bg-[#0b141a] hidden md:flex">
+        <div class="flex-1 flex flex-col bg-[#0b141a] w-full">
           <div id="chatHeader" class="bg-[#202c33] p-4 flex items-center gap-3">
-            <button id="backBtn" class="md:hidden text-2xl">←</button>
-            <span id="chatName" class="font-bold"></span>
+            <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+            <span id="chatHeaderText">Суҳбатдошни танланг</span>
           </div>
           <div id="messages" class="flex-1 overflow-y-auto p-4"></div>
-          <div id="inputArea" class="bg-[#202c33] p-4">
+          <div id="stickerPanel" class="bg-[#202c33] p-2 hidden grid grid-cols-6 gap-2 max-h-40 overflow-y-auto"></div>
+          <div id="inputArea" class="bg-[#202c33] p-2 md:p-4 hidden">
             <div class="flex gap-2 items-center">
               <button id="attachBtn" class="text-2xl px-2">📎</button>
+              <button id="stickerBtn" class="text-2xl px-2">😊</button>
               <input id="msgInput" type="text" placeholder="Хабар..."
-                class="flex-1 bg-[#2a3942] p-2 rounded outline-none">
-              <button id="sendBtn" class="bg-[#00a884] px-6 py-2 rounded">Юбор</button>
+                class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm md:text-base">
+              <button id="sendBtn" class="bg-[#00a884] px-4 md:px-6 py-2 rounded text-sm md:text-base">Юбор</button>
             </div>
-            <input type="file" id="fileInput" accept="image/*" class="hidden">
+            <input type="file" id="fileInput" accept="image/*,audio/*" class="hidden">
           </div>
         </div>
       </div>
     `;
     document.getElementById('logoutBtn').onclick = logout;
-    document.getElementById('backBtn').onclick = closeChatMobile;
     document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('stickerBtn').onclick = toggleStickers;
     document.getElementById('fileInput').onchange = uploadFile;
-    document.getElementById('sendBtn').onclick = sendMsg;
-    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
+    document.getElementById('menuBtn').onclick = toggleSidebar;
+    document.getElementById('overlay').onclick = toggleSidebar;
+    loadStickers();
     loadUsers();
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+
+  function loadStickers() {
+    const panel = document.getElementById('stickerPanel');
+    panel.innerHTML = STICKERS.map(url =>
+      `<img src="${url}" class="w-16 h-16 cursor-pointer hover:bg-[#2a3942] rounded p-1" onclick="sendSticker('${url}')">`
+    ).join('');
+  }
+
+  function toggleStickers() {
+    document.getElementById('stickerPanel').classList.toggle('hidden');
+  }
+
+  window.sendSticker = async (url) => {
+    if (!currentChatId) return;
+    toggleStickers();
+    await push(ref(db, `chats/${currentChatId}`), {
+      url, sender: currentUser.uid, time: serverTimestamp(), type: 'sticker'
+    });
   }
 
   function loadUsers() {
@@ -132,7 +171,10 @@
             <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
           </div>
         `;
-        div.onclick = () => openChat(user.uid, user.name);
+        div.onclick = () => {
+          openChat(user.uid, user.name);
+          if (window.innerWidth < 768) toggleSidebar();
+        };
         list.appendChild(div);
       });
     });
@@ -140,24 +182,11 @@
 
   function openChat(otherUid, otherName) {
     currentChatId = [currentUser.uid, otherUid].sort().join('_');
-    document.getElementById('chatName').textContent = otherName;
-    
-    // Телефонда: sidebar ни яшир, чатни кўрсат
-    if (window.innerWidth < 768) {
-      document.getElementById('sidebar').classList.add('hidden-mobile');
-      document.getElementById('chatArea').classList.remove('hidden');
-      document.getElementById('chatArea').classList.add('flex');
-    }
-    
+    document.getElementById('chatHeaderText').textContent = otherName;
+    document.getElementById('inputArea').classList.remove('hidden');
+    document.getElementById('sendBtn').onclick = sendMsg;
+    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
     loadMessages();
-  }
-
-  function closeChatMobile() {
-    document.getElementById('sidebar').classList.remove('hidden-mobile');
-    document.getElementById('chatArea').classList.add('hidden');
-    document.getElementById('chatArea').classList.remove('flex');
-    if (messagesUnsubscribe) messagesUnsubscribe();
-    currentChatId = null;
   }
 
   function loadMessages() {
@@ -175,12 +204,16 @@
         let content = '';
         if (msg.type === 'image') {
           content = `<img src="${msg.url}" class="max-w-[200px] md:max-w-xs rounded-lg">`;
+        } else if (msg.type === 'audio') {
+          content = `<audio controls src="${msg.url}" class="max-w-[200px] md:max-w-xs"></audio>`;
+        } else if (msg.type === 'sticker') {
+          content = `<img src="${msg.url}" class="w-32 h-32">`;
         } else {
           content = msg.text;
         }
 
         div.innerHTML = `
-          <div class="max-w-[75%] px-4 py-2 rounded-lg ${isMine? 'msg-out' : 'msg-in'} break-words">
+          <div class="max-w-[70%] px-3 py-2 rounded-lg text-sm md:text-base ${isMine? 'msg-out' : 'msg-in'}">
             ${content}
           </div>
         `;
@@ -208,30 +241,42 @@
     sendBtn.textContent = '...';
     sendBtn.disabled = true;
 
-    const formData = new FormData();
-    formData.append('image', file);
-
     try {
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
+      let url, type;
 
-      if (data.success) {
-        await push(ref(db, `chats/${currentChatId}`), {
-          url: data.data.url, 
-          sender: currentUser.uid, 
-          time: serverTimestamp(), 
-          type: 'image'
+      if (file.type.startsWith('image')) {
+        // ImgBB для расм
+        const formData = new FormData();
+        formData.append('image', file);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: 'POST',
+          body: formData
         });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error?.message);
+        url = data.data.url;
+        type = 'image';
+      } else if (file.type.startsWith('audio')) {
+        // Catbox для овоз
+        const formData = new FormData();
+        formData.append('reqtype', 'fileupload');
+        formData.append('fileToUpload', file);
+        const res = await fetch(CATBOX_URL, { method: 'POST', body: formData });
+        url = await res.text();
+        if (!url.startsWith('http')) throw new Error('Юкланмади');
+        type = 'audio';
       } else {
-        alert('Расм юкланмади: ' + data.error?.message);
+        throw new Error('Фақат расм ёки овоз');
       }
+
+      await push(ref(db, `chats/${currentChatId}`), {
+        url, sender: currentUser.uid, time: serverTimestamp(), type
+      });
+
     } catch (err) {
       alert('Хато: ' + err.message);
     }
-    
+
     sendBtn.textContent = 'Юбор';
     sendBtn.disabled = false;
     e.target.value = '';
