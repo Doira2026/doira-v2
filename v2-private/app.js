@@ -137,7 +137,6 @@ function showChat() {
           <input type="file" id="fileInput" accept="image/*" class="hidden">
         </div>
       </div>
-    </div>
     <div id="groupModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
       <div class="p-6 rounded-lg w-11/12 max-w-md" style="background: var(--bg-secondary);">
         <h2 class="text-xl font-bold mb-4">Янги гуруҳ</h2>
@@ -158,7 +157,6 @@ function showChat() {
         <div class="text-sm mb-2" style="color: var(--text-secondary);">Аъзолар:</div>
         <div id="groupMembersList" class="member-list"></div>
       </div>
-    </div>
     <div id="callModal" class="call-modal hidden">
       <div class="text-center">
         <div id="callStatus" class="text-2xl mb-4 text-white"></div>
@@ -199,7 +197,6 @@ function showChat() {
   loadUnreadCounts();
   listenForCalls();
 }
-
 function toggleTheme() {
   isDarkMode =!isDarkMode;
   localStorage.setItem('doira_theme', isDarkMode? 'dark' : 'light');
@@ -666,15 +663,4 @@ async function sendMsg() {
 async function uploadFile(e) {
   const file = e.target.files[0];
   if (!file ||!currentChatId) return;
-  if (!file.type.startsWith('image')) {
-    alert('Фақат расм юклаш мумкин');
-    return;
-  }
-  const formData = new FormData();
-  formData.append('image', file);
-  try {
-    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
-    const data = await res.json();
-    if (data.success) {
-      await push(ref(db, `chats/${currentChatId}`), {
-        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image', status: 'sent'
+  if (!file.type
