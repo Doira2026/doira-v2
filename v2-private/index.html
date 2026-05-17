@@ -29,30 +29,30 @@
       --border: #d1d7db;
     }
     body { font-family: sans-serif; margin: 0; background: var(--bg-main); color: var(--text-main); }
-    .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
-    .header-bar { flex-shrink: 0; background: var(--bg-header); border-color: var(--border); }
-    .messages-box { flex: 1; overflow-y: auto; background: var(--bg-chat); }
-    .input-bar { flex-shrink: 0; background: var(--bg-input); border-color: var(--border); }
-    .sidebar-bg { background: var(--bg-sidebar); }
-    .msg-out { background: var(--bg-msg-out); }
-    .msg-in { background: var(--bg-msg-in); }
-    .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-    .reaction-bar { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-    .reaction-item { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 2px 8px; font-size: 12px; cursor: pointer; }
-    .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
-    .typing-indicator { font-size: 12px; color: #00a884; font-style: italic; }
-    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: flex; align-items: center; justify-content: center; }
+   .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+   .header-bar { flex-shrink: 0; background: var(--bg-header); border-color: var(--border); }
+   .messages-box { flex: 1; overflow-y: auto; background: var(--bg-chat); }
+   .input-bar { flex-shrink: 0; background: var(--bg-input); border-color: var(--border); }
+   .sidebar-bg { background: var(--bg-sidebar); }
+   .msg-out { background: var(--bg-msg-out); }
+   .msg-in { background: var(--bg-msg-in); }
+   .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+   .reaction-bar { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+   .reaction-item { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 2px 8px; font-size: 12px; cursor: pointer; }
+   .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+   .typing-indicator { font-size: 12px; color: #00a884; font-style: italic; }
+   .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 300; display: flex; align-items: center; justify-content: center; }
     @media (max-width: 768px) {
-      .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-      .sidebar.open { left: 0; }
-      .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-      .overlay.show { display: block; }
-      .msg-img { max-width: 160px!important; }
-      .msg-audio { max-width: 180px!important; }
-      .msg-text { font-size: 14px; }
-      .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+     .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+     .sidebar.open { left: 0; }
+     .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+     .overlay.show { display: block; }
+     .msg-img { max-width: 160px!important; }
+     .msg-audio { max-width: 180px!important; }
+     .msg-text { font-size: 14px; }
+     .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
     }
-    .recording { animation: pulse 1.5s infinite; }
+   .recording { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
 </head>
@@ -61,7 +61,6 @@
 <div id="app"></div>
 <audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
 
-<!-- Гуруҳ модал -->
 <div id="groupModal" class="modal hidden">
   <div class="bg-[#1f2c34] p-6 rounded-lg w-11/12 max-w-md">
     <h2 class="text-xl font-bold mb-4">Гуруҳ яратиш</h2>
@@ -75,7 +74,6 @@
   </div>
 </div>
 
-<!-- Профил модал -->
 <div id="profileModal" class="modal hidden">
   <div class="bg-[#1f2c34] p-6 rounded-lg w-11/12 max-w-md">
     <h2 class="text-xl font-bold mb-4">Профил</h2>
@@ -92,7 +90,6 @@
   </div>
 </div>
 
-<!-- Юбориш модал -->
 <div id="forwardModal" class="modal hidden">
   <div class="bg-[#1f2c34] p-6 rounded-lg w-11/12 max-w-md">
     <h2 class="text-xl font-bold mb-4">Кимга юбориш?</h2>
@@ -177,323 +174,316 @@
     await requestNotificationPermission();
     await signInAnonymously(auth);
   }
+
   function showChat() {
-  appDiv.innerHTML = `
-    <div class="overlay" id="overlay"></div>
-    <div class="flex h-screen">
-      <div class="sidebar w-1/3 sidebar-bg border-r border-gray-700 md:relative md:left-0" id="sidebar">
-        <div class="header-bar p-3 border-b border-gray-700">
-          <div class="flex justify-between items-center mb-2">
-            <h1 class="text-lg font-bold">DOIRA</h1>
-            <div class="flex gap-2">
-              <button id="themeBtn" class="text-xl">${savedTheme === 'dark'? '🌙' : '☀️'}</button>
-              <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
+    appDiv.innerHTML = `
+      <div class="overlay" id="overlay"></div>
+      <div class="flex h-screen">
+        <div class="sidebar w-1/3 sidebar-bg border-r border-gray-700 md:relative md:left-0" id="sidebar">
+          <div class="header-bar p-3 border-b border-gray-700">
+            <div class="flex justify-between items-center mb-2">
+              <h1 class="text-lg font-bold">DOIRA</h1>
+              <div class="flex gap-2">
+                <button id="themeBtn" class="text-xl">${savedTheme === 'dark'? '🌙' : '☀️'}</button>
+                <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
+              </div>
             </div>
+            <div id="myProfile" class="bg-[#2a3942] p-2 rounded flex items-center gap-2 cursor-pointer">
+              <img id="myAvatar" class="w-8 h-8 rounded-full bg-[#00a884] object-cover" src="${currentUserAvatar || `https://ui-avatars.com/api/?name=${currentUserName}&background=00a884&color=fff`}">
+              <div class="flex-1">
+                <div class="text-xs text-gray-400">Сен:</div>
+                <div id="myName" class="text-sm font-bold">${currentUserName}</div>
+              </div>
+              <div class="text-xs">✏️</div>
+            </div>
+            <input id="searchInput" type="text" placeholder="🔍 Қидириш..." class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
+            <button onclick="openGroupModal()" class="w-full bg-[#00a884] p-2 rounded mt-2 text-sm font-bold">👥 Гуруҳ яратиш</button>
           </div>
-          <div id="myProfile" class="bg-[#2a3942] p-2 rounded flex items-center gap-2 cursor-pointer">
-            <img id="myAvatar" class="w-8 h-8 rounded-full bg-[#00a884] object-cover" src="${currentUserAvatar || `https://ui-avatars.com/api/?name=${currentUserName}&background=00a884&color=fff`}">
+          <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 220px); height: calc(100dvh - 220px);"></div>
+        </div>
+        <div class="flex-1 main-wrap w-full">
+          <div id="chatHeader" class="header-bar p-3 flex items-center gap-3 border-b border-gray-700">
+            <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+            <img id="chatAvatar" class="w-8 h-8 rounded-full object-cover hidden" src="">
             <div class="flex-1">
-              <div class="text-xs text-gray-400">Сен:</div>
-              <div id="myName" class="text-sm font-bold">${currentUserName}</div>
+              <span id="chatHeaderText" class="font-bold text-sm">Суҳбатдошни танланг</span>
+              <div id="typingIndicator" class="typing-indicator hidden"></div>
             </div>
-            <div class="text-xs">✏️</div>
+            <button id="blockBtn" class="text-xl hidden">🚫</button>
           </div>
-          <input id="searchInput" type="text" placeholder="🔍 Қидириш..." class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
-          <button onclick="openGroupModal()" class="w-full bg-[#00a884] p-2 rounded mt-2 text-sm font-bold">👥 Гуруҳ яратиш</button>
-        </div>
-        <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 220px); height: calc(100dvh - 220px);"></div>
-      </div>
-      <div class="flex-1 main-wrap w-full">
-        <div id="chatHeader" class="header-bar p-3 flex items-center gap-3 border-b border-gray-700">
-          <button id="menuBtn" class="md:hidden text-2xl">☰</button>
-          <img id="chatAvatar" class="w-8 h-8 rounded-full object-cover hidden" src="">
-          <div class="flex-1">
-            <span id="chatHeaderText" class="font-bold text-sm">Суҳбатдошни танланг</span>
-            <div id="typingIndicator" class="typing-indicator hidden"></div>
+          <div id="messages" class="messages-box p-2"></div>
+          <div id="stickerPanel" class="input-bar p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto border-t border-gray-700"></div>
+          <div id="inputArea" class="input-bar p-2 hidden border-t border-gray-700">
+            <div id="editBanner" class="hidden bg-[#00a884] bg-opacity-20 p-2 rounded mb-2 text-xs flex justify-between items-center">
+              <span>✏️ Хабар таҳрирланмоқда</span>
+              <button onclick="cancelEdit()" class="text-red-400">✖</button>
+            </div>
+            <div class="flex gap-1 items-center">
+              <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
+              <button id="stickerBtn" class="btn-icon text-lg px-1">😊</button>
+              <input id="msgInput" type="text" placeholder="Хабар..." class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm">
+              <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
+              <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.zip" class="hidden">
           </div>
-          <button id="blockBtn" class="text-xl hidden">🚫</button>
-        </div>
-        <div id="messages" class="messages-box p-2"></div>
-        <div id="stickerPanel" class="input-bar p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto border-t border-gray-700"></div>
-        <div id="inputArea" class="input-bar p-2 hidden border-t border-gray-700">
-          <div id="editBanner" class="hidden bg-[#00a884] bg-opacity-20 p-2 rounded mb-2 text-xs flex justify-between items-center">
-            <span>✏️ Хабар таҳрирланмоқда</span>
-            <button onclick="cancelEdit()" class="text-red-400">✖</button>
-          </div>
-          <div class="flex gap-1 items-center">
-            <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
-            <button id="stickerBtn" class="btn-icon text-lg px-1">😊</button>
-            <input id="msgInput" type="text" placeholder="Хабар..." class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm">
-            <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
-            <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
-          </div>
-          <input type="file" id="fileInput" accept="image/*,.pdf,.doc,.docx,.zip" class="hidden">
         </div>
       </div>
-    </div>
-  `;
-  document.getElementById('logoutBtn').onclick = logout;
-  document.getElementById('themeBtn').onclick = toggleTheme;
-  document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
-  document.getElementById('stickerBtn').onclick = toggleStickers;
-  document.getElementById('micBtn').onclick = toggleRecording;
-  document.getElementById('fileInput').onchange = uploadFile;
-  document.getElementById('menuBtn').onclick = toggleSidebar;
-  document.getElementById('overlay').onclick = toggleSidebar;
-  document.getElementById('searchInput').oninput = renderUsers;
-  document.getElementById('myProfile').onclick = openProfileModal;
-  document.getElementById('avatarInput').onchange = uploadAvatar;
-  document.getElementById('msgInput').oninput = handleTyping;
-  document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
-  document.getElementById('sendBtn').onclick = sendMsg;
-  document.getElementById('blockBtn').onclick = toggleBlock;
-  loadStickers();
-  loadUsers();
-  loadGroups();
-  loadUnreadCounts();
-  loadBlockedList();
-  loadFriendsList();
-}
+    `;
+    document.getElementById('logoutBtn').onclick = logout;
+    document.getElementById('themeBtn').onclick = toggleTheme;
+    document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('stickerBtn').onclick = toggleStickers;
+    document.getElementById('micBtn').onclick = toggleRecording;
+    document.getElementById('fileInput').onchange = uploadFile;
+    document.getElementById('menuBtn').onclick = toggleSidebar;
+    document.getElementById('overlay').onclick = toggleSidebar;
+    document.getElementById('searchInput').oninput = renderUsers;
+    document.getElementById('myProfile').onclick = openProfileModal;
+    document.getElementById('avatarInput').onchange = uploadAvatar;
+    document.getElementById('msgInput').oninput = handleTyping;
+    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
+    document.getElementById('sendBtn').onclick = sendMsg;
+    document.getElementById('blockBtn').onclick = toggleBlock;
+    loadStickers();
+    loadUsers();
+    loadGroups();
+    loadUnreadCounts();
+    loadBlockedList();
+    loadFriendsList();
+  }
 
-function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const newTheme = current === 'dark'? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('doira_theme', newTheme);
-  document.getElementById('themeBtn').textContent = newTheme === 'dark'? '🌙' : '☀️';
-}
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const newTheme = current === 'dark'? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('doira_theme', newTheme);
+    document.getElementById('themeBtn').textContent = newTheme === 'dark'? '🌙' : '☀️';
+  }
 
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('overlay').classList.toggle('show');
-}
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
 
-function loadStickers() {
-  const panel = document.getElementById('stickerPanel');
-  panel.innerHTML = STICKERS.map(s =>
-    `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`
-  ).join('');
-}
+  function loadStickers() {
+    const panel = document.getElementById('stickerPanel');
+    panel.innerHTML = STICKERS.map(s => `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`).join('');
+  }
 
-function toggleStickers() {
-  document.getElementById('stickerPanel').classList.toggle('hidden');
-}
+  function toggleStickers() {
+    document.getElementById('stickerPanel').classList.toggle('hidden');
+  }
 
-window.sendSticker = async (sticker) => {
-  if (!currentChatId) return;
-  toggleStickers();
-  await push(ref(db, `chats/${currentChatId}`), {
-    text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
-  });
-}
-
-function loadUnreadCounts() {
-  const unreadRef = ref(db, `unread/${currentUser.uid}`);
-  onValue(unreadRef, snap => {
-    unreadCounts = snap.val() || {};
-    renderUsers();
-    updateTitle();
-  });
-}
-
-function loadBlockedList() {
-  const blockedRef = ref(db, `blocked/${currentUser.uid}`);
-  onValue(blockedRef, snap => {
-    blockedList = snap.val() || {};
-    renderUsers();
-  });
-}
-
-function loadFriendsList() {
-  const friendsRef = ref(db, `friends/${currentUser.uid}`);
-  onValue(friendsRef, snap => {
-    friendsList = snap.val() || {};
-    renderUsers();
-  });
-}
-
-function loadUsers() {
-  const usersRef = ref(db, 'users');
-  onValue(usersRef, snap => {
-    allUsers = snap.val() || {};
-    renderUsers();
-  });
-}
-
-function loadGroups() {
-  const groupsRef = ref(db, 'groups');
-  onValue(groupsRef, snap => {
-    groupsList = {};
-    const groups = snap.val() || {};
-    Object.entries(groups).forEach(([id, group]) => {
-      if (group.members && group.members[currentUser.uid]) {
-        groupsList[id] = group;
-      }
+  window.sendSticker = async (sticker) => {
+    if (!currentChatId) return;
+    toggleStickers();
+    await push(ref(db, `chats/${currentChatId}`), {
+      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
     });
-    renderUsers();
-  });
-}
+  }
 
-function updateTitle() {
-  const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
-  document.title = totalUnread > 0? `(${totalUnread}) Doira Private` : 'Doira Private';
-}
+  function loadUnreadCounts() {
+    const unreadRef = ref(db, `unread/${currentUser.uid}`);
+    onValue(unreadRef, snap => {
+      unreadCounts = snap.val() || {};
+      renderUsers();
+      updateTitle();
+    });
+  }
 
-function renderUsers() {
-  const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  const list = document.getElementById('usersList');
-  if (!list) return;
-  list.innerHTML = '';
+  function loadBlockedList() {
+    const blockedRef = ref(db, `blocked/${currentUser.uid}`);
+    onValue(blockedRef, snap => {
+      blockedList = snap.val() || {};
+      renderUsers();
+    });
+  }
 
-  // Гуруҳлар
-  const groups = [];
-  Object.entries(groupsList).forEach(([id, group]) => {
-    if (searchQuery &&!group.name.toLowerCase().includes(searchQuery)) return;
-    groups.push({ id,...group, isGroup: true, unread: unreadCounts[id] || 0 });
-  });
+  function loadFriendsList() {
+    const friendsRef = ref(db, `friends/${currentUser.uid}`);
+    onValue(friendsRef, snap => {
+      friendsList = snap.val() || {};
+      renderUsers();
+    });
+  }
 
-  if (groups.length > 0) {
-    list.innerHTML += '<div class="px-3 py-2 text-xs text-gray-400 font-bold">ГУРУҲЛАР</div>';
-    groups.forEach(group => {
+  function loadUsers() {
+    const usersRef = ref(db, 'users');
+    onValue(usersRef, snap => {
+      allUsers = snap.val() || {};
+      renderUsers();
+    });
+  }
+
+  function loadGroups() {
+    const groupsRef = ref(db, 'groups');
+    onValue(groupsRef, snap => {
+      groupsList = {};
+      const groups = snap.val() || {};
+      Object.entries(groups).forEach(([id, group]) => {
+        if (group.members && group.members[currentUser.uid]) {
+          groupsList[id] = group;
+        }
+      });
+      renderUsers();
+    });
+  }
+
+  function updateTitle() {
+    const totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+    document.title = totalUnread > 0? `(${totalUnread}) Doira Private` : 'Doira Private';
+  }
+
+  function renderUsers() {
+    const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const list = document.getElementById('usersList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const groups = [];
+    Object.entries(groupsList).forEach(([id, group]) => {
+      if (searchQuery &&!group.name.toLowerCase().includes(searchQuery)) return;
+      groups.push({ id,...group, isGroup: true, unread: unreadCounts[id] || 0 });
+    });
+
+    if (groups.length > 0) {
+      list.innerHTML += '<div class="px-3 py-2 text-xs text-gray-400 font-bold">ГУРУҲЛАР</div>';
+      groups.forEach(group => {
+        const div = document.createElement('div');
+        div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
+        div.innerHTML = `
+          <div class="w-10 h-10 rounded-full bg-[#00a884] flex items-center justify-center text-lg">👥</div>
+          <div class="flex-1">
+            <div class="font-bold text-sm">${group.name}</div>
+            <div class="text-xs text-gray-400">${Object.keys(group.members || {}).length} аъзо</div>
+          </div>
+          ${group.unread? `<div class="unread-badge">${group.unread}</div>` : ''}
+        `;
+        div.onclick = () => openGroup(group.id, group.name);
+        list.appendChild(div);
+      });
+    }
+
+    const users = [];
+    Object.entries(allUsers).forEach(([uid, user]) => {
+      if (uid === currentUser.uid) return;
+      if (blockedList[uid]) return;
+      if (searchQuery &&!user.name.toLowerCase().includes(searchQuery)) return;
+      users.push({ uid,...user, isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
+    });
+
+    users.sort((a, b) => {
+      if (a.unread &&!b.unread) return -1;
+      if (!a.unread && b.unread) return 1;
+      if (a.isFriend &&!b.isFriend) return -1;
+      if (!a.isFriend && b.isFriend) return 1;
+      return (b.lastSeen || 0) - (a.lastSeen || 0);
+    });
+
+    if (users.length > 0) {
+      list.innerHTML += '<div class="px-3 py-2 text-xs text-gray-400 font-bold">ОДАМЛАР</div>';
+    }
+
+    users.forEach(user => {
       const div = document.createElement('div');
       div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
       div.innerHTML = `
-        <div class="w-10 h-10 rounded-full bg-[#00a884] flex items-center justify-center text-lg">👥</div>
-        <div class="flex-1">
-          <div class="font-bold text-sm">${group.name}</div>
-          <div class="text-xs text-gray-400">${Object.keys(group.members || {}).length} аъзо</div>
+        <img class="w-10 h-10 rounded-full object-cover bg-[#2a3942]" src="${user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=2a3942&color=fff`}">
+        <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}', '${user.avatar || ''}')">
+          <div class="font-bold text-sm flex items-center gap-1">
+            ${user.name}
+            ${user.isFriend? '<span class="text-yellow-400 text-xs">⭐</span>' : ''}
+          </div>
+          <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
         </div>
-        ${group.unread? `<div class="unread-badge">${group.unread}</div>` : ''}
+        <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
+          ${user.isFriend? '⭐' : '☆'}
+        </button>
+        ${user.unread? `<div class="unread-badge">${user.unread}</div>` : ''}
       `;
-      div.onclick = () => openGroup(group.id, group.name);
       list.appendChild(div);
     });
   }
 
-  // Одамлар
-  const users = [];
-  Object.entries(allUsers).forEach(([uid, user]) => {
-    if (uid === currentUser.uid) return;
-    if (blockedList[uid]) return;
-    if (searchQuery &&!user.name.toLowerCase().includes(searchQuery)) return;
-    users.push({ uid,...user, isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
-  });
-
-  users.sort((a, b) => {
-    if (a.unread &&!b.unread) return -1;
-    if (!a.unread && b.unread) return 1;
-    if (a.isFriend &&!b.isFriend) return -1;
-    if (!a.isFriend && b.isFriend) return 1;
-    return (b.lastSeen || 0) - (a.lastSeen || 0);
-  });
-
-  if (users.length > 0) {
-    list.innerHTML += '<div class="px-3 py-2 text-xs text-gray-400 font-bold">ОДАМЛАР</div>';
+  window.openChatUser = (uid, name, avatar) => {
+    openChat(uid, name, avatar, 'private');
+    if (window.innerWidth < 768) toggleSidebar();
   }
 
-  users.forEach(user => {
-    const div = document.createElement('div');
-    div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
-    div.innerHTML = `
-      <img class="w-10 h-10 rounded-full object-cover bg-[#2a3942]" src="${user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=2a3942&color=fff`}">
-      <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}', '${user.avatar || ''}')">
-        <div class="font-bold text-sm flex items-center gap-1">
-          ${user.name}
-          ${user.isFriend? '<span class="text-yellow-400 text-xs">⭐</span>' : ''}
-        </div>
-        <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
-      </div>
-      <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
-        ${user.isFriend? '⭐' : '☆'}
-      </button>
-      ${user.unread? `<div class="unread-badge">${user.unread}</div>` : ''}
-    `;
-    list.appendChild(div);
-  });
-}
-
-window.openChatUser = (uid, name, avatar) => {
-  openChat(uid, name, avatar, 'private');
-  if (window.innerWidth < 768) toggleSidebar();
-}
-
-window.toggleFriend = async (uid, isFriend) => {
-  if (isFriend) {
-    await remove(ref(db, `friends/${currentUser.uid}/${uid}`));
-  } else {
-    await set(ref(db, `friends/${currentUser.uid}/${uid}`), true);
+  window.toggleFriend = async (uid, isFriend) => {
+    if (isFriend) {
+      await remove(ref(db, `friends/${currentUser.uid}/${uid}`));
+    } else {
+      await set(ref(db, `friends/${currentUser.uid}/${uid}`), true);
+    }
   }
-}
 
-window.openGroupModal = () => {
-  document.getElementById('groupModal').classList.remove('hidden');
-  selectedGroupUsers = [];
-  const list = document.getElementById('groupUsersList');
-  list.innerHTML = '';
-  Object.entries(allUsers).forEach(([uid, user]) => {
-    if (uid === currentUser.uid) return;
-    const div = document.createElement('div');
-    div.className = 'p-2 hover:bg-[#2a3942] rounded cursor-pointer flex items-center gap-2';
-    div.innerHTML = `
-      <input type="checkbox" id="user_${uid}" onchange="toggleGroupUser('${uid}')">
-      <label for="user_${uid}" class="flex-1 cursor-pointer">${user.name}</label>
-    `;
-    list.appendChild(div);
-  });
-}
+  window.openGroupModal = () => {
+    document.getElementById('groupModal').classList.remove('hidden');
+    selectedGroupUsers = [];
+    const list = document.getElementById('groupUsersList');
+    list.innerHTML = '';
+    Object.entries(allUsers).forEach(([uid, user]) => {
+      if (uid === currentUser.uid) return;
+      const div = document.createElement('div');
+      div.className = 'p-2 hover:bg-[#2a3942] rounded cursor-pointer flex items-center gap-2';
+      div.innerHTML = `
+        <input type="checkbox" id="user_${uid}" onchange="toggleGroupUser('${uid}')">
+        <label for="user_${uid}" class="flex-1 cursor-pointer">${user.name}</label>
+      `;
+      list.appendChild(div);
+    });
+  }
 
-window.closeGroupModal = () => {
-  document.getElementById('groupModal').classList.add('hidden');
-  document.getElementById('groupNameInput').value = '';
-}
+  window.closeGroupModal = () => {
+    document.getElementById('groupModal').classList.add('hidden');
+    document.getElementById('groupNameInput').value = '';
+  }
 
-window.toggleGroupUser = (uid) => {
-  const idx = selectedGroupUsers.indexOf(uid);
-  if (idx > -1) selectedGroupUsers.splice(idx, 1);
-  else selectedGroupUsers.push(uid);
-}
+  window.toggleGroupUser = (uid) => {
+    const idx = selectedGroupUsers.indexOf(uid);
+    if (idx > -1) selectedGroupUsers.splice(idx, 1);
+    else selectedGroupUsers.push(uid);
+  }
 
-window.createGroup = async () => {
-  const name = document.getElementById('groupNameInput').value.trim();
-  if (!name) return alert('Гуруҳ номини киритинг');
-  if (selectedGroupUsers.length === 0) return alert('Камида 1 одам танланг');
+  window.createGroup = async () => {
+    const name = document.getElementById('groupNameInput').value.trim();
+    if (!name) return alert('Гуруҳ номини киритинг');
+    if (selectedGroupUsers.length === 0) return alert('Камида 1 одам танланг');
+    const members = {[currentUser.uid]: true};
+    selectedGroupUsers.forEach(uid => members[uid] = true);
+    const groupRef = push(ref(db, 'groups'));
+    await set(groupRef, {
+      name,
+      creator: currentUser.uid,
+      members,
+      createdAt: serverTimestamp()
+    });
+    closeGroupModal();
+  }
 
-  const members = {[currentUser.uid]: true};
-  selectedGroupUsers.forEach(uid => members[uid] = true);
+  function openChat(uid, name, avatar, type = 'private') {
+    currentChatType = type;
+    currentChatId = type === 'private'? [currentUser.uid, uid].sort().join('_') : uid;
+    currentChatUser = name;
+    currentChatUid = uid;
+    document.getElementById('chatHeaderText').textContent = name;
+    document.getElementById('chatAvatar').src = avatar || `https://ui-avatars.com/api/?name=${name}&background=00a884&color=fff`;
+    document.getElementById('chatAvatar').classList.remove('hidden');
+    document.getElementById('inputArea').classList.remove('hidden');
+    document.getElementById('blockBtn').classList.toggle('hidden', type!== 'private');
+    remove(ref(db, `unread/${currentUser.uid}/${currentChatId}`));
+    loadMessages();
+    loadTyping();
+  }
 
-  const groupRef = push(ref(db, 'groups'));
-  await set(groupRef, {
-    name,
-    creator: currentUser.uid,
-    members,
-    createdAt: serverTimestamp()
-  });
+  window.openGroup = (groupId, groupName) => {
+    openChat(groupId, groupName, '', 'group');
+    if (window.innerWidth < 768) toggleSidebar();
+  }
 
-  closeGroupModal();
-}
-
-function openChat(uid, name, avatar, type = 'private') {
-  currentChatType = type;
-  currentChatId = type === 'private'? [currentUser.uid, uid].sort().join('_') : uid;
-  currentChatUser = name;
-  currentChatUid = uid;
-
-  document.getElementById('chatHeaderText').textContent = name;
-  document.getElementById('chatAvatar').src = avatar || `https://ui-avatars.com/api/?name=${name}&background=00a884&color=fff`;
-  document.getElementById('chatAvatar').classList.remove('hidden');
-  document.getElementById('inputArea').classList.remove('hidden');
-  document.getElementById('blockBtn').classList.toggle('hidden', type!== 'private');
-
-  remove(ref(db, `unread/${currentUser.uid}/${currentChatId}`));
-  loadMessages();
-  loadTyping();
-}
-
-window.openGroup = (groupId, groupName) => {
-  openChat(groupId, groupName, '', 'group');
-  if (window.innerWidth < 768) toggleSidebar();
-}
-    function handleTyping() {
+  function handleTyping() {
     if (!currentChatId) return;
     set(ref(db, `typing/${currentChatId}/${currentUser.uid}`), {
       name: currentUserName,
@@ -511,8 +501,8 @@ window.openGroup = (groupId, groupName) => {
     typingUnsubscribe = onValue(typingRef, snap => {
       const typing = snap.val() || {};
       const names = Object.values(typing)
-       .filter(t => t.name!== currentUserName && Date.now() - t.time < 4000)
-       .map(t => t.name);
+     .filter(t => t.name!== currentUserName && Date.now() - t.time < 4000)
+     .map(t => t.name);
       const indicator = document.getElementById('typingIndicator');
       if (names.length > 0) {
         indicator.textContent = names.join(', ') + ' ёзмоқда...';
@@ -526,7 +516,6 @@ window.openGroup = (groupId, groupName) => {
   function loadMessages() {
     if (messagesUnsubscribe) messagesUnsubscribe();
     const msgsRef = ref(db, `chats/${currentChatId}`);
-
     let isFirstLoad = true;
     onChildAdded(msgsRef, (snapshot) => {
       const msg = snapshot.val();
@@ -539,7 +528,6 @@ window.openGroup = (groupId, groupName) => {
           });
         }
         notifSound.play().catch(()=>{});
-
         const unreadRef = ref(db, `unread/${currentUser.uid}/${currentChatId}`);
         get(unreadRef).then(snap => {
           const count = (snap.val() || 0) + 1;
@@ -610,189 +598,4 @@ window.openGroup = (groupId, groupName) => {
   window.showMsgMenu = (e, key, isMine, type) => {
     e.preventDefault();
     document.querySelectorAll('.msg-menu').forEach(m => m.remove());
-    const menu = document.createElement('div');
-    menu.className = 'msg-menu';
-    let html = `
-      <button onclick="copyMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">📋 Копия қилиш</button>
-      <button onclick="forwardMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">↗️ Бошқага юбориш</button>
-    `;
-    if (isMine && type === 'text') {
-      html += `<button onclick="editMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">✏️ Таҳрирлаш</button>`;
-    }
-    if (isMine) {
-      html += `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">🗑️ Ўчириш</button>`;
-    }
-    html += `
-      <div class="border-t border-gray-600 my-1"></div>
-      <div class="flex flex-wrap gap-1 p-2">
-        ${REACTIONS.map(r => `<button onclick="addReaction('${key}', '${r}')" class="px-2 py-1 hover:bg-[#2a3942] rounded text-lg">${r}</button>`).join('')}
-      </div>
-    `;
-    menu.innerHTML = html;
-    menu.style.left = Math.min(e.pageX, window.innerWidth - 200) + 'px';
-    menu.style.top = e.pageY + 'px';
-    document.body.appendChild(menu);
-    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
-  }
-
-  window.copyMsg = async (key) => {
-    const snap = await get(ref(db, `chats/${currentChatId}/${key}`));
-    const msg = snap.val();
-    if (msg && msg.text) {
-      navigator.clipboard.writeText(msg.text);
-      alert('Копия қилинди');
-    }
-  }
-
-  window.editMsg = async (key) => {
-    const snap = await get(ref(db, `chats/${currentChatId}/${key}`));
-    const msg = snap.val();
-    if (msg && msg.type === 'text') {
-      document.getElementById('msgInput').value = msg.text;
-      document.getElementById('msgInput').focus();
-      document.getElementById('editBanner').classList.remove('hidden');
-      editingMsgKey = key;
-      document.getElementById('sendBtn').textContent = 'Сақлаш';
-    }
-  }
-
-  window.cancelEdit = () => {
-    document.getElementById('msgInput').value = '';
-    document.getElementById('editBanner').classList.add('hidden');
-    editingMsgKey = null;
-    document.getElementById('sendBtn').textContent = 'Юбор';
-  }
-
-  window.deleteMsg = async (key) => {
-    if (confirm('Хабарни ўчиришни хоҳлайсизми?')) {
-      await remove(ref(db, `chats/${currentChatId}/${key}`));
-    }
-  }
-
-  window.forwardMsg = async (key) => {
-    const snap = await get(ref(db, `chats/${currentChatId}/${key}`));
-    forwardingMsg = snap.val();
-    document.getElementById('forwardModal').classList.remove('hidden');
-    const list = document.getElementById('forwardUsersList');
-    list.innerHTML = '';
-
-    // Гуруҳлар
-    Object.entries(groupsList).forEach(([id, group]) => {
-      const div = document.createElement('div');
-      div.className = 'p-2 hover:bg-[#2a3942] rounded cursor-pointer flex items-center gap-2';
-      div.innerHTML = `<div class="w-8 h-8 rounded-full bg-[#00a884] flex items-center justify-center">👥</div><span>${group.name}</span>`;
-      div.onclick = () => sendForward(id);
-      list.appendChild(div);
-    });
-
-    // Одамлар
-    Object.entries(allUsers).forEach(([uid, user]) => {
-      if (uid === currentUser.uid || blockedList[uid]) return;
-      const div = document.createElement('div');
-      div.className = 'p-2 hover:bg-[#2a3942] rounded cursor-pointer flex items-center gap-2';
-      div.innerHTML = `<img class="w-8 h-8 rounded-full" src="${user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=2a3942&color=fff`}"><span>${user.name}</span>`;
-      div.onclick = () => sendForward([currentUser.uid, uid].sort().join('_'));
-      list.appendChild(div);
-    });
-  }
-
-  window.closeForwardModal = () => {
-    document.getElementById('forwardModal').classList.add('hidden');
-    forwardingMsg = null;
-  }
-
-  async function sendForward(targetChatId) {
-    if (!forwardingMsg) return;
-    const msgCopy = {...forwardingMsg};
-    delete msgCopy.reactions;
-    msgCopy.forwarded = true;
-    msgCopy.sender = currentUser.uid;
-    msgCopy.senderName = currentUserName;
-    msgCopy.time = serverTimestamp();
-    await push(ref(db, `chats/${targetChatId}`), msgCopy);
-    closeForwardModal();
-    alert('Юборилди');
-  }
-
-  window.addReaction = async (key, emoji) => {
-    const reactionRef = ref(db, `chats/${currentChatId}/${key}/reactions/${emoji}/${currentUser.uid}`);
-    const snap = await get(reactionRef);
-    if (snap.exists()) {
-      await remove(reactionRef);
-    } else {
-      await set(reactionRef, true);
-    }
-  }
-
-  window.toggleReaction = async (key, emoji) => {
-    await addReaction(key, emoji);
-  }
-
-  window.viewImage = (url) => {
-    window.open(url, '_blank');
-  }
-
-  async function sendMsg() {
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if (!text ||!currentChatId) return;
-    input.value = '';
-
-    if (editingMsgKey) {
-      await update(ref(db, `chats/${currentChatId}/${editingMsgKey}`), { text, edited: true });
-      cancelEdit();
-    } else {
-      await push(ref(db, `chats/${currentChatId}`), {
-        text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
-      });
-    }
-    remove(ref(db, `typing/${currentChatId}/${currentUser.uid}`));
-  }
-
-  window.toggleBlock = async () => {
-    if (!currentChatUid || currentChatType!== 'private') return;
-    if (blockedList[currentChatUid]) {
-      await remove(ref(db, `blocked/${currentUser.uid}/${currentChatUid}`));
-      alert('Блокдан чиқарилди');
-    } else {
-      if (confirm(`${currentChatUser} ни блоклашни хоҳлайсизми?`)) {
-        await set(ref(db, `blocked/${currentUser.uid}/${currentChatUid}`), true);
-        alert('Блокланди');
-        currentChatId = null;
-        document.getElementById('chatHeaderText').textContent = 'Суҳбатдошни танланг';
-        document.getElementById('messages').innerHTML = '';
-        document.getElementById('inputArea').classList.add('hidden');
-        document.getElementById('blockBtn').classList.add('hidden');
-      }
-    }
-  }
-
-  onAuthStateChanged(auth, async user => {
-    if (user) {
-      currentUser = user;
-      const name = localStorage.getItem('doira_name');
-      if (!name) return showLogin();
-
-      currentUserName = name;
-      const userSnap = await get(ref(db, `users/${user.uid}`));
-      if (userSnap.exists()) {
-        currentUserAvatar = userSnap.val().avatar || '';
-      }
-
-      const userRef = ref(db, `users/${user.uid}`);
-      await set(userRef, {
-        name: currentUserName,
-        avatar: currentUserAvatar,
-        online: true,
-        lastSeen: serverTimestamp()
-      });
-      onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
-      showChat();
-    } else {
-      showLogin();
-    }
-  });
-</script>
-
-</body>
-</html>
+    const menu =
