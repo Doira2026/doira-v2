@@ -14,15 +14,17 @@
 .header-bar { flex-shrink: 0; }
 .messages-box { flex: 1; overflow-y: auto; }
 .input-bar { flex-shrink: 0; }
+.msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
+.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; }
   @media (max-width: 768px) {
-  .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-  .sidebar.open { left: 0; }
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-  .overlay.show { display: block; }
-  .msg-img { max-width: 160px!important; }
-  .msg-audio { max-width: 180px!important; }
-  .msg-text { font-size: 14px; }
-  .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+ .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+ .sidebar.open { left: 0; }
+ .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+ .overlay.show { display: block; }
+ .msg-img { max-width: 160px!important; }
+ .msg-audio { max-width: 180px!important; }
+ .msg-text { font-size: 14px; }
+ .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
    }
 .recording { animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -31,11 +33,15 @@
 <body class="chat-bg text-white">
 
 <div id="app"></div>
+<div id="imgViewer" class="img-viewer hidden" onclick="closeImgViewer()">
+  <img id="viewerImg" class="max-w-[90%] max-h-[90%]">
+  <button onclick="downloadImg()" class="absolute top-4 right-4 bg-[#00a884] px-4 py-2 rounded">Скачат</button>
+</div>
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
   import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
@@ -60,8 +66,17 @@
   let messagesUnsubscribe = null;
   let mediaRecorder = null;
   let audioChunks = [];
+  let currentViewerUrl = '';
+  let notificationEnabled = false;
 
   const appDiv = document.getElementById('app');
+
+  // Уведомления рухсат сўраш
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().then(p => { notificationEnabled = p === 'granted'; });
+  } else if (Notification.permission === 'granted') {
+    notificationEnabled = true;
+  }
 
   function showLogin() {
     appDiv.innerHTML = `
@@ -193,6 +208,20 @@
     document.getElementById('sendBtn').onclick = sendMsg;
     document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
     loadMessages();
+    listenNotifications(otherUid);
+  }
+
+  function listenNotifications(otherUid) {
+    const msgsRef = ref(db, `chats/${currentChatId}`);
+    onChildAdded(msgsRef, snap => {
+      const msg = snap.val();
+      if (msg.sender!== currentUser.uid && document.hidden && notificationEnabled) {
+        new Notification('DOIRA - Янги хабар', {
+          body: msg.type === 'text'? msg.text : msg.type === 'sticker'? msg.text : 'Файл юборилди',
+          icon: 'https://i.ibb.co/1nkMHXz/chat-icon.png'
+        });
+      }
+    });
   }
 
   function loadMessages() {
@@ -202,14 +231,14 @@
       const msgs = snap.val() || {};
       const box = document.getElementById('messages');
       box.innerHTML = '';
-      Object.values(msgs).forEach(msg => {
+      Object.entries(msgs).forEach(([key, msg]) => {
         const div = document.createElement('div');
         const isMine = msg.sender === currentUser.uid;
-        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'}`;
+        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'} relative`;
 
         let content = '';
         if (msg.type === 'image') {
-          content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
+          content = `<img src="${msg.url}" class="msg-img rounded-lg cursor-pointer" onclick="viewImg('${msg.url}')">`;
         } else if (msg.type === 'audio') {
           content = `<audio controls src="${msg.url}" class="msg-audio"></audio>`;
         } else if (msg.type === 'sticker') {
@@ -219,7 +248,8 @@
         }
 
         div.innerHTML = `
-          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text">
+          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text"
+               ${isMine? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
             ${content}
           </div>
         `;
@@ -227,6 +257,46 @@
       });
       box.scrollTop = box.scrollHeight;
     });
+  }
+
+  let touchTimer = null;
+  window.startTouch = (e, key) => {
+    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
+  }
+  window.endTouch = () => clearTimeout(touchTimer);
+
+  window.showMsgMenu = (e, key) => {
+    e.preventDefault();
+    document.querySelectorAll('.msg-menu').forEach(m => m.remove());
+    const menu = document.createElement('div');
+    menu.className = 'msg-menu';
+    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
+  }
+
+  window.deleteMsg = async (key) => {
+    await remove(ref(db, `chats/${currentChatId}/${key}`));
+  }
+
+  window.viewImg = (url) => {
+    currentViewerUrl = url;
+    document.getElementById('viewerImg').src = url;
+    document.getElementById('imgViewer').classList.remove('hidden');
+  }
+
+  window.closeImgViewer = () => {
+    document.getElementById('imgViewer').classList.add('hidden');
+  }
+
+  window.downloadImg = () => {
+    const a = document.createElement('a');
+    a.href = currentViewerUrl;
+    a.download = 'doira-image.jpg';
+    a.target = '_blank';
+    a.click();
   }
 
   async function sendMsg() {
@@ -298,7 +368,7 @@
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
       audioChunks = [];
 
       mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
@@ -319,9 +389,11 @@
             await push(ref(db, `chats/${currentChatId}`), {
               url, sender: currentUser.uid, time: serverTimestamp(), type: 'audio'
             });
+          } else {
+            alert('Овоз юборилмади');
           }
         } catch (err) {
-          alert('Овоз юборилмади');
+          alert('Овоз юборилмади: ' + err.message);
         }
         micBtn.textContent = '🎤';
         stream.getTracks().forEach(t => t.stop());
