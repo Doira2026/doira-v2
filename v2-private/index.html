@@ -14,17 +14,15 @@
 .header-bar { flex-shrink: 0; }
 .messages-box { flex: 1; overflow-y: auto; }
 .input-bar { flex-shrink: 0; }
-.msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
-.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; }
   @media (max-width: 768px) {
- .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
- .sidebar.open { left: 0; }
- .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
- .overlay.show { display: block; }
- .msg-img { max-width: 160px!important; }
- .msg-audio { max-width: 180px!important; }
- .msg-text { font-size: 14px; }
- .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+.sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+.sidebar.open { left: 0; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+.overlay.show { display: block; }
+.msg-img { max-width: 160px!important; }
+.msg-audio { max-width: 180px!important; }
+.msg-text { font-size: 14px; }
+.btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
    }
 .recording { animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -33,10 +31,6 @@
 <body class="chat-bg text-white">
 
 <div id="app"></div>
-<div id="imgViewer" class="img-viewer hidden" onclick="closeImgViewer()">
-  <img id="viewerImg" class="max-w-[90%] max-h-[90%]">
-  <button onclick="downloadImg()" class="absolute top-4 right-4 bg-[#00a884] px-4 py-2 rounded">Скачат</button>
-</div>
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -54,7 +48,6 @@
   };
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
-  const CATBOX_URL = 'https://catbox.moe/user/api.php';
   const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
 
   const app = initializeApp(firebaseConfig);
@@ -63,19 +56,20 @@
 
   let currentUser = null;
   let currentChatId = null;
+  let currentChatUser = null;
   let messagesUnsubscribe = null;
   let mediaRecorder = null;
   let audioChunks = [];
-  let currentViewerUrl = '';
-  let notificationEnabled = false;
+  let notificationPermission = false;
 
   const appDiv = document.getElementById('app');
 
-  // Уведомления рухсат сўраш
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission().then(p => { notificationEnabled = p === 'granted'; });
-  } else if (Notification.permission === 'granted') {
-    notificationEnabled = true;
+  // Уведомления рухсати сўраш
+  async function requestNotificationPermission() {
+    if ('Notification' in window) {
+      const permission = await Notification.requestPermission();
+      notificationPermission = permission === 'granted';
+    }
   }
 
   function showLogin() {
@@ -97,6 +91,7 @@
     const name = document.getElementById('nameInput').value.trim();
     if (!name) return;
     localStorage.setItem('doira_name', name);
+    await requestNotificationPermission();
     await signInAnonymously(auth);
   }
 
@@ -127,7 +122,7 @@
               <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
               <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
             </div>
-            <input type="file" id="fileInput" accept="image/*,audio/*" class="hidden">
+            <input type="file" id="fileInput" accept="image/*" class="hidden">
           </div>
         </div>
       </div>
@@ -163,7 +158,7 @@
     if (!currentChatId) return;
     toggleStickers();
     await push(ref(db, `chats/${currentChatId}`), {
-      text: sticker, sender: currentUser.uid, time: serverTimestamp(), type: 'sticker'
+      text: sticker, sender: currentUser.uid, senderName: currentUser.displayName, time: serverTimestamp(), type: 'sticker'
     });
   }
 
@@ -203,44 +198,43 @@
 
   function openChat(otherUid, otherName) {
     currentChatId = [currentUser.uid, otherUid].sort().join('_');
+    currentChatUser = otherName;
     document.getElementById('chatHeaderText').textContent = otherName;
     document.getElementById('inputArea').classList.remove('hidden');
     document.getElementById('sendBtn').onclick = sendMsg;
     document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
     loadMessages();
-    listenNotifications(otherUid);
-  }
-
-  function listenNotifications(otherUid) {
-    const msgsRef = ref(db, `chats/${currentChatId}`);
-    onChildAdded(msgsRef, snap => {
-      const msg = snap.val();
-      if (msg.sender!== currentUser.uid && document.hidden && notificationEnabled) {
-        new Notification('DOIRA - Янги хабар', {
-          body: msg.type === 'text'? msg.text : msg.type === 'sticker'? msg.text : 'Файл юборилди',
-          icon: 'https://i.ibb.co/1nkMHXz/chat-icon.png'
-        });
-      }
-    });
   }
 
   function loadMessages() {
     if (messagesUnsubscribe) messagesUnsubscribe();
     const msgsRef = ref(db, `chats/${currentChatId}`);
+
+    // Уведомления учун
+    onChildAdded(msgsRef, (snapshot) => {
+      const msg = snapshot.val();
+      if (msg.sender!== currentUser.uid && notificationPermission && document.hidden) {
+        new Notification(currentChatUser, {
+          body: msg.type === 'text'? msg.text : msg.type === 'sticker'? msg.text : msg.type === 'image'? '📷 Расм' : '🎤 Овозли хабар',
+          icon: 'https://i.ibb.co/7vKvV1D/doira-icon.png'
+        });
+      }
+    });
+
     messagesUnsubscribe = onValue(msgsRef, snap => {
       const msgs = snap.val() || {};
       const box = document.getElementById('messages');
       box.innerHTML = '';
-      Object.entries(msgs).forEach(([key, msg]) => {
+      Object.values(msgs).forEach(msg => {
         const div = document.createElement('div');
         const isMine = msg.sender === currentUser.uid;
-        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'} relative`;
+        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'}`;
 
         let content = '';
         if (msg.type === 'image') {
-          content = `<img src="${msg.url}" class="msg-img rounded-lg cursor-pointer" onclick="viewImg('${msg.url}')">`;
+          content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
         } else if (msg.type === 'audio') {
-          content = `<audio controls src="${msg.url}" class="msg-audio"></audio>`;
+          content = `<audio controls src="${msg.audioData || msg.url}" class="msg-audio"></audio>`;
         } else if (msg.type === 'sticker') {
           content = `<div class="text-5xl md:text-6xl">${msg.text || ''}</div>`;
         } else {
@@ -248,8 +242,7 @@
         }
 
         div.innerHTML = `
-          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text"
-               ${isMine? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
+          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text">
             ${content}
           </div>
         `;
@@ -259,53 +252,13 @@
     });
   }
 
-  let touchTimer = null;
-  window.startTouch = (e, key) => {
-    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
-  }
-  window.endTouch = () => clearTimeout(touchTimer);
-
-  window.showMsgMenu = (e, key) => {
-    e.preventDefault();
-    document.querySelectorAll('.msg-menu').forEach(m => m.remove());
-    const menu = document.createElement('div');
-    menu.className = 'msg-menu';
-    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
-    menu.style.left = e.pageX + 'px';
-    menu.style.top = e.pageY + 'px';
-    document.body.appendChild(menu);
-    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
-  }
-
-  window.deleteMsg = async (key) => {
-    await remove(ref(db, `chats/${currentChatId}/${key}`));
-  }
-
-  window.viewImg = (url) => {
-    currentViewerUrl = url;
-    document.getElementById('viewerImg').src = url;
-    document.getElementById('imgViewer').classList.remove('hidden');
-  }
-
-  window.closeImgViewer = () => {
-    document.getElementById('imgViewer').classList.add('hidden');
-  }
-
-  window.downloadImg = () => {
-    const a = document.createElement('a');
-    a.href = currentViewerUrl;
-    a.download = 'doira-image.jpg';
-    a.target = '_blank';
-    a.click();
-  }
-
   async function sendMsg() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
     if (!text ||!currentChatId) return;
     input.value = '';
     await push(ref(db, `chats/${currentChatId}`), {
-      text, sender: currentUser.uid, time: serverTimestamp(), type: 'text'
+      text, sender: currentUser.uid, senderName: currentUser.displayName, time: serverTimestamp(), type: 'text'
     });
   }
 
@@ -313,38 +266,27 @@
     const file = e.target.files[0];
     if (!file ||!currentChatId) return;
 
+    if (!file.type.startsWith('image')) {
+      alert('Фақат расм юклай оласиз');
+      return;
+    }
+
     const sendBtn = document.getElementById('sendBtn');
     sendBtn.textContent = '...';
     sendBtn.disabled = true;
 
     try {
-      let url, type;
-
-      if (file.type.startsWith('image')) {
-        const formData = new FormData();
-        formData.append('image', file);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-          method: 'POST',
-          body: formData
-        });
-        const data = await res.json();
-        if (!data.success) throw new Error(data.error?.message);
-        url = data.data.url;
-        type = 'image';
-      } else if (file.type.startsWith('audio')) {
-        const formData = new FormData();
-        formData.append('reqtype', 'fileupload');
-        formData.append('fileToUpload', file);
-        const res = await fetch(CATBOX_URL, { method: 'POST', body: formData });
-        url = await res.text();
-        if (!url.startsWith('http')) throw new Error('Юкланмади');
-        type = 'audio';
-      } else {
-        throw new Error('Фақат расм ёки овоз');
-      }
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error?.message);
 
       await push(ref(db, `chats/${currentChatId}`), {
-        url, sender: currentUser.uid, time: serverTimestamp(), type
+        url: data.data.url, sender: currentUser.uid, senderName: currentUser.displayName, time: serverTimestamp(), type: 'image'
       });
 
     } catch (err) {
@@ -368,35 +310,38 @@
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorder = new MediaRecorder(stream);
       audioChunks = [];
 
       mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
 
       mediaRecorder.onstop = async () => {
         const blob = new Blob(audioChunks, { type: 'audio/webm' });
-        const file = new File([blob], 'voice.webm', { type: 'audio/webm' });
+
+        // 1MB дан катта бўлса юбормаймиз
+        if (blob.size > 1024 * 1024) {
+          alert('Овоз 1MB дан катта. Қисқароқ ёзинг.');
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
 
         micBtn.textContent = '⏳';
-        const formData = new FormData();
-        formData.append('reqtype', 'fileupload');
-        formData.append('fileToUpload', file);
 
-        try {
-          const res = await fetch(CATBOX_URL, { method: 'POST', body: formData });
-          const url = await res.text();
-          if (url.startsWith('http')) {
+        // Base64 га ўгириш
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result;
+          try {
             await push(ref(db, `chats/${currentChatId}`), {
-              url, sender: currentUser.uid, time: serverTimestamp(), type: 'audio'
+              audioData: base64Audio, sender: currentUser.uid, senderName: currentUser.displayName, time: serverTimestamp(), type: 'audio'
             });
-          } else {
-            alert('Овоз юборилмади');
+          } catch (err) {
+            alert('Овоз юборилмади: ' + err.message);
           }
-        } catch (err) {
-          alert('Овоз юборилмади: ' + err.message);
-        }
-        micBtn.textContent = '🎤';
-        stream.getTracks().forEach(t => t.stop());
+          micBtn.textContent = '🎤';
+          stream.getTracks().forEach(t => t.stop());
+        };
       };
 
       mediaRecorder.start();
@@ -420,6 +365,7 @@
       const name = localStorage.getItem('doira_name');
       if (!name) return showLogin();
 
+      currentUser.displayName = name;
       const userRef = ref(db, `users/${user.uid}`);
       await set(userRef, { name, online: true, lastSeen: serverTimestamp() });
       onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
