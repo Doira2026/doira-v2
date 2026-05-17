@@ -4,33 +4,36 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doira Private V2</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#00a884">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
-  .chat-bg { background: #0a1014; }
-  .msg-out { background: #005c4b; position: relative; }
-  .msg-in { background: #202c33; position: relative; }
-  .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
-  .header-bar { flex-shrink: 0; }
-  .messages-box { flex: 1; overflow-y: auto; }
-  .input-bar { flex-shrink: 0; }
-  .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
-  .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
-  .reaction-bar { position: absolute; bottom: -10px; right: 5px; background: #1f2c34; border-radius: 12px; padding: 2px 6px; font-size: 12px; display: flex; gap: 3px; }
-  .edit-mode { background: #2a3942; }
+ .chat-bg { background: #0a1014; }
+ .msg-out { background: #005c4b; position: relative; }
+ .msg-in { background: #202c33; position: relative; }
+ .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+ .header-bar { flex-shrink: 0; }
+ .messages-box { flex: 1; overflow-y: auto; }
+ .input-bar { flex-shrink: 0; }
+ .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+ .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+ .reaction-bar { position: absolute; bottom: -10px; right: 5px; background: #1f2c34; border-radius: 12px; padding: 2px 6px; font-size: 12px; display: flex; gap: 3px; }
+ .edit-mode { background: #2a3942; }
     @media (max-width: 768px) {
-    .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-    .sidebar.open { left: 0; }
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-    .overlay.show { display: block; }
-    .msg-img { max-width: 160px!important; }
-    .msg-audio { max-width: 180px!important; }
-    .msg-text { font-size: 14px; }
-    .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+   .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+   .sidebar.open { left: 0; }
+   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+   .overlay.show { display: block; }
+   .msg-img { max-width: 160px!important; }
+   .msg-audio { max-width: 180px!important; }
+   .msg-text { font-size: 14px; }
+   .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
     }
-  .recording { animation: pulse 1.5s infinite; }
+ .recording { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-  .edited-label { font-size: 10px; color: #8696a0; margin-left: 4px; }
+ .edited-label { font-size: 10px; color: #8696a0; margin-left: 4px; }
   </style>
 </head>
 <body class="chat-bg text-white">
@@ -119,7 +122,6 @@
                 <button id="newGroupBtn" class="bg-[#00a884] px-2 py-1 rounded text-xs">+ Гуруҳ</button>
                 <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
               </div>
-            </div>
             <div id="myProfile" class="bg-[#2a3942] p-2 rounded flex items-center gap-2 cursor-pointer">
               <div class="w-8 h-8 bg-[#00a884] rounded-full flex items-center justify-center text-sm font-bold">👤</div>
               <div class="flex-1">
@@ -248,7 +250,12 @@
   window.addReaction = async (emoji) => {
     if (!reactingMsgKey ||!currentChatId) return;
     const reactRef = ref(db, `chats/${currentChatId}/${reactingMsgKey}/reactions/${currentUser.uid}`);
-    await set(reactRef, emoji);
+    const snap = await get(reactRef);
+    if (snap.val() === emoji) {
+      await remove(reactRef);
+    } else {
+      await set(reactRef, emoji);
+    }
     toggleReactions();
     reactingMsgKey = null;
   }
@@ -689,6 +696,10 @@
       showLogin();
     }
   });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js');
+  }
 </script>
 
 </body>
