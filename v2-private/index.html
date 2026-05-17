@@ -6,19 +6,25 @@
   <title>Doira Private</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: sans-serif; overflow: hidden; }
- .chat-bg { background: #0a1014; }
- .msg-out { background: #005c4b; }
- .msg-in { background: #202c33; }
+    body { font-family: sans-serif; margin: 0; }
+.chat-bg { background: #0a1014; }
+.msg-out { background: #005c4b; }
+.msg-in { background: #202c33; }
+.main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+.header-bar { flex-shrink: 0; }
+.messages-box { flex: 1; overflow-y: auto; }
+.input-bar { flex-shrink: 0; }
   @media (max-width: 768px) {
-   .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; }
-   .sidebar.open { left: 0; }
-   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-   .overlay.show { display: block; }
-   .msg-img { max-width: 220px!important; }
-   .msg-audio { max-width: 240px!important; }
+  .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+  .sidebar.open { left: 0; }
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+  .overlay.show { display: block; }
+  .msg-img { max-width: 160px!important; }
+  .msg-audio { max-width: 180px!important; }
+  .msg-text { font-size: 14px; }
+  .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
    }
- .recording { animation: pulse 1.5s infinite; }
+.recording { animation: pulse 1.5s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
 </head>
@@ -43,8 +49,6 @@
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
   const CATBOX_URL = 'https://catbox.moe/user/api.php';
-
-  // Ишлайдиган стикерлар - emoji қилиб қўйдим, расм ўлса ҳам ишлайди
   const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
 
   const app = initializeApp(firebaseConfig);
@@ -86,27 +90,27 @@
       <div class="overlay" id="overlay"></div>
       <div class="flex h-screen">
         <div class="sidebar w-1/3 bg-[#111b21] border-r border-gray-700 md:relative md:left-0" id="sidebar">
-          <div class="bg-[#202c33] p-4 flex justify-between items-center">
+          <div class="bg-[#202c33] p-4 flex justify-between items-center header-bar">
             <h1 class="text-xl font-bold">DOIRA Чат</h1>
-            <button id="logoutBtn" class="bg-red-600 px-4 py-2 rounded text-sm">Чиқиш</button>
+            <button id="logoutBtn" class="bg-red-600 px-3 py-1.5 rounded text-xs">Чиқиш</button>
           </div>
-          <div id="usersList" class="overflow-y-auto h-[calc(100vh-64px)]"></div>
+          <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 64px); height: calc(100dvh - 64px);"></div>
         </div>
-        <div class="flex-1 flex flex-col bg-[#0b141a] w-full">
-          <div id="chatHeader" class="bg-[#202c33] p-3 md:p-4 flex items-center gap-3">
+        <div class="flex-1 main-wrap bg-[#0b141a] w-full">
+          <div id="chatHeader" class="bg-[#202c33] p-3 flex items-center gap-3 header-bar">
             <button id="menuBtn" class="md:hidden text-2xl">☰</button>
-            <span id="chatHeaderText" class="font-bold text-sm md:text-base">Суҳбатдошни танланг</span>
+            <span id="chatHeaderText" class="font-bold text-sm">Суҳбатдошни танланг</span>
           </div>
-          <div id="messages" class="flex-1 overflow-y-auto p-2 md:p-4"></div>
-          <div id="stickerPanel" class="bg-[#202c33] p-2 hidden grid grid-cols-8 gap-1 max-h-40 overflow-y-auto"></div>
-          <div id="inputArea" class="bg-[#202c33] p-2 md:p-4 hidden">
-            <div class="flex gap-1 md:gap-2 items-center">
-              <button id="attachBtn" class="text-xl md:text-2xl px-1 md:px-2">📎</button>
-              <button id="stickerBtn" class="text-xl md:text-2xl px-1 md:px-2">😊</button>
+          <div id="messages" class="messages-box p-2"></div>
+          <div id="stickerPanel" class="bg-[#202c33] p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto input-bar"></div>
+          <div id="inputArea" class="bg-[#202c33] p-2 hidden input-bar">
+            <div class="flex gap-1 items-center">
+              <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
+              <button id="stickerBtn" class="btn-icon text-lg px-1">😊</button>
               <input id="msgInput" type="text" placeholder="Хабар..."
                 class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm">
-              <button id="micBtn" class="text-xl md:text-2xl px-1 md:px-2">🎤</button>
-              <button id="sendBtn" class="bg-[#00a884] px-3 md:px-6 py-2 rounded text-sm">Юбор</button>
+              <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
+              <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
             </div>
             <input type="file" id="fileInput" accept="image/*,audio/*" class="hidden">
           </div>
@@ -132,7 +136,7 @@
   function loadStickers() {
     const panel = document.getElementById('stickerPanel');
     panel.innerHTML = STICKERS.map(s =>
-      `<div class="text-3xl md:text-4xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`
+      `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`
     ).join('');
   }
 
@@ -165,11 +169,11 @@
 
       Object.values(uniqueUsers).forEach(user => {
         const div = document.createElement('div');
-        div.className = 'p-4 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
+        div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
         div.innerHTML = `
-          <div class="w-3 h-3 rounded-full ${user.online? 'bg-green-500' : 'bg-gray-500'}"></div>
+          <div class="w-2.5 h-2.5 rounded-full ${user.online? 'bg-green-500' : 'bg-gray-500'}"></div>
           <div>
-            <div class="font-bold text-sm md:text-base">${user.name}</div>
+            <div class="font-bold text-sm">${user.name}</div>
             <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
           </div>
         `;
@@ -205,17 +209,17 @@
 
         let content = '';
         if (msg.type === 'image') {
-          content = `<img src="${msg.url}" class="msg-img rounded-lg max-w-[180px] md:max-w-xs">`;
+          content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
         } else if (msg.type === 'audio') {
-          content = `<audio controls src="${msg.url}" class="msg-audio max-w-[200px] md:max-w-xs"></audio>`;
+          content = `<audio controls src="${msg.url}" class="msg-audio"></audio>`;
         } else if (msg.type === 'sticker') {
-          content = `<div class="text-6xl md:text-7xl">${msg.text}</div>`;
+          content = `<div class="text-5xl md:text-6xl">${msg.text || ''}</div>`;
         } else {
-          content = msg.text;
+          content = msg.text || '';
         }
 
         div.innerHTML = `
-          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm md:text-base ${isMine? 'msg-out' : 'msg-in'} break-words">
+          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text">
             ${content}
           </div>
         `;
