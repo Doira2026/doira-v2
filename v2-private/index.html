@@ -3,31 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doira Private</title>
+  <title>Doira Private V2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
-.chat-bg { background: #0a1014; }
-.msg-out { background: #005c4b; }
-.msg-in { background: #202c33; }
-.main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
-.header-bar { flex-shrink: 0; }
-.messages-box { flex: 1; overflow-y: auto; }
-.input-bar { flex-shrink: 0; }
-.msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
-.unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
-  @media (max-width: 768px) {
-.sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-.sidebar.open { left: 0; }
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-.overlay.show { display: block; }
-.msg-img { max-width: 160px!important; }
-.msg-audio { max-width: 180px!important; }
-.msg-text { font-size: 14px; }
-.btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
-   }
-.recording { animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+   .chat-bg { background: #0a1014; }
+   .msg-out { background: #005c4b; position: relative; }
+   .msg-in { background: #202c33; position: relative; }
+   .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+   .header-bar { flex-shrink: 0; }
+   .messages-box { flex: 1; overflow-y: auto; }
+   .input-bar { flex-shrink: 0; }
+   .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+   .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+   .reaction-bar { position: absolute; bottom: -10px; right: 5px; background: #1f2c34; border-radius: 12px; padding: 2px 6px; font-size: 12px; display: flex; gap: 3px; }
+   .edit-mode { background: #2a3942; }
+    @media (max-width: 768px) {
+     .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+     .sidebar.open { left: 0; }
+     .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+     .overlay.show { display: block; }
+     .msg-img { max-width: 160px!important; }
+     .msg-audio { max-width: 180px!important; }
+     .msg-text { font-size: 14px; }
+     .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+    }
+   .recording { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+   .edited-label { font-size: 10px; color: #8696a0; margin-left: 4px; }
   </style>
 </head>
 <body class="chat-bg text-white">
@@ -51,7 +54,8 @@
   };
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
-  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
+  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
+  const REACTIONS = ['❤️','😂','👍','😮','😢','🙏'];
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -68,6 +72,8 @@
   let allUsers = {};
   let friendsList = {};
   let unreadCounts = {};
+  let editingMsgKey = null;
+  let groupsList = {};
 
   const appDiv = document.getElementById('app');
   const notifSound = document.getElementById('notifSound');
@@ -82,7 +88,7 @@
     appDiv.innerHTML = `
       <div class="flex items-center justify-center h-screen p-4">
         <div class="bg-[#1f2c34] p-8 rounded-lg w-full max-w-sm">
-          <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
+          <h1 class="text-3xl font-bold text-center mb-6">DOIRA V2</h1>
           <input id="nameInput" type="text" placeholder="Исмингизни киритинг"
             class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none">
           <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold">Кириш</button>
@@ -108,8 +114,11 @@
         <div class="sidebar w-1/3 bg-[#111b21] border-r border-gray-700 md:relative md:left-0" id="sidebar">
           <div class="bg-[#202c33] p-3 header-bar">
             <div class="flex justify-between items-center mb-2">
-              <h1 class="text-lg font-bold">DOIRA</h1>
-              <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
+              <h1 class="text-lg font-bold">DOIRA V2</h1>
+              <div class="flex gap-2">
+                <button id="newGroupBtn" class="bg-[#00a884] px-2 py-1 rounded text-xs">+ Гуруҳ</button>
+                <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
+              </div>
             </div>
             <div id="myProfile" class="bg-[#2a3942] p-2 rounded flex items-center gap-2 cursor-pointer">
               <div class="w-8 h-8 bg-[#00a884] rounded-full flex items-center justify-center text-sm font-bold">👤</div>
@@ -117,12 +126,12 @@
                 <div class="text-xs text-gray-400">Сен:</div>
                 <div id="myName" class="text-sm font-bold"></div>
               </div>
-              <div class="text-xs">✏️</div>
+              <div class="text-xs">✏</div>
             </div>
             <input id="searchInput" type="text" placeholder="🔍 Қидириш..."
               class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
           </div>
-          <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 140px); height: calc(100dvh - 140px);"></div>
+          <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 170px); height: calc(100dvh - 170px);"></div>
         </div>
         <div class="flex-1 main-wrap bg-[#0b141a] w-full">
           <div id="chatHeader" class="bg-[#202c33] p-3 flex items-center gap-3 header-bar">
@@ -131,6 +140,11 @@
           </div>
           <div id="messages" class="messages-box p-2"></div>
           <div id="stickerPanel" class="bg-[#202c33] p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto input-bar"></div>
+          <div id="reactionPanel" class="bg-[#202c33] p-2 hidden flex justify-around input-bar"></div>
+          <div id="editBanner" class="bg-[#2a3942] p-2 hidden flex justify-between items-center text-sm input-bar">
+            <span>✏️ Хабарни таҳрирлаш</span>
+            <button id="cancelEditBtn" class="text-red-400">Бекор қилиш</button>
+          </div>
           <div id="inputArea" class="bg-[#202c33] p-2 hidden input-bar">
             <div class="flex gap-1 items-center">
               <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
@@ -141,6 +155,17 @@
               <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
             </div>
             <input type="file" id="fileInput" accept="image/*" class="hidden">
+          </div>
+        </div>
+      </div>
+      <div id="groupModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+        <div class="bg-[#1f2c34] p-6 rounded-lg w-11/12 max-w-md">
+          <h2 class="text-xl font-bold mb-4">Янги гуруҳ</h2>
+          <input id="groupNameInput" type="text" placeholder="Гуруҳ номи" class="w-full bg-[#2a3942] p-2 rounded mb-3 outline-none">
+          <div id="groupUsersList" class="max-h-60 overflow-y-auto mb-3"></div>
+          <div class="flex gap-2">
+            <button id="createGroupBtn" class="flex-1 bg-[#00a884] p-2 rounded font-bold">Яратиш</button>
+            <button id="cancelGroupBtn" class="flex-1 bg-gray-600 p-2 rounded font-bold">Бекор</button>
           </div>
         </div>
       </div>
@@ -155,8 +180,14 @@
     document.getElementById('searchInput').oninput = renderUsers;
     document.getElementById('myProfile').onclick = changeName;
     document.getElementById('myName').textContent = currentUserName;
+    document.getElementById('newGroupBtn').onclick = showGroupModal;
+    document.getElementById('cancelGroupBtn').onclick = hideGroupModal;
+    document.getElementById('createGroupBtn').onclick = createGroup;
+    document.getElementById('cancelEditBtn').onclick = cancelEdit;
     loadStickers();
+    loadReactions();
     loadUsers();
+    loadGroups();
     loadUnreadCounts();
   }
 
@@ -183,8 +214,21 @@
     ).join('');
   }
 
+  function loadReactions() {
+    const panel = document.getElementById('reactionPanel');
+    panel.innerHTML = REACTIONS.map(r =>
+      `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-2" onclick="addReaction('${r}')">${r}</div>`
+    ).join('');
+  }
+
   function toggleStickers() {
     document.getElementById('stickerPanel').classList.toggle('hidden');
+    document.getElementById('reactionPanel').classList.add('hidden');
+  }
+
+  function toggleReactions() {
+    document.getElementById('reactionPanel').classList.toggle('hidden');
+    document.getElementById('stickerPanel').classList.add('hidden');
   }
 
   window.sendSticker = async (sticker) => {
@@ -193,6 +237,20 @@
     await push(ref(db, `chats/${currentChatId}`), {
       text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
     });
+  }
+
+  let reactingMsgKey = null;
+  window.showReactionPanel = (key) => {
+    reactingMsgKey = key;
+    toggleReactions();
+  }
+
+  window.addReaction = async (emoji) => {
+    if (!reactingMsgKey ||!currentChatId) return;
+    const reactRef = ref(db, `chats/${currentChatId}/${reactingMsgKey}/reactions/${currentUser.uid}`);
+    await set(reactRef, emoji);
+    toggleReactions();
+    reactingMsgKey = null;
   }
 
   function loadUnreadCounts() {
@@ -217,54 +275,88 @@
     });
   }
 
+  function loadGroups() {
+    const groupsRef = ref(db, 'groups');
+    onValue(groupsRef, snap => {
+      groupsList = snap.val() || {};
+      renderUsers();
+    });
+  }
+
   function renderUsers() {
     const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const list = document.getElementById('usersList');
     if (!list) return;
     list.innerHTML = '';
 
-    const users = [];
+    const items = [];
+
+    Object.entries(groupsList).forEach(([gid, group]) => {
+      if (group.members && group.members[currentUser.uid]) {
+        if (searchQuery &&!group.name.toLowerCase().includes(searchQuery)) return;
+        items.push({ id: gid, name: group.name, type: 'group', unread: unreadCounts[gid] || 0 });
+      }
+    });
+
     Object.entries(allUsers).forEach(([uid, user]) => {
       if (uid === currentUser.uid) return;
       if (searchQuery &&!user.name.toLowerCase().includes(searchQuery)) return;
-      users.push({ uid,...user, isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
+      items.push({ id: uid,...user, type: 'user', isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
     });
 
-    users.sort((a, b) => {
+    items.sort((a, b) => {
       if (a.unread &&!b.unread) return -1;
       if (!a.unread && b.unread) return 1;
+      if (a.type === 'group' && b.type!== 'group') return -1;
+      if (a.type!== 'group' && b.type === 'group') return 1;
       if (a.isFriend &&!b.isFriend) return -1;
       if (!a.isFriend && b.isFriend) return 1;
-      return b.lastSeen - a.lastSeen;
+      return (b.lastSeen || 0) - (a.lastSeen || 0);
     });
 
-    if (users.length === 0) {
+    if (items.length === 0) {
       list.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Ҳеч ким топилмади</div>';
       return;
     }
 
-    users.forEach(user => {
+    items.forEach(item => {
       const div = document.createElement('div');
       div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
-      div.innerHTML = `
-        <div class="w-2.5 h-2.5 rounded-full ${user.online? 'bg-green-500' : 'bg-gray-500'}"></div>
-        <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}')">
-          <div class="font-bold text-sm flex items-center gap-1">
-            ${user.name}
+      if (item.type === 'group') {
+        div.innerHTML = `
+          <div class="w-10 h-10 bg-[#00a884] rounded-full flex items-center justify-center text-lg">👥</div>
+          <div class="flex-1" onclick="openGroup('${item.id}', '${item.name}')">
+            <div class="font-bold text-sm">${item.name}</div>
+            <div class="text-xs text-gray-400">Гуруҳ</div>
           </div>
-          <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
-        </div>
-        <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
-          ${user.isFriend? '⭐' : '☆'}
-        </button>
-        ${user.unread? `<div class="unread-badge">${user.unread}</div>` : ''}
-      `;
+          ${item.unread? `<div class="unread-badge">${item.unread}</div>` : ''}
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="w-2.5 h-2.5 rounded-full ${item.online? 'bg-green-500' : 'bg-gray-500'}"></div>
+          <div class="flex-1" onclick="openChatUser('${item.id}', '${item.name}')">
+            <div class="font-bold text-sm flex items-center gap-1">
+              ${item.name}
+            </div>
+            <div class="text-xs text-gray-400">${item.online? 'онлайн' : 'оффлайн'}</div>
+          </div>
+          <button onclick="event.stopPropagation(); toggleFriend('${item.id}', ${item.isFriend})" class="text-lg px-2">
+            ${item.isFriend? '⭐' : '☆'}
+          </button>
+          ${item.unread? `<div class="unread-badge">${item.unread}</div>` : ''}
+        `;
+      }
       list.appendChild(div);
     });
   }
 
   window.openChatUser = (uid, name) => {
-    openChat(uid, name);
+    openChat(uid, name, false);
+    if (window.innerWidth < 768) toggleSidebar();
+  }
+
+  window.openGroup = (gid, name) => {
+    openChat(gid, name, true);
     if (window.innerWidth < 768) toggleSidebar();
   }
 
@@ -276,16 +368,66 @@
     }
   }
 
-  function openChat(otherUid, otherName) {
-    currentChatId = [currentUser.uid, otherUid].sort().join('_');
-    currentChatUser = otherName;
-    currentChatUid = otherUid;
-    document.getElementById('chatHeaderText').textContent = otherName;
+  function showGroupModal() {
+    const modal = document.getElementById('groupModal');
+    const list = document.getElementById('groupUsersList');
+    list.innerHTML = '';
+    Object.entries(allUsers).forEach(([uid, user]) => {
+      if (uid === currentUser.uid) return;
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2 p-2 hover:bg-[#2a3942] rounded';
+      div.innerHTML = `
+        <input type="checkbox" value="${uid}" class="group-user-cb">
+        <span>${user.name}</span>
+      `;
+      list.appendChild(div);
+    });
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function hideGroupModal() {
+    document.getElementById('groupModal').classList.add('hidden');
+    document.getElementById('groupModal').classList.remove('flex');
+    document.getElementById('groupNameInput').value = '';
+  }
+
+  async function createGroup() {
+    const name = document.getElementById('groupNameInput').value.trim();
+    if (!name) return alert('Гуруҳ номини киритинг');
+    const checkboxes = document.querySelectorAll('.group-user-cb:checked');
+    if (checkboxes.length === 0) return alert('Камида 1 та одам танланг');
+
+    const members = { [currentUser.uid]: true };
+    checkboxes.forEach(cb => members[cb.value] = true);
+
+    const groupRef = push(ref(db, 'groups'));
+    await set(groupRef, {
+      name,
+      creator: currentUser.uid,
+      members,
+      created: serverTimestamp()
+    });
+
+    hideGroupModal();
+  }
+
+  function openChat(id, name, isGroup = false) {
+    if (isGroup) {
+      currentChatId = id;
+      currentChatUser = name;
+      currentChatUid = null;
+    } else {
+      currentChatId = [currentUser.uid, id].sort().join('_');
+      currentChatUser = name;
+      currentChatUid = id;
+    }
+    document.getElementById('chatHeaderText').textContent = name;
     document.getElementById('inputArea').classList.remove('hidden');
     document.getElementById('sendBtn').onclick = sendMsg;
     document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
 
-    remove(ref(db, `unread/${currentUser.uid}/${otherUid}`));
+    remove(ref(db, `unread/${currentUser.uid}/${id}`));
     loadMessages();
   }
 
@@ -307,7 +449,7 @@
         notifSound.play().catch(()=>{});
 
         if (currentChatUid!== msg.sender) {
-          const unreadRef = ref(db, `unread/${currentUser.uid}/${msg.sender}`);
+          const unreadRef = ref(db, `unread/${currentUser.uid}/${msg.sender || currentChatId}`);
           get(unreadRef).then(snap => {
             const count = (snap.val() || 0) + 1;
             set(unreadRef, count);
@@ -336,12 +478,25 @@
           content = msg.text || '';
         }
 
-        const canDelete = isMine && (msg.type === 'image' || msg.type === 'audio' || msg.type === 'text' || msg.type === 'sticker');
+        let reactionsHtml = '';
+        if (msg.reactions) {
+          const reacts = Object.values(msg.reactions).reduce((acc, r) => {
+            acc[r] = (acc[r] || 0) + 1;
+            return acc;
+          }, {});
+          reactionsHtml = `<div class="reaction-bar">${Object.entries(reacts).map(([emoji, count]) => `${emoji}${count > 1? count : ''}`).join(' ')}</div>`;
+        }
+
+        const editedHtml = msg.edited? `<span class="edited-label">(таҳрирланган)</span>` : '';
 
         div.innerHTML = `
           <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text"
-               ${canDelete? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
-            ${content}
+               oncontextmenu="showMsgMenu(event, '${key}', ${isMine}); return false;"
+               ontouchstart="startTouch(event, '${key}', ${isMine})"
+               ontouchend="endTouch()">
+            ${!isMine && msg.senderName? `<div class="text-xs text-[#00a884] font-bold mb-1">${msg.senderName}</div>` : ''}
+            ${content}${editedHtml}
+            ${reactionsHtml}
           </div>
         `;
         box.appendChild(div);
@@ -352,24 +507,56 @@
   }
 
   let touchTimer = null;
-  window.startTouch = (e, key) => {
-    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
+  let touchMsgKey = null;
+  let touchIsMine = false;
+  window.startTouch = (e, key, isMine) => {
+    touchMsgKey = key;
+    touchIsMine = isMine;
+    touchTimer = setTimeout(() => showMsgMenu(e, key, isMine), 600);
   }
   window.endTouch = () => clearTimeout(touchTimer);
 
-  window.showMsgMenu = (e, key) => {
+  window.showMsgMenu = (e, key, isMine) => {
     e.preventDefault();
     document.querySelectorAll('.msg-menu').forEach(m => m.remove());
     const menu = document.createElement('div');
     menu.className = 'msg-menu';
-    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
-    menu.style.left = e.pageX + 'px';
+    let menuHtml = `
+      <button onclick="showReactionPanel('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">😊 Реакция</button>
+    `;
+    if (isMine) {
+      menuHtml += `
+        <button onclick="startEdit('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">✏️ Таҳрирлаш</button>
+        <button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left text-red-400">🗑️ Ўчириш</button>
+      `;
+    }
+    menu.innerHTML = menuHtml;
+    menu.style.left = Math.min(e.pageX, window.innerWidth - 150) + 'px';
     menu.style.top = e.pageY + 'px';
     document.body.appendChild(menu);
     setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
   }
 
+  window.startEdit = async (key) => {
+    const msgRef = ref(db, `chats/${currentChatId}/${key}`);
+    const snap = await get(msgRef);
+    const msg = snap.val();
+    if (msg.type!== 'text') return alert('Фақат матнни таҳрирлаш мумкин');
+
+    editingMsgKey = key;
+    document.getElementById('msgInput').value = msg.text;
+    document.getElementById('editBanner').classList.remove('hidden');
+    document.getElementById('msgInput').focus();
+  }
+
+  function cancelEdit() {
+    editingMsgKey = null;
+    document.getElementById('msgInput').value = '';
+    document.getElementById('editBanner').classList.add('hidden');
+  }
+
   window.deleteMsg = async (key) => {
+    if (!confirm('Хабарни ўчиришга ишончингиз комилми?')) return;
     await remove(ref(db, `chats/${currentChatId}/${key}`));
   }
 
@@ -377,10 +564,20 @@
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
     if (!text ||!currentChatId) return;
-    input.value = '';
-    await push(ref(db, `chats/${currentChatId}`), {
-      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
-    });
+
+    if (editingMsgKey) {
+      await update(ref(db, `chats/${currentChatId}/${editingMsgKey}`), {
+        text,
+        edited: true,
+        editTime: serverTimestamp()
+      });
+      cancelEdit();
+    } else {
+      input.value = '';
+      await push(ref(db, `chats/${currentChatId}`), {
+        text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
+      });
+    }
   }
 
   async function uploadFile(e) {
@@ -464,7 +661,7 @@
 
       mediaRecorder.start();
       micBtn.classList.add('recording');
-      micBtn.textContent = '⏹️';
+      micBtn.textContent = '⏹';
 
     } catch (err) {
       alert('Микрофон рухсати керак');
