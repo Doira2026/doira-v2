@@ -37,7 +37,7 @@ const root = document.getElementById("app");
 function loginUI() {
   root.innerHTML = `
   <div style="
-    height:100vh;
+    height:100dvh;
     display:flex;
     justify-content:center;
     align-items:center;
