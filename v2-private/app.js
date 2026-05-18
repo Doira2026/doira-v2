@@ -1,9 +1,9 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
   signInAnonymously,
   onAuthStateChanged
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
   getDatabase,
@@ -11,10 +11,8 @@ import {
   set,
   push,
   onValue,
-  serverTimestamp,
-  onDisconnect,
-  remove
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
@@ -30,106 +28,53 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+const IMGBB = "e4cecebb229f451e3322c126e3d09399";
+
 let currentUser = null;
-let currentName = '';
-let currentChatId = null;
-let users = {};
+let currentName = "";
+let currentChat = null;
+let replyTo = null;
 
-const appDiv = document.getElementById('app');
+const appDiv = document.getElementById("app");
 
-function showLogin() {
+function loginUI() {
   appDiv.innerHTML = `
-    <div class="min-h-screen flex items-center justify-center bg-[#111b21] p-4">
-      <div class="bg-[#202c33] p-6 rounded-xl w-full max-w-sm">
-        <h1 class="text-white text-3xl font-bold text-center mb-6">
-          DOIRA CHAT
-        </h1>
-
-        <input
-          id="nameInput"
-          type="text"
-          placeholder="Ismingiz"
-          class="w-full p-3 rounded-lg bg-[#2a3942] text-white outline-none mb-4"
-        >
-
-        <button
-          id="joinBtn"
-          class="w-full bg-[#00a884] text-white p-3 rounded-lg font-bold"
-        >
-          Kirish
-        </button>
+    <div class="h-screen flex items-center justify-center bg-black text-white">
+      <div class="p-5 bg-[#202c33] rounded w-80">
+        <h2 class="text-xl mb-4 text-center">DOIRA CHAT</h2>
+        <input id="name" class="w-full p-2 text-black rounded" placeholder="Ismingiz">
+        <button id="join" class="w-full mt-3 bg-green-500 p-2 rounded">Kirish</button>
       </div>
     </div>
   `;
-
-  document.getElementById('joinBtn').onclick = joinChat;
+  document.getElementById("join").onclick = async () => {
+    const name = document.getElementById("name").value;
+    if (!name) return;
+    localStorage.setItem("name", name);
+    await signInAnonymously(auth);
+  };
 }
 
-async function joinChat() {
-  const name = document.getElementById('nameInput').value.trim();
-
-  if (!name) {
-    alert('Ism kiriting');
-    return;
-  }
-
-  localStorage.setItem('doira_name', name);
-
-  await signInAnonymously(auth);
-}
-
-function showChat() {
+function chatUI() {
   appDiv.innerHTML = `
     <div class="flex h-screen bg-[#111b21] text-white">
-
-      <div class="w-[320px] bg-[#202c33] border-r border-[#2a3942] flex flex-col">
-
-        <div class="p-4 border-b border-[#2a3942]">
-          <div class="text-xl font-bold">DOIRA CHAT</div>
-          <div class="text-sm text-gray-400 mt-1">
-            ${currentName}
-          </div>
-        </div>
-
-        <div
-          id="usersList"
-          class="flex-1 overflow-y-auto"
-        ></div>
-
-      </div>
+      
+      <div class="w-64 bg-[#202c33] p-2 overflow-auto" id="users"></div>
 
       <div class="flex-1 flex flex-col">
 
-        <div
-          id="chatHeader"
-          class="h-[70px] border-b border-[#2a3942] flex items-center px-4 text-lg font-bold"
-        >
-          Chat tanlang
-        </div>
+        <div class="p-3 bg-[#202c33] font-bold">Chat</div>
 
-        <div
-          id="messages"
-          class="flex-1 overflow-y-auto p-4 space-y-2"
-        ></div>
+        <div id="messages" class="flex-1 overflow-auto p-3"></div>
 
-        <div
-          id="inputArea"
-          class="p-4 border-t border-[#2a3942] hidden"
-        >
+        <div class="p-2 bg-[#202c33]">
+          <div id="replyBox" class="text-xs text-green-400 mb-1"></div>
+
           <div class="flex gap-2">
-            <input
-              id="msgInput"
-              type="text"
-              placeholder="Xabar..."
-              class="flex-1 p-3 rounded-lg bg-[#202c33] outline-none"
-            >
-
-            <button
-              id="sendBtn"
-              class="bg-[#00a884] px-5 rounded-lg font-bold"
-            >
-              Yubor
-            </button>
+            <input id="msg" class="flex-1 p-2 text-black rounded" placeholder="Xabar...">
+            <input type="file" id="file" class="hidden">
+            <button id="imgBtn">📷</button>
+            <button id="send" class="bg-green-500 px-3 rounded">➤</button>
           </div>
         </div>
 
@@ -138,168 +83,108 @@ function showChat() {
     </div>
   `;
 
-  loadUsers();
+  document.getElementById("send").onclick = send;
+  document.getElementById("imgBtn").onclick = () => document.getElementById("file").click();
+  document.getElementById("file").onchange = uploadImage;
 }
 
-function loadUsers() {
-  const usersRef = ref(db, 'users');
-
-  onValue(usersRef, snapshot => {
-    users = snapshot.val() || {};
-
-    const usersList = document.getElementById('usersList');
-
-    usersList.innerHTML = '';
-
-    Object.entries(users).forEach(([uid, user]) => {
-
-      if (uid === currentUser.uid) return;
-
-      const div = document.createElement('div');
-
-      div.className =
-        'p-4 border-b border-[#2a3942] cursor-pointer hover:bg-[#2a3942]';
-
-      div.innerHTML = `
-        <div class="flex items-center gap-3">
-
-          <div class="
-            w-3 h-3 rounded-full
-            ${user.online ? 'bg-green-500' : 'bg-gray-500'}
-          "></div>
-
-          <div>
-            <div class="font-bold">${user.name}</div>
-
-            <div class="text-sm text-gray-400">
-              ${user.online ? 'online' : 'offline'}
-            </div>
-          </div>
-
-        </div>
-      `;
-
-      div.onclick = () => openChat(uid, user.name);
-
-      usersList.appendChild(div);
-    });
-  });
-}
-
-function openChat(uid, name) {
-
-  currentChatId = [currentUser.uid, uid].sort().join('_');
-
-  document.getElementById('chatHeader').textContent = name;
-
-  document.getElementById('inputArea').classList.remove('hidden');
-
-  document.getElementById('sendBtn').onclick = sendMessage;
-
-  document.getElementById('msgInput').onkeyup = e => {
-    if (e.key === 'Enter') {
-      sendMessage();
-    }
-  };
-
+function openChat(uid) {
+  currentChat = uid;
   loadMessages();
 }
 
-async function sendMessage() {
+function send() {
+  const input = document.getElementById("msg");
+  const text = input.value;
+  if (!text || !currentChat) return;
 
-  const input = document.getElementById('msgInput');
-
-  const text = input.value.trim();
-
-  if (!text) return;
-
-  input.value = '';
-
-  await push(ref(db, `chats/${currentChatId}`), {
+  push(ref(db, "chats/" + currentChat), {
     text,
     sender: currentUser.uid,
-    senderName: currentName,
-    time: serverTimestamp()
+    name: currentName,
+    time: serverTimestamp(),
+    reply: replyTo || null
   });
+
+  replyTo = null;
+  document.getElementById("replyBox").innerText = "";
+  input.value = "";
 }
 
 function loadMessages() {
+  const box = document.getElementById("messages");
 
-  const messagesRef = ref(db, `chats/${currentChatId}`);
+  onValue(ref(db, "chats/" + currentChat), (snap) => {
+    const data = snap.val() || {};
+    box.innerHTML = "";
 
-  onValue(messagesRef, snapshot => {
+    Object.entries(data).forEach(([id, msg]) => {
+      const div = document.createElement("div");
+      div.className = "mb-2";
 
-    const messages = snapshot.val() || {};
+      let content = "";
 
-    const box = document.getElementById('messages');
+      if (msg.reply) {
+        content += `<div class="text-xs text-gray-400 border-l-2 pl-2">${msg.reply.text}</div>`;
+      }
 
-    box.innerHTML = '';
-
-    Object.entries(messages).forEach(([key, msg]) => {
-
-      const isMine = msg.sender === currentUser.uid;
-
-      const div = document.createElement('div');
-
-      div.className =
-        `flex ${isMine ? 'justify-end' : 'justify-start'}`;
+      if (msg.text) content += msg.text;
+      if (msg.image) content += `<img src="${msg.image}" width="150">`;
 
       div.innerHTML = `
-        <div class="
-          max-w-[70%]
-          px-4
-          py-2
-          rounded-xl
-          text-white
-          ${isMine ? 'bg-[#00a884]' : 'bg-[#202c33]'}
-        ">
-          ${msg.text}
+        <div class="bg-[#202c33] p-2 rounded max-w-xs">
+          <b>${msg.name}</b><br>
+          ${content}
+          <div class="text-xs text-gray-400 mt-1">
+            <button onclick="replyMsg('${id}','${msg.text || ""}')">↩</button>
+          </div>
         </div>
       `;
 
       box.appendChild(div);
     });
-
-    box.scrollTop = box.scrollHeight;
   });
 }
 
-function startPresence() {
+window.replyMsg = (id, text) => {
+  replyTo = { id, text };
+  document.getElementById("replyBox").innerText = "Reply: " + text;
+};
 
-  const userRef = ref(db, `users/${currentUser.uid}`);
+async function uploadImage(e) {
+  const file = e.target.files[0];
+  if (!file || !currentChat) return;
 
-  set(userRef, {
+  const fd = new FormData();
+  fd.append("image", file);
+
+  const res = await fetch(
+    "https://api.imgbb.com/1/upload?key=" + IMGBB,
+    { method: "POST", body: fd }
+  );
+
+  const data = await res.json();
+
+  push(ref(db, "chats/" + currentChat), {
+    image: data.data.url,
+    sender: currentUser.uid,
     name: currentName,
-    online: true,
-    lastSeen: Date.now()
-  });
-
-  onDisconnect(userRef).update({
-    online: false,
-    lastSeen: Date.now()
+    time: serverTimestamp()
   });
 }
 
-function logout() {
-  remove(ref(db, `users/${currentUser.uid}`));
-  location.reload();
-}
-
-onAuthStateChanged(auth, async user => {
-
+onAuthStateChanged(auth, (user) => {
   if (user) {
-
     currentUser = user;
+    currentName = localStorage.getItem("name");
 
-    currentName =
-      localStorage.getItem('doira_name') || 'User';
+    set(ref(db, "users/" + user.uid), {
+      name: currentName,
+      online: true
+    });
 
-    startPresence();
-
-    showChat();
-
+    chatUI();
   } else {
-
-    showLogin();
+    loginUI();
   }
 });
