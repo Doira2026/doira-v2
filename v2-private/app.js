@@ -28,26 +28,34 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const IMGBB = "e4cecebb229f451e3322c126e3d09399";
-
 let currentUser = null;
 let currentName = "";
-let currentChat = null;
-let replyTo = null;
+let chatId = "global";
 
-const appDiv = document.getElementById("app");
+const root = document.getElementById("app");
 
 function loginUI() {
-  appDiv.innerHTML = `
-    <div class="h-screen flex items-center justify-center bg-black text-white">
-      <div class="p-5 bg-[#202c33] rounded w-80">
-        <h2 class="text-xl mb-4 text-center">DOIRA CHAT</h2>
-        <input id="name" class="w-full p-2 text-black rounded" placeholder="Ismingiz">
-        <button id="join" class="w-full mt-3 bg-green-500 p-2 rounded">Kirish</button>
-      </div>
+  root.innerHTML = `
+  <div style="
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#0b141a;
+    color:white;
+    padding:20px;
+  ">
+    <div style="width:100%;max-width:320px;background:#111b21;padding:20px;border-radius:12px">
+      <h2 style="text-align:center">DOIRA CHAT</h2>
+      <input id="name" placeholder="Ism" style="width:100%;padding:10px;margin-top:10px">
+      <button id="btn" style="width:100%;margin-top:10px;padding:10px;background:#00a884;color:white;border:none">
+        Kirish
+      </button>
     </div>
+  </div>
   `;
-  document.getElementById("join").onclick = async () => {
+
+  document.getElementById("btn").onclick = async () => {
     const name = document.getElementById("name").value;
     if (!name) return;
     localStorage.setItem("name", name);
@@ -56,133 +64,107 @@ function loginUI() {
 }
 
 function chatUI() {
-  appDiv.innerHTML = `
-    <div class="flex h-screen bg-[#111b21] text-white">
-      
-      <div class="w-64 bg-[#202c33] p-2 overflow-auto" id="users"></div>
+  root.innerHTML = `
+  <div style="
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    background:#0b141a;
+    color:white;
+  ">
 
-      <div class="flex-1 flex flex-col">
-
-        <div class="p-3 bg-[#202c33] font-bold">Chat</div>
-
-        <div id="messages" class="flex-1 overflow-auto p-3"></div>
-
-        <div class="p-2 bg-[#202c33]">
-          <div id="replyBox" class="text-xs text-green-400 mb-1"></div>
-
-          <div class="flex gap-2">
-            <input id="msg" class="flex-1 p-2 text-black rounded" placeholder="Xabar...">
-            <input type="file" id="file" class="hidden">
-            <button id="imgBtn">📷</button>
-            <button id="send" class="bg-green-500 px-3 rounded">➤</button>
-          </div>
-        </div>
-
-      </div>
-
+    <div style="
+      padding:10px;
+      background:#202c33;
+      text-align:center;
+      font-weight:bold;
+    ">
+      DOIRA CHAT
     </div>
+
+    <div id="msgs" style="
+      flex:1;
+      overflow-y:auto;
+      padding:10px;
+    "></div>
+
+    <div style="
+      display:flex;
+      gap:5px;
+      padding:10px;
+      background:#202c33;
+    ">
+      <input id="msg" style="
+        flex:1;
+        padding:10px;
+      ">
+      <button id="send" style="
+        background:#00a884;
+        color:white;
+        border:none;
+        padding:10px;
+      ">➤</button>
+    </div>
+
+  </div>
   `;
 
   document.getElementById("send").onclick = send;
-  document.getElementById("imgBtn").onclick = () => document.getElementById("file").click();
-  document.getElementById("file").onchange = uploadImage;
-}
+  document.getElementById("msg").onkeyup = e => {
+    if (e.key === "Enter") send();
+  };
 
-function openChat(uid) {
-  currentChat = uid;
   loadMessages();
 }
 
 function send() {
   const input = document.getElementById("msg");
-  const text = input.value;
-  if (!text || !currentChat) return;
+  const text = input.value.trim();
+  if (!text) return;
 
-  push(ref(db, "chats/" + currentChat), {
+  push(ref(db, "chats/" + chatId), {
     text,
-    sender: currentUser.uid,
     name: currentName,
-    time: serverTimestamp(),
-    reply: replyTo || null
+    time: serverTimestamp()
   });
 
-  replyTo = null;
-  document.getElementById("replyBox").innerText = "";
   input.value = "";
 }
 
 function loadMessages() {
-  const box = document.getElementById("messages");
+  const box = document.getElementById("msgs");
 
-  onValue(ref(db, "chats/" + currentChat), (snap) => {
+  onValue(ref(db, "chats/" + chatId), snap => {
     const data = snap.val() || {};
     box.innerHTML = "";
 
-    Object.entries(data).forEach(([id, msg]) => {
+    Object.values(data).forEach(m => {
       const div = document.createElement("div");
-      div.className = "mb-2";
 
-      let content = "";
-
-      if (msg.reply) {
-        content += `<div class="text-xs text-gray-400 border-l-2 pl-2">${msg.reply.text}</div>`;
-      }
-
-      if (msg.text) content += msg.text;
-      if (msg.image) content += `<img src="${msg.image}" width="150">`;
-
+      div.style.marginBottom = "8px";
       div.innerHTML = `
-        <div class="bg-[#202c33] p-2 rounded max-w-xs">
-          <b>${msg.name}</b><br>
-          ${content}
-          <div class="text-xs text-gray-400 mt-1">
-            <button onclick="replyMsg('${id}','${msg.text || ""}')">↩</button>
-          </div>
+        <div style="
+          background:#202c33;
+          padding:8px;
+          border-radius:10px;
+          max-width:80%;
+        ">
+          <b>${m.name}</b><br>
+          ${m.text}
         </div>
       `;
 
       box.appendChild(div);
     });
+
+    box.scrollTop = box.scrollHeight;
   });
 }
 
-window.replyMsg = (id, text) => {
-  replyTo = { id, text };
-  document.getElementById("replyBox").innerText = "Reply: " + text;
-};
-
-async function uploadImage(e) {
-  const file = e.target.files[0];
-  if (!file || !currentChat) return;
-
-  const fd = new FormData();
-  fd.append("image", file);
-
-  const res = await fetch(
-    "https://api.imgbb.com/1/upload?key=" + IMGBB,
-    { method: "POST", body: fd }
-  );
-
-  const data = await res.json();
-
-  push(ref(db, "chats/" + currentChat), {
-    image: data.data.url,
-    sender: currentUser.uid,
-    name: currentName,
-    time: serverTimestamp()
-  });
-}
-
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, user => {
   if (user) {
     currentUser = user;
     currentName = localStorage.getItem("name");
-
-    set(ref(db, "users/" + user.uid), {
-      name: currentName,
-      online: true
-    });
-
     chatUI();
   } else {
     loginUI();
