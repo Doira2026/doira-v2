@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doira Private</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://tailwindcss.com"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
     .chat-bg { background: #0a1014; }
@@ -33,26 +33,23 @@
 <body class="chat-bg text-white">
 
 <div id="app"></div>
-<audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+<audio id="notifSound" src="https://pixabay.com"></audio>
 
 <script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+  import { initializeApp } from 'https://gstatic.com';
+  // КЕРАКЛИ ФУНКЦИЯЛАР ЯНГЛИЛАНДИ (createUserWithEmailAndPassword ва signInWithEmailAndPassword ҚЎШИЛДИ)
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'https://gstatic.com';
+  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://gstatic.com';
 
   const firebaseConfig = {
     apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-    authDomain: "doira-chat-v2.firebaseapp.com",
-    databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
+    authDomain: "://firebaseapp.com",
+    databaseURL: "https://firebaseio.com",
     projectId: "doira-chat-v2",
     storageBucket: "doira-chat-v2.firebasestorage.app",
     messagingSenderId: "885552294238",
     appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
   };
-
-  // СТАТИК ЛОГИН ВА ПАРОЛЛАР СЕТИНГИ
-  const AUTH_LOGIN = "admin";
-  const AUTH_PASSWORD = "doira2026";
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
   const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
@@ -76,65 +73,141 @@
   const appDiv = document.getElementById('app');
   const notifSound = document.getElementById('notifSound');
 
+  let isRegisterMode = false; // Кириш ёки Рўйхатдан ўтиш режимини аниқлаш
+
   async function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default') {
       await Notification.requestPermission();
     }
   }
 
-  // ЯНГИЛАНИБ, ЛОГИН ВА ПАРОЛ ОЙНАСИГА АЙЛАНТИРИЛГАН ФУНКЦИЯ
+  // КИРИШ ВА РЎЙХАТДАН ЎТИШ ОЙНАСИ
   function showLogin() {
     appDiv.innerHTML = `
       <div class="flex items-center justify-center h-screen p-4">
         <div class="bg-[#1f2c34] p-8 rounded-lg w-full max-w-sm">
           <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
-          <div id="loginError" class="text-red-500 text-xs text-center mb-3 hidden">Логин ёки парол хато!</div>
+          <div id="loginError" class="text-red-500 text-xs text-center mb-3 hidden"></div>
           
-          <input id="loginInput" type="text" placeholder="Логин"
+          <input id="emailInput" type="email" placeholder="Email ёки Логин (масалан: user@mail.com)"
             class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm">
           
-          <input id="passwordInput" type="password" placeholder="Пароль"
+          <input id="passwordInput" type="password" placeholder="Пароль (камида 6 та белги)"
             class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm">
 
-          <input id="nameInput" type="text" placeholder="Исмингиз (Чат учун)"
-            class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none text-sm">
+          <div id="nameInputWrapper" class="hidden">
+            <input id="nameInput" type="text" placeholder="Исмингиз (Чат учун)"
+              class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none text-sm">
+          </div>
             
-          <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold transition hover:bg-[#008f72]">Кириш</button>
+          <button id="authBtn" class="w-full bg-[#00a884] p-3 rounded font-bold transition hover:bg-[#008f72] mb-4">Кириш</button>
+          
+          <p class="text-xs text-center text-gray-400">
+            <span id="toggleText">Ҳали рўйхатдан ўтмаганмисиз?</span>
+            <a id="toggleAuthMode" href="#" class="text-[#00a884] ml-1 font-semibold underline">Рўйхатдан ўтиш</a>
+          </p>
         </div>
       </div>
     `;
-    document.getElementById('joinBtn').onclick = join;
-    
-    // Enter тугмасини босганда ҳам кирадиган қилиш
-    const inputs = ['loginInput', 'passwordInput', 'nameInput'];
+
+    document.getElementById('authBtn').onclick = handleAuth;
+    document.getElementById('toggleAuthMode').onclick = toggleMode;
+
+    const inputs = ['emailInput', 'passwordInput', 'nameInput'];
     inputs.forEach(id => {
-      document.getElementById(id).onkeyup = e => e.key === 'Enter' && join();
+      document.getElementById(id).onkeyup = e => e.key === 'Enter' && handleAuth();
     });
   }
 
-  async function join() {
-    const login = document.getElementById('loginInput').value.trim();
-    const pass = document.getElementById('passwordInput').value.trim();
-    const name = document.getElementById('nameInput').value.trim();
+  function toggleMode(e) {
+    e.preventDefault();
+    isRegisterMode = !isRegisterMode;
+    const nameWrapper = document.getElementById('nameInputWrapper');
+    const authBtn = document.getElementById('authBtn');
+    const toggleText = document.getElementById('toggleText');
+    const toggleLink = document.getElementById('toggleAuthMode');
     const errorDiv = document.getElementById('loginError');
 
-    // Текширувлар
-    if (login !== AUTH_LOGIN || pass !== AUTH_PASSWORD) {
-      errorDiv.textContent = "Логин ёки парол хато!";
-      errorDiv.classList.remove('hidden');
-      return;
-    }
-
-    if (!name) {
-      errorDiv.textContent = "Илтимос, чат учун исмингизни киритинг!";
-      errorDiv.classList.remove('hidden');
-      return;
-    }
-
     errorDiv.classList.add('hidden');
-    localStorage.setItem('doira_name', name);
-    await requestNotificationPermission();
-    await signInAnonymously(auth);
+
+    if (isRegisterMode) {
+      nameWrapper.classList.remove('hidden');
+      authBtn.textContent = 'Рўйхатдан ўтиш';
+      toggleText.textContent = 'Аккаунтингиз борми?';
+      toggleLink.textContent = 'Кириш';
+    } else {
+      nameWrapper.classList.add('hidden');
+      authBtn.textContent = 'Кириш';
+      toggleText.textContent = 'Ҳали рўйхатдан ўтмаганмисиз?';
+      toggleLink.textContent = 'Рўйхатдан ўтиш';
+    }
+  }
+
+  async function handleAuth() {
+    const email = document.getElementById('emailInput').value.trim();
+    const pass = document.getElementById('passwordInput').value.trim();
+    const errorDiv = document.getElementById('loginError');
+
+    if (!email || !pass) {
+      errorDiv.textContent = "Барча майдонларни тўлдиринг!";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    if (pass.length < 6) {
+      errorDiv.textContent = "Пароль камида 6 та белгидан иборат бўлиши керак!";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      errorDiv.classList.add('hidden');
+      await requestNotificationPermission();
+
+      if (isRegisterMode) {
+        // РЎЙХАТДАН ЎТИШ РЕЖИМИ
+        const name = document.getElementById('nameInput').value.trim();
+        if (!name) {
+          errorDiv.textContent = "Илтимос, исмингизни киритинг!";
+          errorDiv.classList.remove('hidden');
+          return;
+        }
+        
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(userCredential.user, { displayName: name });
+        localStorage.setItem('doira_name', name);
+        
+        // Маълумотлар базасига фойдаланувчини ёзиш
+        await set(ref(db, `users/${userCredential.user.uid}`), {
+          uid: userCredential.user.uid,
+          name: name,
+          online: true,
+          lastSeen: serverTimestamp()
+        });
+
+      } else {
+        // КИРИШ РЕЖИМИ
+        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+        const userSnap = await get(ref(db, `users/${userCredential.user.uid}`));
+        let savedName = userCredential.user.displayName || 'Аноним';
+        if (userSnap.exists() && userSnap.val().name) {
+          savedName = userSnap.val().name;
+        }
+        localStorage.setItem('doira_name', savedName);
+      }
+    } catch (error) {
+      console.error(error);
+      if (error.code === 'auth/email-already-in-use') {
+        errorDiv.textContent = "Бу email аллақачон рўйхатдан ўтган!";
+      } else if (error.code === 'auth/invalid-email') {
+        errorDiv.textContent = "Email шакли нотўғри (масалан: user@mail.com бўлиши шарт)!";
+      } else if (error.code === 'auth/invalid-credential') {
+        errorDiv.textContent = "Email ёки парол хато!";
+      } else {
+        errorDiv.textContent = "Хатолик юз берди: " + error.message;
+      }
+      errorDiv.classList.remove('hidden');
+    }
   }
 
   function showChat() {
@@ -212,11 +285,10 @@
     document.getElementById('overlay').classList.toggle('show');
   }
 
-  // Давоми... (Кодингизнинг қолган Firebase тизимлари ва логикалари автоматик ишлайверади)
   onAuthStateChanged(auth, user => {
     if (user) {
       currentUser = user;
-      currentUserName = localStorage.getItem('doira_name') || 'Аноним';
+      currentUserName = localStorage.getItem('doira_name') || user.displayName || 'Аноним';
       showChat();
     } else {
       showLogin();
