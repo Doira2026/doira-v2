@@ -279,9 +279,11 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
     await update(ref(db, `users/${currentUser.uid}`), { name });
   }
 
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('show');
+ function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+    if (sidebar) sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('show');
   }
 
   function loadUnreadCounts() {
