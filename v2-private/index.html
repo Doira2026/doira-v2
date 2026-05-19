@@ -4,52 +4,64 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doira Private</title>
-  <script src="https://tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
-    .chat-bg { background: #0a1014; }
-    .msg-out { background: #005c4b; }
-    .msg-in { background: #202c33; }
-    .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
-    .header-bar { flex-shrink: 0; }
-    .messages-box { flex: 1; overflow-y: auto; }
-    .input-bar { flex-shrink: 0; }
-    .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
-    .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+.chat-bg { background: #0a1014; }
+.msg-out { background: #005c4b; }
+.msg-in { background: #202c33; }
+.main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+.header-bar { flex-shrink: 0; }
+.messages-box { flex: 1; overflow-y: auto; }
+.input-bar { flex-shrink: 0; }
+.msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+.pinned-msg { background: #2a3942; border-left: 3px solid #00a884; padding: 8px 12px; margin: 8px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.typing-indicator { padding: 8px 12px; color: #8696a0; font-size: 13px; font-style: italic; }
+.seen-status { font-size: 11px; margin-left: 4px; }
+.seen-status.seen { color: #53bdeb; }
+.seen-status.delivered { color: #8696a0; }
+.edited-label { font-size: 11px; color: #8696a0; font-style: italic; margin-left: 4px; }
+.call-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.group-badge { background: #00a884; color: white; border-radius: 4px; padding: 2px 6px; font-size: 10px; margin-left: 4px; }
+.modal-box { background: #1f2c34; padding: 20px; border-radius: 12px; max-width: 400px; width: 90%; }
     @media (max-width: 768px) {
-      .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-      .sidebar.open { left: 0; }
-      .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-      .overlay.show { display: block; }
-      .msg-img { max-width: 160px!important; }
-      .msg-audio { max-width: 180px!important; }
-      .msg-text { font-size: 14px; }
-      .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+.sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+.sidebar.open { left: 0; }
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+.overlay.show { display: block; }
+.msg-img { max-width: 160px!important; }
+.msg-audio { max-width: 180px!important; }
+.msg-text { font-size: 14px; }
+.btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
     }
-    .recording { animation: pulse 1.5s infinite; }
+.recording { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
 </head>
 <body class="chat-bg text-white">
 
 <div id="app"></div>
-<audio id="notifSound" src="https://pixabay.com"></audio>
+<audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+<audio id="ringSound" src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a6c2a6d0.mp3"></audio>
 
-import { initializeApp } from 'https://www.gstatic.com';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com';
-import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com';
- const firebaseConfig = {
-  apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-  authDomain: "://firebaseapp.com",
-  databaseURL: "https://firebaseio.com",
-  projectId: "doira-chat-v2",
-  storageBucket: "doira-chat-v2.firebasestorage.app",
-  messagingSenderId: "885552294238",
-  appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
-};
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
+    authDomain: "doira-chat-v2.firebaseapp.com",
+    databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
+    projectId: "doira-chat-v2",
+    storageBucket: "doira-chat-v2.firebasestorage.app",
+    messagingSenderId: "885552294238",
+    appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
+  };
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
-  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
+  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -60,17 +72,25 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
   let currentChatId = null;
   let currentChatUser = null;
   let currentChatUid = null;
+  let currentChatType = 'private';
   let messagesUnsubscribe = null;
+  let typingUnsubscribe = null;
   let mediaRecorder = null;
   let audioChunks = [];
   let allUsers = {};
   let friendsList = {};
   let unreadCounts = {};
+  let pinnedMsg = null;
+  let typingTimeout = null;
+  let peerConnection = null;
+  let localStream = null;
+  let currentCallId = null;
+  let editMsgKey = null;
+  let allGroups = {};
 
   const appDiv = document.getElementById('app');
   const notifSound = document.getElementById('notifSound');
-
-  let isRegisterMode = false;
+  const ringSound = document.getElementById('ringSound');
 
   async function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default') {
@@ -83,141 +103,37 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
       <div class="flex items-center justify-center h-screen p-4">
         <div class="bg-[#1f2c34] p-8 rounded-lg w-full max-w-sm">
           <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
-          <div id="loginError" class="text-red-500 text-xs text-center mb-3 hidden"></div>
-          
-          <input id="emailInput" type="email" placeholder="Email (масалан: user@mail.com)"
-            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm text-white">
-          
-          <input id="passwordInput" type="password" placeholder="Пароль (камида 6 та белги)"
-            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm text-white">
-
-          <div id="nameInputWrapper" class="hidden">
-            <input id="nameInput" type="text" placeholder="Исмингиз (Чат учун)"
-              class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none text-sm text-white">
-          </div>
-            
-          <button id="authBtn" class="w-full bg-[#00a884] p-3 rounded font-bold transition hover:bg-[#008f72] mb-4 text-white">Кириш</button>
-          
-          <p class="text-xs text-center text-gray-400">
-            <span id="toggleText">Ҳали рўйхатдан ўтмаганмисиз?</span>
-            <a id="toggleAuthMode" href="#" class="text-[#00a884] ml-1 font-semibold underline">Рўйхатдан ўтиш</a>
-          </p>
+          <input id="nameInput" type="text" placeholder="Исмингизни киритинг" class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none">
+          <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold">Кириш</button>
         </div>
       </div>
     `;
-
-    document.getElementById('authBtn').onclick = handleAuth;
-    document.getElementById('toggleAuthMode').onclick = toggleMode;
-
-    const inputs = ['emailInput', 'passwordInput', 'nameInput'];
-    inputs.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.onkeyup = e => e.key === 'Enter' && handleAuth();
-    });
+    document.getElementById('joinBtn').onclick = join;
+    document.getElementById('nameInput').onkeyup = e => e.key === 'Enter' && join();
   }
 
-  function toggleMode(e) {
-    e.preventDefault();
-    isRegisterMode = !isRegisterMode;
-    const nameWrapper = document.getElementById('nameInputWrapper');
-    const authBtn = document.getElementById('authBtn');
-    const toggleText = document.getElementById('toggleText');
-    const toggleLink = document.getElementById('toggleAuthMode');
-    const errorDiv = document.getElementById('loginError');
-
-    errorDiv.classList.add('hidden');
-
-    if (isRegisterMode) {
-      nameWrapper.classList.remove('hidden');
-      authBtn.textContent = 'Рўйхатдан ўтиш';
-      toggleText.textContent = 'Аккаунтингиз борми?';
-      toggleLink.textContent = 'Кириш';
-    } else {
-      nameWrapper.classList.add('hidden');
-      authBtn.textContent = 'Кириш';
-      toggleText.textContent = 'Ҳали рўйхатдан ўтмаганмисиз?';
-      toggleLink.textContent = 'Рўйхатдан ўтиш';
-    }
-  }
-
-  async function handleAuth() {
-    const email = document.getElementById('emailInput').value.trim();
-    const pass = document.getElementById('passwordInput').value.trim();
-    const errorDiv = document.getElementById('loginError');
-
-    if (!email || !pass) {
-      errorDiv.textContent = "Барча майдонларни тўлдиринг!";
-      errorDiv.classList.remove('hidden');
-      return;
-    }
-
-    if (pass.length < 6) {
-      errorDiv.textContent = "Пароль камида 6 та белгидан иборат бўлиши керак!";
-      errorDiv.classList.remove('hidden');
-      return;
-    }
-
-    try {
-      errorDiv.classList.add('hidden');
-      await requestNotificationPermission();
-
-      if (isRegisterMode) {
-        const name = document.getElementById('nameInput').value.trim();
-        if (!name) {
-          errorDiv.textContent = "Илтимос, исмингизни киритинг!";
-          errorDiv.classList.remove('hidden');
-          return;
-        }
-        
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        await updateProfile(userCredential.user, { displayName: name });
-        localStorage.setItem('doira_name', name);
-        
-        await set(ref(db, `users/${userCredential.user.uid}`), {
-          uid: userCredential.user.uid,
-          name: name,
-          online: true,
-          lastSeen: serverTimestamp()
-        });
-
-      } else {
-        const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-        const userSnap = await get(ref(db, `users/${userCredential.user.uid}`));
-        let savedName = userCredential.user.displayName || 'Аноним';
-        if (userSnap.exists() && userSnap.val().name) {
-          savedName = userSnap.val().name;
-        }
-        localStorage.setItem('doira_name', savedName);
-        
-        await update(ref(db, `users/${userCredential.user.uid}`), {
-          online: true,
-          lastSeen: serverTimestamp()
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      if (error.code === 'auth/email-already-in-use') {
-        errorDiv.textContent = "Бу email аллақачон рўйхатдан ўтган!";
-      } else if (error.code === 'auth/invalid-email') {
-        errorDiv.textContent = "Email формати нотўғри!";
-      } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-        errorDiv.textContent = "Email ёки парол хато!";
-      } else {
-        errorDiv.textContent = "Хатолик: " + error.message;
-      }
-      errorDiv.classList.remove('hidden');
-    }
+  async function join() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) return;
+    localStorage.setItem('doira_name', name);
+    await requestNotificationPermission();
+    await signInAnonymously(auth);
   }
 
   function showChat() {
     appDiv.innerHTML = `
       <div class="overlay" id="overlay"></div>
+      <div id="callModal"></div>
+      <div id="groupModal"></div>
       <div class="flex h-screen">
         <div class="sidebar w-1/3 bg-[#111b21] border-r border-gray-700 md:relative md:left-0" id="sidebar">
           <div class="bg-[#202c33] p-3 header-bar">
             <div class="flex justify-between items-center mb-2">
               <h1 class="text-lg font-bold">DOIRA</h1>
-              <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
+              <div class="flex gap-2">
+                <button id="newGroupBtn" class="bg-[#00a884] px-2 py-1 rounded text-xs">👥</button>
+                <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
+              </div>
             </div>
             <div id="myProfile" class="bg-[#2a3942] p-2 rounded flex items-center gap-2 cursor-pointer">
               <div class="w-8 h-8 bg-[#00a884] rounded-full flex items-center justify-center text-sm font-bold">👤</div>
@@ -225,26 +141,28 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
                 <div class="text-xs text-gray-400">Сен:</div>
                 <div id="myName" class="text-sm font-bold"></div>
               </div>
-              <div class="text-xs">✏️</div>
+              <div class="text-xs">✏</div>
             </div>
-            <input id="searchInput" type="text" placeholder="🔍 Қидириш..."
-              class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
+            <input id="searchInput" type="text" placeholder="🔍 Қидириш..." class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
           </div>
           <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 140px); height: calc(100dvh - 140px);"></div>
         </div>
         <div class="flex-1 main-wrap bg-[#0b141a] w-full">
           <div id="chatHeader" class="bg-[#202c33] p-3 flex items-center gap-3 header-bar">
             <button id="menuBtn" class="md:hidden text-2xl">☰</button>
-            <span id="chatHeaderText" class="font-bold text-sm">Суҳбатдошни танланг</span>
+            <span id="chatHeaderText" class="font-bold text-sm flex-1">Суҳбатдошни танланг</span>
+            <button id="callBtn" class="btn-icon text-xl hidden">📞</button>
+            <button id="groupInfoBtn" class="btn-icon text-xl hidden">ℹ️</button>
           </div>
+          <div id="pinnedMsgBox"></div>
           <div id="messages" class="messages-box p-2"></div>
+          <div id="typingIndicator" class="typing-indicator hidden"></div>
           <div id="stickerPanel" class="bg-[#202c33] p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto input-bar"></div>
           <div id="inputArea" class="bg-[#202c33] p-2 hidden input-bar">
             <div class="flex gap-1 items-center">
               <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
               <button id="stickerBtn" class="btn-icon text-lg px-1">😊</button>
-              <input id="msgInput" type="text" placeholder="Хабар..."
-                class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm">
+              <input id="msgInput" type="text" placeholder="Хабар..." class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm">
               <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
               <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
             </div>
@@ -254,6 +172,7 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
       </div>
     `;
     document.getElementById('logoutBtn').onclick = logout;
+    document.getElementById('newGroupBtn').onclick = createGroup;
     document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
     document.getElementById('stickerBtn').onclick = toggleStickers;
     document.getElementById('micBtn').onclick = toggleRecording;
@@ -263,9 +182,13 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
     document.getElementById('searchInput').oninput = renderUsers;
     document.getElementById('myProfile').onclick = changeName;
     document.getElementById('myName').textContent = currentUserName;
+    document.getElementById('msgInput').oninput = handleTyping;
+    document.getElementById('callBtn').onclick = startCall;
     loadStickers();
     loadUsers();
+    loadGroups();
     loadUnreadCounts();
+    listenForCalls();
   }
 
   window.changeName = async () => {
@@ -279,11 +202,48 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
     await update(ref(db, `users/${currentUser.uid}`), { name });
   }
 
- function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    if (sidebar) sidebar.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('show');
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+
+  function loadStickers() {
+    const panel = document.getElementById('stickerPanel');
+    panel.innerHTML = STICKERS.map(s => `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`).join('');
+  }
+
+  function toggleStickers() {
+    document.getElementById('stickerPanel').classList.toggle('hidden');
+  }
+
+  window.sendSticker = async (sticker) => {
+    if (!currentChatId) return;
+    toggleStickers();
+    await push(ref(db, `chats/${currentChatId}`), { text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker', status: 'sent' });
+  }
+
+  function handleTyping() {
+    if (!currentChatId) return;
+    set(ref(db, `typing/${currentChatId}/${currentUser.uid}`), currentUserName);
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => remove(ref(db, `typing/${currentChatId}/${currentUser.uid}`)), 3000);
+  }
+
+  function listenTyping() {
+    if (typingUnsubscribe) typingUnsubscribe();
+    if (!currentChatId) return;
+    const typingRef = ref(db, `typing/${currentChatId}`);
+    typingUnsubscribe = onValue(typingRef, snap => {
+      const typing = snap.val() || {};
+      const names = Object.entries(typing).filter(([uid]) => uid!== currentUser.uid).map(([, name]) => name);
+      const indicator = document.getElementById('typingIndicator');
+      if (names.length > 0) {
+        indicator.textContent = `${names.join(', ')} ёзяпти...`;
+        indicator.classList.remove('hidden');
+      } else {
+        indicator.classList.add('hidden');
+      }
+    });
   }
 
   function loadUnreadCounts() {
@@ -300,10 +260,17 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
       allUsers = snap.val() || {};
       renderUsers();
     });
-
     const friendsRef = ref(db, `friends/${currentUser.uid}`);
     onValue(friendsRef, snap => {
       friendsList = snap.val() || {};
+      renderUsers();
+    });
+  }
+
+  function loadGroups() {
+    const groupsRef = ref(db, 'groups');
+    onValue(groupsRef, snap => {
+      allGroups = snap.val() || {};
       renderUsers();
     });
   }
@@ -313,49 +280,62 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
     const list = document.getElementById('usersList');
     if (!list) return;
     list.innerHTML = '';
-
-    const users = [];
+    const items = [];
+    Object.entries(allGroups).forEach(([gid, group]) => {
+      if (!group.members?.[currentUser.uid]) return;
+      if (searchQuery &&!group.name.toLowerCase().includes(searchQuery)) return;
+      items.push({ type: 'group', id: gid,...group, unread: unreadCounts[gid] || 0 });
+    });
     Object.entries(allUsers).forEach(([uid, user]) => {
       if (uid === currentUser.uid) return;
-      if (searchQuery && !user.name.toLowerCase().includes(searchQuery)) return;
-      users.push({ uid, ...user, isFriend: !!friendsList[uid], unread: unreadCounts[uid] || 0 });
+      if (searchQuery &&!user.name.toLowerCase().includes(searchQuery)) return;
+      items.push({ type: 'private', id: uid,...user, isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
     });
-
-    users.sort((a, b) => {
-      if (a.unread && !b.unread) return -1;
+    items.sort((a, b) => {
+      if (a.unread &&!b.unread) return -1;
       if (!a.unread && b.unread) return 1;
-      if (a.isFriend && !b.isFriend) return -1;
+      if (a.isFriend &&!b.isFriend) return -1;
       if (!a.isFriend && b.isFriend) return 1;
-      return b.lastSeen - a.lastSeen;
+      return (b.lastSeen || 0) - (a.lastSeen || 0);
     });
-
-    if (users.length === 0) {
+    if (items.length === 0) {
       list.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Ҳеч ким топилмади</div>';
       return;
     }
-
-    users.forEach(user => {
+    items.forEach(item => {
       const div = document.createElement('div');
       div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
-      div.innerHTML = `
-        <div class="w-2.5 h-2.5 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-500'}"></div>
-        <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}')">
-          <div class="font-bold text-sm flex items-center gap-1">
-            ${user.name}
+      if (item.type === 'group') {
+        div.innerHTML = `
+          <div class="w-2.5 h-2.5 rounded-full bg-[#00a884]"></div>
+          <div class="flex-1" onclick="openGroupChat('${item.id}', '${item.name}')">
+            <div class="font-bold text-sm flex items-center gap-1">${item.name} <span class="group-badge">ГУРУҲ</span></div>
+            <div class="text-xs text-gray-400">${Object.keys(item.members || {}).length} аъзо</div>
           </div>
-          <div class="text-xs text-gray-400">${user.online ? 'онлайн' : 'оффлайн'}</div>
-        </div>
-        <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
-          ${user.isFriend ? '⭐' : '☆'}
-        </button>
-        ${user.unread ? `<div class="unread-badge">${user.unread}</div>` : ''}
-      `;
+          ${item.unread? `<div class="unread-badge">${item.unread}</div>` : ''}
+        `;
+      } else {
+        div.innerHTML = `
+          <div class="w-2.5 h-2.5 rounded-full ${item.online? 'bg-green-500' : 'bg-gray-500'}"></div>
+          <div class="flex-1" onclick="openChatUser('${item.id}', '${item.name}')">
+            <div class="font-bold text-sm">${item.name}</div>
+            <div class="text-xs text-gray-400">${item.online? 'онлайн' : 'оффлайн'}</div>
+          </div>
+          <button onclick="event.stopPropagation(); toggleFriend('${item.id}', ${item.isFriend})" class="text-lg px-2">${item.isFriend? '⭐' : '☆'}</button>
+          ${item.unread? `<div class="unread-badge">${item.unread}</div>` : ''}
+        `;
+      }
       list.appendChild(div);
     });
   }
 
   window.openChatUser = (uid, name) => {
-    openChat(uid, name);
+    openChat(uid, name, 'private');
+    if (window.innerWidth < 768) toggleSidebar();
+  }
+
+  window.openGroupChat = (gid, name) => {
+    openChat(gid, name, 'group');
     if (window.innerWidth < 768) toggleSidebar();
   }
 
@@ -367,37 +347,106 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
     }
   }
 
-  function openChat(otherUid, otherName) {
-    currentChatId = [currentUser.uid, otherUid].sort().join('_');
-    currentChatUser = otherName;
-    currentChatUid = otherUid;
-    document.getElementById('chatHeaderText').textContent = otherName;
+  async function createGroup() {
+    const name = prompt('Гуруҳ номи:');
+    if (!name ||!name.trim()) return;
+    const members = {};
+    members[currentUser.uid] = true;
+    const selectUsers = prompt('Қўшиладиган дўстлар исмини вергул билан ёзинг:');
+    if (selectUsers) {
+      const names = selectUsers.split(',').map(s => s.trim());
+      Object.entries(allUsers).forEach(([uid, user]) => {
+        if (names.includes(user.name)) members[uid] = true;
+      });
+    }
+    const groupRef = push(ref(db, 'groups'));
+    await set(groupRef, { name: name.trim(), createdBy: currentUser.uid, createdAt: serverTimestamp(), members });
+    alert('Гуруҳ яратилди!');
+  }
+
+  window.showGroupInfo = (gid) => {
+    const group = allGroups[gid];
+    if (!group) return;
+    const members = Object.keys(group.members || {}).map(uid => allUsers[uid]?.name || 'Номаълум').join(', ');
+    const modal = document.getElementById('groupModal');
+    modal.innerHTML = `
+      <div class="call-modal" onclick="this.remove()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+          <h2 class="text-xl font-bold mb-4">${group.name}</h2>
+          <div class="mb-4">
+            <div class="text-sm text-gray-400 mb-2">Аъзолар (${Object.keys(group.members || {}).length}):</div>
+            <div class="text-sm">${members}</div>
+          </div>
+          <button onclick="document.getElementById('groupModal').innerHTML=''" class="w-full bg-[#00a884] p-2 rounded">Ёпиш</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function openChat(id, name, type = 'private') {
+    currentChatType = type;
+    if (type === 'private') {
+      currentChatId = [currentUser.uid, id].sort().join('_');
+      currentChatUid = id;
+      document.getElementById('callBtn').classList.remove('hidden');
+      document.getElementById('groupInfoBtn').classList.add('hidden');
+    } else {
+      currentChatId = id;
+      currentChatUid = null;
+      document.getElementById('callBtn').classList.add('hidden');
+      document.getElementById('groupInfoBtn').classList.remove('hidden');
+      document.getElementById('groupInfoBtn').onclick = () => showGroupInfo(id);
+    }
+    currentChatUser = name;
+    document.getElementById('chatHeaderText').textContent = name;
     document.getElementById('inputArea').classList.remove('hidden');
     document.getElementById('sendBtn').onclick = sendMsg;
-    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
-
-    remove(ref(db, `unread/${currentUser.uid}/${otherUid}`));
+    document.getElementById('msgInput').onkeyup = e => {
+      if (e.key === 'Enter' &&!editMsgKey) sendMsg();
+      if (e.key === 'Enter' && editMsgKey) saveEdit();
+    };
+    remove(ref(db, `unread/${currentUser.uid}/${id}`));
     loadMessages();
+    listenTyping();
+    loadPinnedMsg();
+  }
+
+  function loadPinnedMsg() {
+    const pinnedRef = ref(db, `pinned/${currentChatId}`);
+    onValue(pinnedRef, snap => {
+      const pinned = snap.val();
+      const box = document.getElementById('pinnedMsgBox');
+      if (pinned) {
+        pinnedMsg = pinned;
+        box.innerHTML = `<div class="pinned-msg" onclick="scrollToMsg('${pinned.key}')">${pinned.text}</div>`;
+      } else {
+        box.innerHTML = '';
+        pinnedMsg = null;
+      }
+    });
+  }
+
+  window.scrollToMsg = (key) => {
+    const el = document.querySelector(`[data-msg-key="${key}"]`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function loadMessages() {
     if (messagesUnsubscribe) messagesUnsubscribe();
     const msgsRef = ref(db, `chats/${currentChatId}`);
-
     let isFirstLoad = true;
     onChildAdded(msgsRef, (snapshot) => {
       const msg = snapshot.val();
-      if (!isFirstLoad && msg.sender !== currentUser.uid) {
+      if (!isFirstLoad && msg.sender!== currentUser.uid) {
         if (Notification.permission === 'granted' && document.hidden) {
           new Notification(currentChatUser, {
-            body: msg.type === 'text' ? msg.text : msg.type === 'sticker' ? msg.text : msg.type === 'image' ? '📷 Расм' : '🎤 Овозли хабар',
+            body: msg.type === 'text'? msg.text : msg.type === 'sticker'? msg.text : msg.type === 'image'? '📷 Расм' : '🎤 Овозли хабар',
             icon: 'https://i.ibb.co/7vKvV1D/doira-icon.png',
             tag: currentChatId
           });
         }
-        notifSound.play().catch(() => {});
-
-        if (currentChatUid !== msg.sender) {
+        notifSound.play().catch(()=>{});
+        if (currentChatType === 'private' && currentChatUid!== msg.sender) {
           const unreadRef = ref(db, `unread/${currentUser.uid}/${msg.sender}`);
           get(unreadRef).then(snap => {
             const count = (snap.val() || 0) + 1;
@@ -405,17 +454,22 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
           });
         }
       }
+      if (msg.sender!== currentUser.uid && msg.status === 'sent') {
+        update(ref(db, `chats/${currentChatId}/${snapshot.key}`), { status: 'delivered' });
+      }
     });
-
     messagesUnsubscribe = onValue(msgsRef, snap => {
       const msgs = snap.val() || {};
       const box = document.getElementById('messages');
       box.innerHTML = '';
       Object.entries(msgs).forEach(([key, msg]) => {
+        if (msg.sender!== currentUser.uid && (msg.status === 'sent' || msg.status === 'delivered')) {
+          update(ref(db, `chats/${currentChatId}/${key}`), { status: 'seen' });
+        }
         const div = document.createElement('div');
         const isMine = msg.sender === currentUser.uid;
-        div.className = `mb-2 flex ${isMine ? 'justify-end' : 'justify-start'}`;
-
+        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'}`;
+        div.setAttribute('data-msg-key', key);
         let content = '';
         if (msg.type === 'image') {
           content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
@@ -426,13 +480,18 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
         } else {
           content = msg.text || '';
         }
-
-        const canDelete = isMine && (msg.type === 'image' || msg.type === 'audio' || msg.type === 'text' || msg.type === 'sticker');
-
+        const statusIcon = isMine? (msg.status === 'seen'? '<span class="seen-status seen">✓✓</span>' : msg.status === 'delivered'? '<span class="seen-status delivered">✓✓</span>' : '<span class="seen-status">✓</span>') : '';
+        const editedLabel = msg.edited? '<span class="edited-label">(таҳрирланган)</span>' : '';
+        const canModify = isMine && (msg.type === 'text' || msg.type === 'image' || msg.type === 'audio' || msg.type === 'sticker');
         div.innerHTML = `
-          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine ? 'msg-out' : 'msg-in'} break-words msg-text"
-               ${canDelete ? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
+          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text"
+               ${canModify? `oncontextmenu="showMsgMenu(event, '${key}', '${msg.type}'); return false;" ontouchstart="startTouch(event, '${key}', '${msg.type}')" ontouchend="endTouch()"` : ''}>
+            ${currentChatType === 'group' &&!isMine? `<div class="text-xs text-[#00a884] mb-1">${msg.senderName}</div>` : ''}
             ${content}
+            <div class="flex items-center justify-end mt-1">
+              ${editedLabel}
+              ${statusIcon}
+            </div>
           </div>
         `;
         box.appendChild(div);
@@ -443,171 +502,325 @@ import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, re
   }
 
   let touchTimer = null;
-  window.startTouch = (e, key) => {
-    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
+  let touchType = null;
+  window.startTouch = (e, key, type) => {
+    touchType = type;
+    touchTimer = setTimeout(() => showMsgMenu(e, key, type), 600);
   }
   window.endTouch = () => clearTimeout(touchTimer);
 
-  window.showMsgMenu = (e, key) => {
+  window.showMsgMenu = (e, key, type) => {
     e.preventDefault();
     document.querySelectorAll('.msg-menu').forEach(m => m.remove());
     const menu = document.createElement('div');
     menu.className = 'msg-menu';
-    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
+    let menuHTML = '';
+    if (type === 'text') menuHTML += `<button onclick="startEdit('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">Таҳрирлаш</button>`;
+    menuHTML += `<button onclick="pinMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">Pin қилиш</button>`;
+    menuHTML += `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm w-full text-left">Ўчириш</button>`;
+    menu.innerHTML = menuHTML;
     menu.style.left = e.pageX + 'px';
     menu.style.top = e.pageY + 'px';
     document.body.appendChild(menu);
     setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
   }
 
+  window.startEdit = async (key) => {
+    const msgRef = ref(db, `chats/${currentChatId}/${key}`);
+    const snap = await get(msgRef);
+    const msg = snap.val();
+    if (msg.type!== 'text') return;
+    editMsgKey = key;
+    document.getElementById('msgInput').value = msg.text;
+    document.getElementById('msgInput').focus();
+    document.getElementById('sendBtn').textContent = 'Сақлаш';
+    document.getElementById('sendBtn').onclick = saveEdit;
+  }
+
+  window.saveEdit = async () => {
+    if (!editMsgKey) return;
+    const text = document.getElementById('msgInput').value.trim();
+    if (!text) return;
+    await update(ref(db, `chats/${currentChatId}/${editMsgKey}`), { text, edited: true });
+    document.getElementById('msgInput').value = '';
+    document.getElementById('sendBtn').textContent = 'Юбор';
+    document.getElementById('sendBtn').onclick = sendMsg;
+    editMsgKey = null;
+  }
+
+  window.pinMsg = async (key) => {
+    const msgRef = ref(db, `chats/${currentChatId}/${key}`);
+    const snap = await get(msgRef);
+    const msg = snap.val();
+    await set(ref(db, `pinned/${currentChatId}`), { key, text: msg.text || msg.type, time: serverTimestamp() });
+  }
+
   window.deleteMsg = async (key) => {
-    await remove(ref(db, `chats/${currentChatId}/${key}`));
+    if (confirm('Хабарни ўчиришга ишончингиз комилми?')) {
+      await remove(ref(db, `chats/${currentChatId}/${key}`));
+    }
   }
 
   async function sendMsg() {
     const input = document.getElementById('msgInput');
     const text = input.value.trim();
-    if (!text || !currentChatId) return;
+    if (!text ||!currentChatId) return;
     input.value = '';
-    await push(ref(db, `chats/${currentChatId}`), {
-      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
-    });
+    await push(ref(db, `chats/${currentChatId}`), { text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text', status: 'sent' });
+    remove(ref(db, `typing/${currentChatId}/${currentUser.uid}`));
   }
 
   async function uploadFile(e) {
     const file = e.target.files[0];
-    if (!file || !currentChatId) return;
-
+    if (!file ||!currentChatId) return;
     if (!file.type.startsWith('image')) {
-      alert('Фақат rasm юклай оласиз');
+      alert('Фақат расм юклай оласиз');
       return;
     }
-
     const sendBtn = document.getElementById('sendBtn');
     sendBtn.textContent = '...';
     sendBtn.disabled = true;
-
     try {
       const formData = new FormData();
       formData.append('image', file);
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
       const data = await res.json();
       if (!data.success) throw new Error(data.error?.message);
-
-      await push(ref(db, `chats/${currentChatId}`), {
-        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image'
-      });
-
+      await push(ref(db, `chats/${currentChatId}`), { url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image', status: 'sent' });
     } catch (err) {
       alert('Хато: ' + err.message);
     }
-
     sendBtn.textContent = 'Юбор';
     sendBtn.disabled = false;
     e.target.value = '';
   }
 
-  function loadStickers() {
-    const panel = document.getElementById('stickerPanel');
-    if (!panel) return;
-    panel.innerHTML = '';
-    STICKERS.forEach(st => {
-      const btn = document.createElement('button');
-      btn.className = 'text-2xl p-1 hover:bg-[#2a3942] rounded';
-      btn.textContent = st;
-      btn.onclick = () => sendSticker(st);
-      panel.appendChild(btn);
-    });
-  }
-
-  function toggleStickers() {
-    document.getElementById('stickerPanel').classList.toggle('hidden');
-  }
-
-  async function sendSticker(sticker) {
-    if (!currentChatId) return;
-    toggleStickers();
-    await push(ref(db, `chats/${currentChatId}`), {
-      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
-    });
-  }
-
   async function toggleRecording() {
     const micBtn = document.getElementById('micBtn');
-
     if (mediaRecorder && mediaRecorder.state === 'recording') {
       mediaRecorder.stop();
       micBtn.classList.remove('recording');
+      micBtn.textContent = '🎤';
       return;
     }
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert('Овоз ёзиш қурилмаси топилмади');
-      return;
-    }
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioChunks = [];
       mediaRecorder = new MediaRecorder(stream);
-      
-      mediaRecorder.ondataavailable = e => {
-        if (e.data.size > 0) audioChunks.push(e.data);
-      };
-
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        if (blob.size > 1024 * 1024) {
+          alert('Овоз 1MB дан катта. Қисқароқ ёзинг.');
+          stream.getTracks().forEach(t => t.stop());
+          return;
+        }
+        micBtn.textContent = '⏳';
         const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
+        reader.readAsDataURL(blob);
         reader.onloadend = async () => {
-          const audioData = reader.result;
-          await push(ref(db, `chats/${currentChatId}`), {
-            audioData, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio'
-          });
+          const base64Audio = reader.result;
+          try {
+            await push(ref(db, `chats/${currentChatId}`), { audioData: base64Audio, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio', status: 'sent' });
+          } catch (err) {
+            alert('Овоз юборилмади: ' + err.message);
+          }
+          micBtn.textContent = '🎤';
+          stream.getTracks().forEach(t => t.stop());
         };
-        stream.getTracks().forEach(track => track.stop());
       };
-
       mediaRecorder.start();
       micBtn.classList.add('recording');
-
+      micBtn.textContent = '⏹';
     } catch (err) {
-      alert('Микрофонга рухсат берилмади: ' + err.message);
+      alert('Микрофон рухсати керак');
     }
   }
 
-  onAuthStateChanged(auth, user => {
+  async function startCall() {
+    if (!currentChatUid) return;
+    currentCallId = [currentUser.uid, currentChatUid].sort().join('_');
+    const callRef = ref(db, `calls/${currentCallId}`);
+    set(callRef, {
+      from: currentUser.uid,
+      fromName: currentUserName,
+      to: currentChatUid,
+      status: 'ringing',
+      time: serverTimestamp()
+    });
+    showCallModal('outgoing', currentChatUser);
+  }
+
+  function listenForCalls() {
+    onValue(ref(db, 'calls'), async snap => {
+      const calls = snap.val() || {};
+      Object.entries(calls).forEach(([callId, call]) => {
+        if (call.to === currentUser.uid && call.status === 'ringing') {
+          currentCallId = callId;
+          ringSound.play
+          ().catch(()=>{});
+          showCallModal('incoming', call.fromName, call.from);
+        }
+        if (call.from === currentUser.uid && call.status === 'accepted') {
+          startWebRTC(true);
+        }
+        if ((call.to === currentUser.uid || call.from === currentUser.uid) && call.status === 'ended') {
+          endCallCleanup();
+        }
+      });
+    });
+  }
+
+  function showCallModal(type, name, fromUid = null) {
+    const modal = document.getElementById('callModal');
+    modal.innerHTML = `
+      <div class="call-modal">
+        <div class="text-2xl mb-4">${type === 'incoming'? '📞 Қўнғироқ' : '📞 Қўнғироқ қиляпти...'}</div>
+        <div class="text-3xl font-bold mb-8">${name}</div>
+        <div class="flex gap-4">
+          ${type === 'incoming'? `
+            <button onclick="acceptCall('${fromUid}')" class="bg-green-600 px-8 py-3 rounded-full text-2xl">✓</button>
+            <button onclick="rejectCall()" class="bg-red-600 px-8 py-3 rounded-full text-2xl">✕</button>
+          ` : `
+            <button onclick="endCall()" class="bg-red-600 px-8 py-3 rounded-full text-2xl">✕</button>
+          `}
+        </div>
+        <div id="callTimer" class="mt-6 text-xl"></div>
+      </div>
+    `;
+  }
+
+  window.acceptCall = async (fromUid) => {
+    ringSound.pause();
+    await update(ref(db, `calls/${currentCallId}`), { status: 'accepted' });
+    startWebRTC(false);
+  }
+
+  window.rejectCall = async () => {
+    ringSound.pause();
+    await update(ref(db, `calls/${currentCallId}`), { status: 'ended' });
+    endCallCleanup();
+  }
+
+  window.endCall = async () => {
+    await update(ref(db, `calls/${currentCallId}`), { status: 'ended' });
+    endCallCleanup();
+  }
+
+  async function startWebRTC(isCaller) {
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+      peerConnection.ontrack = (event) => {
+        const remoteAudio = new Audio();
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.play();
+      };
+
+      peerConnection.onicecandidate = (event) => {
+        if (event.candidate) {
+          push(ref(db, `calls/${currentCallId}/candidates/${isCaller? 'caller' : 'callee'}`), event.candidate.toJSON());
+        }
+      };
+
+      if (isCaller) {
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        await set(ref(db, `calls/${currentCallId}/offer`), offer);
+        
+        onValue(ref(db, `calls/${currentCallId}/answer`), async snap => {
+          const answer = snap.val();
+          if (answer &&!peerConnection.currentRemoteDescription) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+          }
+        });
+      } else {
+        onValue(ref(db, `calls/${currentCallId}/offer`), async snap => {
+          const offer = snap.val();
+          if (offer &&!peerConnection.currentRemoteDescription) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            await set(ref(db, `calls/${currentCallId}/answer`), answer);
+          }
+        });
+      }
+
+      onValue(ref(db, `calls/${currentCallId}/candidates/${isCaller? 'callee' : 'caller'}`), snap => {
+        const candidates = snap.val() || {};
+        Object.values(candidates).forEach(async candidate => {
+          try {
+            await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (e) {}
+        });
+      });
+
+      startCallTimer();
+    } catch (err) {
+      alert('Қўнғироқ хатоси: ' + err.message);
+      endCall();
+    }
+  }
+
+  let callSeconds = 0;
+  let callTimerInterval = null;
+  function startCallTimer() {
+    callSeconds = 0;
+    callTimerInterval = setInterval(() => {
+      callSeconds++;
+      const mins = Math.floor(callSeconds / 60);
+      const secs = callSeconds % 60;
+      const timer = document.getElementById('callTimer');
+      if (timer) timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
+  }
+
+  function endCallCleanup() {
+    if (peerConnection) {
+      peerConnection.close();
+      peerConnection = null;
+    }
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
+    }
+    if (callTimerInterval) {
+      clearInterval(callTimerInterval);
+      callTimerInterval = null;
+    }
+    ringSound.pause();
+    document.getElementById('callModal').innerHTML = '';
+    if (currentCallId) {
+      remove(ref(db, `calls/${currentCallId}`));
+      currentCallId = null;
+    }
+  }
+
+  async function logout() {
+    await update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() });
+    localStorage.removeItem('doira_name');
+    location.reload();
+  }
+
+  onAuthStateChanged(auth, async user => {
     if (user) {
       currentUser = user;
-      currentUserName = localStorage.getItem('doira_name') || user.displayName || 'Аноним';
-      
-      const userStatusRef = ref(db, `users/${user.uid}`);
-      onDisconnect(userStatusRef).update({
-        online: false,
-        lastSeen: serverTimestamp()
-      }).then(() => {
-        showChat();
-      });
+      currentUserName = localStorage.getItem('doira_name');
+      if (!currentUserName) return showLogin();
+
+      currentUser.displayName = currentUserName;
+      const userRef = ref(db, `users/${user.uid}`);
+      await set(userRef, { name: currentUserName, online: true, lastSeen: serverTimestamp() });
+      onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
+      showChat();
     } else {
       showLogin();
     }
   });
-
-  function logout() {
-    if (currentUser) {
-      update(ref(db, `users/${currentUser.uid}`), {
-        online: false,
-        lastSeen: serverTimestamp()
-      }).then(() => {
-        auth.signOut();
-      });
-    } else {
-      auth.signOut();
-    }
-  }
 </script>
+
 </body>
 </html>
