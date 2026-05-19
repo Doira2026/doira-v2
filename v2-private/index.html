@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="uz">
 <head>
   <meta charset="UTF-8">
@@ -35,6 +34,7 @@
 
 <div id="app"></div>
 <audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+<audio id="ringSound" src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a6c2a6d0.mp3"></audio>
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -52,7 +52,7 @@
   };
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
-  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
+  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -72,6 +72,7 @@
 
   const appDiv = document.getElementById('app');
   const notifSound = document.getElementById('notifSound');
+  const ringSound = document.getElementById('ringSound');
 
   async function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default') {
@@ -118,7 +119,7 @@
                 <div class="text-xs text-gray-400">Сен:</div>
                 <div id="myName" class="text-sm font-bold"></div>
               </div>
-              <div class="text-xs">✏️</div>
+              <div class="text-xs">✏</div>
             </div>
             <input id="searchInput" type="text" placeholder="🔍 Қидириш..."
               class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
@@ -192,7 +193,7 @@
     if (!currentChatId) return;
     toggleStickers();
     await push(ref(db, `chats/${currentChatId}`), {
-      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
+      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker', status: 'sent'
     });
   }
 
@@ -380,7 +381,7 @@
     if (!text ||!currentChatId) return;
     input.value = '';
     await push(ref(db, `chats/${currentChatId}`), {
-      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
+      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text', status: 'sent'
     });
   }
 
@@ -408,7 +409,7 @@
       if (!data.success) throw new Error(data.error?.message);
 
       await push(ref(db, `chats/${currentChatId}`), {
-        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image'
+        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image', status: 'sent'
       });
 
     } catch (err) {
@@ -453,7 +454,7 @@
           const base64Audio = reader.result;
           try {
             await push(ref(db, `chats/${currentChatId}`), {
-              audioData: base64Audio, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio'
+              audioData: base64Audio, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio', status: 'sent'
             });
           } catch (err) {
             alert('Овоз юборилмади: ' + err.message);
@@ -465,7 +466,7 @@
 
       mediaRecorder.start();
       micBtn.classList.add('recording');
-      micBtn.textContent = '⏹️';
+      micBtn.textContent = '⏹';
 
     } catch (err) {
       alert('Микрофон рухсати керак');
@@ -473,7 +474,7 @@
   }
 
   async function logout() {
-    await remove(ref(db, `users/${currentUser.uid}`));
+    await update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() });
     localStorage.removeItem('doira_name');
     location.reload();
   }
