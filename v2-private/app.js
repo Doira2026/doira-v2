@@ -1,3 +1,205 @@
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
+  authDomain: "doira-chat-v2.firebaseapp.com",
+  databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
+  projectId: "doira-chat-v2",
+  storageBucket: "doira-chat-v2.firebasestorage.app",
+  messagingSenderId: "885552294238",
+  appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
+};
+
+const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
+const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
+const REACTIONS = ['❤️','😂','👍','😮','😢','🙏'];
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+let currentUser = null;
+let currentUserName = '';
+let currentChatId = null;
+let currentChatUser = null;
+let currentChatUid = null;
+let isGroupChat = false;
+let messagesUnsubscribe = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let allUsers = {};
+let friendsList = {};
+let unreadCounts = {};
+let editingMsgKey = null;
+let groupsList = {};
+let typingTimeout = null;
+let isDarkMode = localStorage.getItem('doira_theme')!== 'light';
+let peerConnection = null;
+let localStream = null;
+let remoteStream = null;
+let currentCallId = null;
+
+const appDiv = document.getElementById('app');
+const notifSound = document.getElementById('notifSound');
+const ringSound = document.getElementById('ringSound');
+
+function applyTheme() {
+  document.body.className = isDarkMode? '' : 'light';
+}
+
+async function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function showLogin() {
+  applyTheme();
+  appDiv.innerHTML = `
+    <div class="flex items-center justify-center h-screen p-4" style="background: var(--bg);">
+      <div class="p-8 rounded-lg w-full max-w-sm" style="background: var(--bg-secondary);">
+        <h1 class="text-3xl font-bold text-center mb-6">DOIRA V3 PRO</h1>
+        <input id="nameInput" type="text" placeholder="Исмингизни киритинг"
+          class="w-full p-3 rounded mb-4 outline-none" style="background: var(--bg-input); color: var(--text);">
+        <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold text-white">Кириш</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('joinBtn').onclick = join;
+  document.getElementById('nameInput').onkeyup = e => e.key === 'Enter' && join();
+}
+
+async function join() {
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return;
+  localStorage.setItem('doira_name', name);
+  await requestNotificationPermission();
+  await signInAnonymously(auth);
+}
+
+function showChat() {
+  applyTheme();
+  appDiv.innerHTML = `
+    <div class="overlay" id="overlay"></div>
+    <div class="flex h-screen">
+      <div class="sidebar w-1/3" id="sidebar">
+        <div class="header-bar p-3">
+          <div class="flex justify-between items-center mb-2">
+            <h1 class="text-lg font-bold">DOIRA V3</h1>
+            <div class="flex gap-1">
+              <button id="themeBtn" class="px-2 py-1 rounded text-xs" style="background: var(--bg-input);">${isDarkMode? '☀️' : '🌙'}</button>
+              <button id="newGroupBtn" class="bg-[#00a884] px-2 py-1 rounded text-xs text-white">+ Гуруҳ</button>
+              <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs text-white">Чиқиш</button>
+            </div>
+          </div>
+          <div id="myProfile" class="p-2 rounded flex items-center gap-2 cursor-pointer" style="background: var(--bg-input);">
+            <div class="w-8 h-8 bg-[#00a884] rounded-full flex items-center justify-center text-sm font-bold">👤</div>
+            <div class="flex-1">
+              <div class="text-xs" style="color: var(--text-secondary);">Сен:</div>
+              <div id="myName" class="text-sm font-bold"></div>
+            </div>
+            <div class="text-xs">✏</div>
+          </div>
+          <input id="searchInput" type="text" placeholder="🔍 Қидириш..."
+            class="w-full p-2 rounded mt-2 outline-none text-sm" style="background: var(--bg-input); color: var(--text);">
+        </div>
+        <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 190px); height: calc(100dvh - 190px);"></div>
+      </div>
+      <div class="flex-1 main-wrap w-full chat-bg">
+        <div id="chatHeader" class="header-bar p-3 flex items-center gap-3">
+          <button id="menuBtn" class="md:hidden text-2xl">☰</button>
+          <div class="flex-1 cursor-pointer" id="chatInfoBtn">
+            <div id="chatHeaderText" class="font-bold text-sm">Суҳбатдошни танланг</div>
+            <div id="chatSubText" class="text-xs" style="color: var(--text-secondary);"></div>
+          </div>
+          <button id="callBtn" class="hidden text-xl px-2">📞</button>
+        </div>
+        <div id="pinnedMsg" class="hidden"></div>
+        <div id="messages" class="messages-box p-2"></div>
+        <div id="typingIndicator" class="typing-indicator hidden"></div>
+        <div id="stickerPanel" class="p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto input-bar"></div>
+        <div id="reactionPanel" class="p-2 hidden flex justify-around input-bar"></div>
+        <div id="editBanner" class="p-2 hidden flex justify-between items-center text-sm input-bar" style="background: var(--bg-input);">
+          <span>✏️ Хабарни таҳрирлаш</span>
+          <button id="cancelEditBtn" class="text-red-400">Бекор қилиш</button>
+        </div>
+        <div id="inputArea" class="input-bar p-2 hidden">
+          <div class="flex gap-1 items-center">
+            <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
+            <button id="stickerBtn" class="btn-icon text-lg px-1">😊</button>
+            <input id="msgInput" type="text" placeholder="Хабар..."
+              class="flex-1 p-2 rounded outline-none text-sm" style="background: var(--bg-input); color: var(--text);">
+            <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
+            <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs text-white">Юбор</button>
+          </div>
+          <input type="file" id="fileInput" accept="image/*" class="hidden">
+        </div>
+      </div>
+    </div>
+    <div id="groupModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+      <div class="p-6 rounded-lg w-11/12 max-w-md" style="background: var(--bg-secondary);">
+        <h2 class="text-xl font-bold mb-4">Янги гуруҳ</h2>
+        <input id="groupNameInput" type="text" placeholder="Гуруҳ номи" class="w-full p-2 rounded mb-3 outline-none" style="background: var(--bg-input); color: var(--text);">
+        <div id="groupUsersList" class="max-h-60 overflow-y-auto mb-3"></div>
+        <div class="flex gap-2">
+          <button id="createGroupBtn" class="flex-1 bg-[#00a884] p-2 rounded font-bold text-white">Яратиш</button>
+          <button id="cancelGroupBtn" class="flex-1 bg-gray-600 p-2 rounded font-bold text-white">Бекор</button>
+        </div>
+      </div>
+    </div>
+    <div id="groupInfoModal" class="fixed inset-0 bg-black/70 hidden items-center justify-center z-50">
+      <div class="p-6 rounded-lg w-11/12 max-w-md" style="background: var(--bg-secondary);">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold" id="groupInfoName"></h2>
+          <button id="closeGroupInfo" class="text-2xl">×</button>
+        </div>
+        <div class="text-sm mb-2" style="color: var(--text-secondary);">Аъзолар:</div>
+        <div id="groupMembersList" class="member-list"></div>
+      </div>
+    </div>
+    <div id="callModal" class="call-modal hidden">
+      <div class="text-center">
+        <div id="callStatus" class="text-2xl mb-4 text-white"></div>
+        <div id="callName" class="text-xl mb-8 text-white"></div>
+        <div class="flex gap-4 justify-center">
+          <button id="acceptCallBtn" class="bg-green-600 px-8 py-4 rounded-full text-2xl hidden">📞</button>
+          <button id="endCallBtn" class="bg-red-600 px-8 py-4 rounded-full text-2xl">📞</button>
+        </div>
+        <audio id="remoteAudio" autoplay></audio>
+      </div>
+    </div>
+  `;
+  document.getElementById('logoutBtn').onclick = logout;
+  document.getElementById('themeBtn').onclick = toggleTheme;
+  document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
+  document.getElementById('stickerBtn').onclick = toggleStickers;
+  document.getElementById('micBtn').onclick = toggleRecording;
+  document.getElementById('fileInput').onchange = uploadFile;
+  document.getElementById('menuBtn').onclick = toggleSidebar;
+  document.getElementById('overlay').onclick = toggleSidebar;
+  document.getElementById('searchInput').oninput = renderUsers;
+  document.getElementById('myProfile').onclick = changeName;
+  document.getElementById('myName').textContent = currentUserName;
+  document.getElementById('newGroupBtn').onclick = showGroupModal;
+  document.getElementById('cancelGroupBtn').onclick = hideGroupModal;
+  document.getElementById('createGroupBtn').onclick = createGroup;
+  document.getElementById('cancelEditBtn').onclick = cancelEdit;
+  document.getElementById('msgInput').oninput = handleTyping;
+  document.getElementById('callBtn').onclick = startCall;
+  document.getElementById('acceptCallBtn').onclick = acceptCall;
+  document.getElementById('endCallBtn').onclick = endCall;
+  document.getElementById('chatInfoBtn').onclick = showGroupInfo;
+  document.getElementById('closeGroupInfo').onclick = hideGroupInfo;
+  loadStickers();
+  loadReactions();
+  loadUsers();
+  loadGroups();
+  loadUnreadCounts();
+  listenForCalls();
+}
+
 function toggleTheme() {
   isDarkMode =!isDarkMode;
   localStorage.setItem('doira_theme', isDarkMode? 'dark' : 'light');
@@ -478,200 +680,3 @@ async function uploadFile(e) {
         url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image', status: 'sent'
       });
     }
-  } catch (err) {
-    alert('Расм юклашда хатолик');
-  }
-  e.target.value = '';
-}
-
-async function toggleRecording() {
-  const btn = document.getElementById('micBtn');
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    btn.textContent = '🎤';
-    btn.classList.remove('recording');
-  } else {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          const base64 = reader.result;
-          await push(ref(db, `chats/${currentChatId}`), {
-            audioData: base64, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio', status: 'sent'
-          });
-        };
-        reader.readAsDataURL(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
-      };
-      mediaRecorder.start();
-      btn.textContent = '⏹️';
-      btn.classList.add('recording');
-    } catch (err) {
-      alert('Микрофонга рухсат беринг');
-    }
-  }
-}
-
-async function startCall() {
-  if (!currentChatUid) return;
-  currentCallId = `${currentUser.uid}_${Date.now()}`;
-  const callRef = ref(db, `calls/${currentCallId}`);
-  await set(callRef, {
-    from: currentUser.uid,
-    fromName: currentUserName,
-    to: currentChatUid,
-    status: 'calling',
-    time: serverTimestamp()
-  });
-  showCallModal('Қўнғироқ қилинмоқда...', currentChatUser, false);
-  ringSound.play().catch(()=>{});
-  listenCallResponse(callRef);
-}
-
-function listenCallResponse(callRef) {
-  onValue(callRef, async snap => {
-    const call = snap.val();
-    if (!call) return;
-    if (call.status === 'accepted') {
-      ringSound.pause();
-      document.getElementById('callStatus').textContent = 'Уланди';
-      document.getElementById('acceptCallBtn').classList.add('hidden');
-      await setupWebRTC(callRef, true);
-    } else if (call.status === 'rejected' || call.status === 'ended') {
-      endCall();
-    }
-  });
-}
-
-async function acceptCall() {
-  if (!currentCallId) return;
-  const callRef = ref(db, `calls/${currentCallId}`);
-  await update(callRef, { status: 'accepted' });
-  ringSound.pause();
-  document.getElementById('callStatus').textContent = 'Уланди';
-  document.getElementById('acceptCallBtn').classList.add('hidden');
-  await setupWebRTC(callRef, false);
-}
-
-async function setupWebRTC(callRef, isCaller) {
-  try {
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    peerConnection = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-    });
-    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-    peerConnection.ontrack = event => {
-      remoteStream = event.streams[0];
-      document.getElementById('remoteAudio').srcObject = remoteStream;
-    };
-    peerConnection.onicecandidate = event => {
-      if (event.candidate) {
-        push(ref(db, `calls/${currentCallId}/candidates/${isCaller? 'caller' : 'callee'}`), event.candidate.toJSON());
-      }
-    };
-    const candidatesRef = ref(db, `calls/${currentCallId}/candidates/${isCaller? 'callee' : 'caller'}`);
-    onChildAdded(candidatesRef, snap => {
-      const candidate = new RTCIceCandidate(snap.val());
-      peerConnection.addIceCandidate(candidate);
-    });
-    if (isCaller) {
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      await update(callRef, { offer: { type: offer.type, sdp: offer.sdp } });
-      onValue(ref(db, `calls/${currentCallId}/answer`), async snap => {
-        const answer = snap.val();
-        if (answer &&!peerConnection.currentRemoteDescription) {
-          await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-        }
-      });
-    } else {
-      const offerSnap = await get(ref(db, `calls/${currentCallId}/offer`));
-      const offer = offerSnap.val();
-      if (offer) {
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-        await update(callRef, { answer: { type: answer.type, sdp: answer.sdp } });
-      }
-    }
-  } catch (err) {
-    console.error('WebRTC error:', err);
-    endCall();
-  }
-}
-
-function showCallModal(status, name, showAccept) {
-  document.getElementById('callStatus').textContent = status;
-  document.getElementById('callName').textContent = name;
-  document.getElementById('acceptCallBtn').classList.toggle('hidden',!showAccept);
-  document.getElementById('callModal').classList.remove('hidden');
-}
-
-function endCall() {
-  if (currentCallId) {
-    update(ref(db, `calls/${currentCallId}`), { status: 'ended' });
-    setTimeout(() => remove(ref(db, `calls/${currentCallId}`)), 1000);
-  }
-  if (peerConnection) {
-    peerConnection.close();
-    peerConnection = null;
-  }
-  if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
-    localStream = null;
-  }
-  remoteStream = null;
-  document.getElementById('remoteAudio').srcObject = null;
-  document.getElementById('callModal').classList.add('hidden');
-  ringSound.pause();
-  ringSound.currentTime = 0;
-  currentCallId = null;
-}
-
-function listenForCalls() {
-  const callsRef = ref(db, 'calls');
-  onChildAdded(callsRef, snap => {
-    const call = snap.val();
-    const callId = snap.key;
-    if (call.to === currentUser.uid && call.status === 'calling') {
-      currentCallId = callId;
-      showCallModal('Кирувчи қўнғироқ', call.fromName, true);
-      ringSound.play().catch(()=>{});
-      onValue(ref(db, `calls/${callId}`), callSnap => {
-        if (!callSnap.val() || callSnap.val().status === 'ended') {
-          endCall();
-        }
-      });
-    }
-  });
-}
-
-async function logout() {
-  if (currentUser) {
-    await update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() });
-  }
-  await auth.signOut();
-  location.reload();
-}
-
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    currentUser = user;
-    currentUserName = localStorage.getItem('doira_name') || user.displayName || 'Фойдаланувчи';
-    const userRef = ref(db, `users/${user.uid}`);
-    await set(userRef, {
-      name: currentUserName,
-      online: true,
-      lastSeen: serverTimestamp()
-    });
-    onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
-    showChat();
-  } else {
-    showLogin();
-  }
-});
