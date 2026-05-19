@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Doira Private</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://tailwindcss.com"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
     .chat-bg { background: #0a1014; }
@@ -33,18 +33,17 @@
 <body class="chat-bg text-white">
 
 <div id="app"></div>
-<audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+<audio id="notifSound" src="https://pixabay.com"></audio>
 
 <script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  // ИМПОРТ ҚИСМИДА КЕРАКЛИ ФУНКЦИЯЛАР ЯНГИЛАНДИ
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+  import { initializeApp } from 'https://gstatic.com';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'https://gstatic.com';
+  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://gstatic.com';
 
   const firebaseConfig = {
     apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-    authDomain: "doira-chat-v2.firebaseapp.com",
-    databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
+    authDomain: "://firebaseapp.com",
+    databaseURL: "https://firebaseio.com",
     projectId: "doira-chat-v2",
     storageBucket: "doira-chat-v2.firebasestorage.app",
     messagingSenderId: "885552294238",
@@ -73,7 +72,7 @@
   const appDiv = document.getElementById('app');
   const notifSound = document.getElementById('notifSound');
 
-  let isRegisterMode = false; // Кириш ёки Рўйхатдан ўтиш ҳолати белгиси
+  let isRegisterMode = false;
 
   async function requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'default') {
@@ -81,7 +80,6 @@
     }
   }
 
-  // ЯНГИ КИРИШ ВА РЎЙХАТДАН ЎТИШ ОЙНАСИ (ҲЕЧ ҚАНДАЙ ЭСКИ ФУНКЦИЯ ЎЧИРИЛМАДИ)
   function showLogin() {
     appDiv.innerHTML = `
       <div class="flex items-center justify-center h-screen p-4">
@@ -90,17 +88,17 @@
           <div id="loginError" class="text-red-500 text-xs text-center mb-3 hidden"></div>
           
           <input id="emailInput" type="email" placeholder="Email (масалан: user@mail.com)"
-            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm">
+            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm text-white">
           
           <input id="passwordInput" type="password" placeholder="Пароль (камида 6 та белги)"
-            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm">
+            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm text-white">
 
           <div id="nameInputWrapper" class="hidden">
             <input id="nameInput" type="text" placeholder="Исмингиз (Чат учун)"
-              class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none text-sm">
+              class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none text-sm text-white">
           </div>
             
-          <button id="authBtn" class="w-full bg-[#00a884] p-3 rounded font-bold transition hover:bg-[#008f72] mb-4">Кириш</button>
+          <button id="authBtn" class="w-full bg-[#00a884] p-3 rounded font-bold transition hover:bg-[#008f72] mb-4 text-white">Кириш</button>
           
           <p class="text-xs text-center text-gray-400">
             <span id="toggleText">Ҳали рўйхатдан ўтмаганмисиз?</span>
@@ -115,7 +113,8 @@
 
     const inputs = ['emailInput', 'passwordInput', 'nameInput'];
     inputs.forEach(id => {
-      document.getElementById(id).onkeyup = e => e.key === 'Enter' && handleAuth();
+      const el = document.getElementById(id);
+      if (el) el.onkeyup = e => e.key === 'Enter' && handleAuth();
     });
   }
 
@@ -191,6 +190,11 @@
           savedName = userSnap.val().name;
         }
         localStorage.setItem('doira_name', savedName);
+        
+        await update(ref(db, `users/${userCredential.user.uid}`), {
+          online: true,
+          lastSeen: serverTimestamp()
+        });
       }
     } catch (error) {
       console.error(error);
@@ -253,19 +257,17 @@
     `;
     document.getElementById('logoutBtn').onclick = logout;
     document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
-    document.getElementById('stickerBtn').onclick = () => (typeof toggleStickers === 'function' && toggleStickers());
-    document.getElementById('micBtn').onclick = () => (typeof toggleRecording === 'function' && toggleRecording());
-    document.getElementById('fileInput').onchange = (e) => (typeof uploadFile === 'function' && uploadFile(e));
+    document.getElementById('stickerBtn').onclick = toggleStickers;
+    document.getElementById('micBtn').onclick = toggleRecording;
+    document.getElementById('fileInput').onchange = uploadFile;
     document.getElementById('menuBtn').onclick = toggleSidebar;
     document.getElementById('overlay').onclick = toggleSidebar;
-    document.getElementById('searchInput').oninput = () => (typeof renderUsers === 'function' && renderUsers());
+    document.getElementById('searchInput').oninput = renderUsers;
     document.getElementById('myProfile').onclick = changeName;
     document.getElementById('myName').textContent = currentUserName;
-    
-    // Эски функцияларингиз хатосиз чақирилиши таъминланди
-    if (typeof loadStickers === 'function') loadStickers();
-    if (typeof loadUsers === 'function') loadUsers();
-    if (typeof loadUnreadCounts === 'function') loadUnreadCounts();
+    loadStickers();
+    loadUsers();
+    loadUnreadCounts();
   }
 
   window.changeName = async () => {
@@ -279,27 +281,332 @@
     await update(ref(db, `users/${currentUser.uid}`), { name });
   }
 
-  // МЕНЮ ОЧИЛИШ ФУНКЦИЯСИ СИНТАКСИС ХАТОЛИКСИЗ ЁПИЛДИ
   function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
-    if (sidebar) sidebar.classList.toggle('open');
-    if (overlay) overlay.classList.toggle('show');
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
   }
 
-  // ТИЗИМНИ НАЗОРАТ ҚИЛИШ ФУНКЦИЯСИ
+  function loadUnreadCounts() {
+    const unreadRef = ref(db, `unread/${currentUser.uid}`);
+    onValue(unreadRef, snap => {
+      unreadCounts = snap.val() || {};
+      renderUsers();
+    });
+  }
+
+  function loadUsers() {
+    const usersRef = ref(db, 'users');
+    onValue(usersRef, snap => {
+      allUsers = snap.val() || {};
+      renderUsers();
+    });
+
+    const friendsRef = ref(db, `friends/${currentUser.uid}`);
+    onValue(friendsRef, snap => {
+      friendsList = snap.val() || {};
+      renderUsers();
+    });
+  }
+
+  function renderUsers() {
+    const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const list = document.getElementById('usersList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const users = [];
+    Object.entries(allUsers).forEach(([uid, user]) => {
+      if (uid === currentUser.uid) return;
+      if (searchQuery && !user.name.toLowerCase().includes(searchQuery)) return;
+      users.push({ uid, ...user, isFriend: !!friendsList[uid], unread: unreadCounts[uid] || 0 });
+    });
+
+    users.sort((a, b) => {
+      if (a.unread && !b.unread) return -1;
+      if (!a.unread && b.unread) return 1;
+      if (a.isFriend && !b.isFriend) return -1;
+      if (!a.isFriend && b.isFriend) return 1;
+      return b.lastSeen - a.lastSeen;
+    });
+
+    if (users.length === 0) {
+      list.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Ҳеч ким топилмади</div>';
+      return;
+    }
+
+    users.forEach(user => {
+      const div = document.createElement('div');
+      div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
+      div.innerHTML = `
+        <div class="w-2.5 h-2.5 rounded-full ${user.online ? 'bg-green-500' : 'bg-gray-500'}"></div>
+        <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}')">
+          <div class="font-bold text-sm flex items-center gap-1">
+            ${user.name}
+          </div>
+          <div class="text-xs text-gray-400">${user.online ? 'онлайн' : 'оффлайн'}</div>
+        </div>
+        <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
+          ${user.isFriend ? '⭐' : '☆'}
+        </button>
+        ${user.unread ? `<div class="unread-badge">${user.unread}</div>` : ''}
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  window.openChatUser = (uid, name) => {
+    openChat(uid, name);
+    if (window.innerWidth < 768) toggleSidebar();
+  }
+
+  window.toggleFriend = async (uid, isFriend) => {
+    if (isFriend) {
+      await remove(ref(db, `friends/${currentUser.uid}/${uid}`));
+    } else {
+      await set(ref(db, `friends/${currentUser.uid}/${uid}`), true);
+    }
+  }
+
+  function openChat(otherUid, otherName) {
+    currentChatId = [currentUser.uid, otherUid].sort().join('_');
+    currentChatUser = otherName;
+    currentChatUid = otherUid;
+    document.getElementById('chatHeaderText').textContent = otherName;
+    document.getElementById('inputArea').classList.remove('hidden');
+    document.getElementById('sendBtn').onclick = sendMsg;
+    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
+
+    remove(ref(db, `unread/${currentUser.uid}/${otherUid}`));
+    loadMessages();
+  }
+
+  function loadMessages() {
+    if (messagesUnsubscribe) messagesUnsubscribe();
+    const msgsRef = ref(db, `chats/${currentChatId}`);
+
+    let isFirstLoad = true;
+    onChildAdded(msgsRef, (snapshot) => {
+      const msg = snapshot.val();
+      if (!isFirstLoad && msg.sender !== currentUser.uid) {
+        if (Notification.permission === 'granted' && document.hidden) {
+          new Notification(currentChatUser, {
+            body: msg.type === 'text' ? msg.text : msg.type === 'sticker' ? msg.text : msg.type === 'image' ? '📷 Расм' : '🎤 Овозли хабар',
+            icon: 'https://i.ibb.co/7vKvV1D/doira-icon.png',
+            tag: currentChatId
+          });
+        }
+        notifSound.play().catch(() => {});
+
+        if (currentChatUid !== msg.sender) {
+          const unreadRef = ref(db, `unread/${currentUser.uid}/${msg.sender}`);
+          get(unreadRef).then(snap => {
+            const count = (snap.val() || 0) + 1;
+            set(unreadRef, count);
+          });
+        }
+      }
+    });
+
+    messagesUnsubscribe = onValue(msgsRef, snap => {
+      const msgs = snap.val() || {};
+      const box = document.getElementById('messages');
+      box.innerHTML = '';
+      Object.entries(msgs).forEach(([key, msg]) => {
+        const div = document.createElement('div');
+        const isMine = msg.sender === currentUser.uid;
+        div.className = `mb-2 flex ${isMine ? 'justify-end' : 'justify-start'}`;
+
+        let content = '';
+        if (msg.type === 'image') {
+          content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
+        } else if (msg.type === 'audio') {
+          content = `<audio controls src="${msg.audioData}" class="msg-audio"></audio>`;
+        } else if (msg.type === 'sticker') {
+          content = `<div class="text-5xl md:text-6xl">${msg.text || ''}</div>`;
+        } else {
+          content = msg.text || '';
+        }
+
+        const canDelete = isMine && (msg.type === 'image' || msg.type === 'audio' || msg.type === 'text' || msg.type === 'sticker');
+
+        div.innerHTML = `
+          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine ? 'msg-out' : 'msg-in'} break-words msg-text"
+               ${canDelete ? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
+            ${content}
+          </div>
+        `;
+        box.appendChild(div);
+      });
+      box.scrollTop = box.scrollHeight;
+      isFirstLoad = false;
+    });
+  }
+
+  let touchTimer = null;
+  window.startTouch = (e, key) => {
+    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
+  }
+  window.endTouch = () => clearTimeout(touchTimer);
+
+  window.showMsgMenu = (e, key) => {
+    e.preventDefault();
+    document.querySelectorAll('.msg-menu').forEach(m => m.remove());
+    const menu = document.createElement('div');
+    menu.className = 'msg-menu';
+    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+    document.body.appendChild(menu);
+    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
+  }
+
+  window.deleteMsg = async (key) => {
+    await remove(ref(db, `chats/${currentChatId}/${key}`));
+  }
+
+  async function sendMsg() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !currentChatId) return;
+    input.value = '';
+    await push(ref(db, `chats/${currentChatId}`), {
+      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
+    });
+  }
+
+  async function uploadFile(e) {
+    const file = e.target.files[0];
+    if (!file || !currentChatId) return;
+
+    if (!file.type.startsWith('image')) {
+      alert('Фақат rasm юклай оласиз');
+      return;
+    }
+
+    const sendBtn = document.getElementById('sendBtn');
+    sendBtn.textContent = '...';
+    sendBtn.disabled = true;
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error?.message);
+
+      await push(ref(db, `chats/${currentChatId}`), {
+        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image'
+      });
+
+    } catch (err) {
+      alert('Хато: ' + err.message);
+    }
+
+    sendBtn.textContent = 'Юбор';
+    sendBtn.disabled = false;
+    e.target.value = '';
+  }
+
+  function loadStickers() {
+    const panel = document.getElementById('stickerPanel');
+    if (!panel) return;
+    panel.innerHTML = '';
+    STICKERS.forEach(st => {
+      const btn = document.createElement('button');
+      btn.className = 'text-2xl p-1 hover:bg-[#2a3942] rounded';
+      btn.textContent = st;
+      btn.onclick = () => sendSticker(st);
+      panel.appendChild(btn);
+    });
+  }
+
+  function toggleStickers() {
+    document.getElementById('stickerPanel').classList.toggle('hidden');
+  }
+
+  async function sendSticker(sticker) {
+    if (!currentChatId) return;
+    toggleStickers();
+    await push(ref(db, `chats/${currentChatId}`), {
+      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
+    });
+  }
+
+  async function toggleRecording() {
+    const micBtn = document.getElementById('micBtn');
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      micBtn.classList.remove('recording');
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Овоз ёзиш қурилмаси топилмади');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      mediaRecorder = new MediaRecorder(stream);
+      
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) audioChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const audioData = reader.result;
+          await push(ref(db, `chats/${currentChatId}`), {
+            audioData, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio'
+          });
+        };
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      micBtn.classList.add('recording');
+
+    } catch (err) {
+      alert('Микрофонга рухсат берилмади: ' + err.message);
+    }
+  }
+
   onAuthStateChanged(auth, user => {
     if (user) {
       currentUser = user;
       currentUserName = localStorage.getItem('doira_name') || user.displayName || 'Аноним';
-      showChat();
+      
+      const userStatusRef = ref(db, `users/${user.uid}`);
+      onDisconnect(userStatusRef).update({
+        online: false,
+        lastSeen: serverTimestamp()
+      }).then(() => {
+        showChat();
+      });
     } else {
       showLogin();
     }
   });
 
   function logout() {
-    auth.signOut();
+    if (currentUser) {
+      update(ref(db, `users/${currentUser.uid}`), {
+        online: false,
+        lastSeen: serverTimestamp()
+      }).then(() => {
+        auth.signOut();
+      });
+    } else {
+      auth.signOut();
+    }
   }
 </script>
 </body>
