@@ -680,3 +680,201 @@ async function uploadFile(e) {
         url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image', status: 'sent'
       });
     }
+    }
+  } catch (err) {
+    alert('Расм юклашда хатолик');
+  }
+  e.target.value = '';
+}
+
+async function toggleRecording() {
+  const btn = document.getElementById('micBtn');
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    btn.textContent = '🎤';
+    btn.classList.remove('recording');
+  } else {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = reader.result;
+          await push(ref(db, `chats/${currentChatId}`), {
+            audioData: base64, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio', status: 'sent'
+          });
+        };
+        reader.readAsDataURL(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      mediaRecorder.start();
+      btn.textContent = '⏹️';
+      btn.classList.add('recording');
+    } catch (err) {
+      alert('Микрофонга рухсат беринг');
+    }
+  }
+}
+
+async function startCall() {
+  if (!currentChatUid) return;
+  currentCallId = `${currentUser.uid}_${Date.now()}`;
+  const callRef = ref(db, `calls/${currentCallId}`);
+  await set(callRef, {
+    from: currentUser.uid,
+    fromName: currentUserName,
+    to: currentChatUid,
+    status: 'calling',
+    time: serverTimestamp()
+  });
+  showCallModal('Қўнғироқ қилинмоқда...', currentChatUser, false);
+  ringSound.play().catch(()=>{});
+  listenCallResponse(callRef);
+}
+
+function listenCallResponse(callRef) {
+  onValue(callRef, async snap => {
+    const call = snap.val();
+    if (!call) return;
+    if (call.status === 'accepted') {
+      ringSound.pause();
+      document.getElementById('callStatus').textContent = 'Уланди';
+      document.getElementById('acceptCallBtn').classList.add('hidden');
+      await setupWebRTC(callRef, true);
+    } else if (call.status === 'rejected' || call.status === 'ended') {
+      endCall();
+    }
+  });
+}
+
+async function acceptCall() {
+  if (!currentCallId) return;
+  const callRef = ref(db, `calls/${currentCallId}`);
+  await update(callRef, { status: 'accepted' });
+  ringSound.pause();
+  document.getElementById('callStatus').textContent = 'Уланди';
+  document.getElementById('acceptCallBtn').classList.add('hidden');
+  await setupWebRTC(callRef, false);
+}
+
+async function setupWebRTC(callRef, isCaller) {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    peerConnection = new RTCPeerConnection({
+      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    });
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    peerConnection.ontrack = event => {
+      remoteStream = event.streams[0];
+      document.getElementById('remoteAudio').srcObject = remoteStream;
+    };
+    peerConnection.onicecandidate = event => {
+      if (event.candidate) {
+        push(ref(db, `calls/${currentCallId}/candidates/${isCaller? 'caller' : 'callee'}`), event.candidate.toJSON());
+      }
+    };
+    const candidatesRef = ref(db, `calls/${currentCallId}/candidates/${isCaller? 'callee' : 'caller'}`);
+    onChildAdded(candidatesRef, snap => {
+      const candidate = new RTCIceCandidate(snap.val());
+      peerConnection.addIceCandidate(candidate);
+    });
+    if (isCaller) {
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+      await update(callRef, { offer: { type: offer.type, sdp: offer.sdp } });
+      onValue(ref(db, `calls/${currentCallId}/answer`), async snap => {
+        const answer = snap.val();
+        if (answer &&!peerConnection.currentRemoteDescription) {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+      });
+    } else {
+      const offerSnap = await get(ref(db, `calls/${currentCallId}/offer`));
+      const offer = offerSnap.val();
+      if (offer) {
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        await update(callRef, { answer: { type: answer.type, sdp: answer.sdp } });
+      }
+    }
+  } catch (err) {
+    console.error('WebRTC error:', err);
+    endCall();
+  }
+}
+
+function showCallModal(status, name, showAccept) {
+  document.getElementById('callStatus').textContent = status;
+  document.getElementById('callName').textContent = name;
+  document.getElementById('acceptCallBtn').classList.toggle('hidden',!showAccept);
+  document.getElementById('callModal').classList.remove('hidden');
+}
+
+function endCall() {
+  if (currentCallId) {
+    update(ref(db, `calls/${currentCallId}`), { status: 'ended' });
+    setTimeout(() => remove(ref(db, `calls/${currentCallId}`)), 1000);
+  }
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
+  }
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+  remoteStream = null;
+  document.getElementById('remoteAudio').srcObject = null;
+  document.getElementById('callModal').classList.add('hidden');
+  ringSound.pause();
+  ringSound.currentTime = 0;
+  currentCallId = null;
+}
+
+function listenForCalls() {
+  const callsRef = ref(db, 'calls');
+  onChildAdded(callsRef, snap => {
+    const call = snap.val();
+    const callId = snap.key;
+    if (call.to === currentUser.uid && call.status === 'calling') {
+      currentCallId = callId;
+      showCallModal('Кирувчи қўнғироқ', call.fromName, true);
+      ringSound.play().catch(()=>{});
+      onValue(ref(db, `calls/${callId}`), callSnap => {
+        if (!callSnap.val() || callSnap.val().status === 'ended') {
+          endCall();
+        }
+      });
+    }
+  });
+}
+
+async function logout() {
+  if (currentUser) {
+    await update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() });
+  }
+  await auth.signOut();
+  location.reload();
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    currentUserName = localStorage.getItem('doira_name') || user.displayName || 'Фойдаланувчи';
+    const userRef = ref(db, `users/${user.uid}`);
+    await set(userRef, {
+      name: currentUserName,
+      online: true,
+      lastSeen: serverTimestamp()
+    });
+    onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
+    showChat();
+  } else {
+    showLogin();
+  }
+});
