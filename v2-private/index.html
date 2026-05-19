@@ -35,20 +35,18 @@
 <div id="app"></div>
 <audio id="notifSound" src="https://pixabay.com"></audio>
 
-<script type="module">
-  import { initializeApp } from 'https://gstatic.com';
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'https://gstatic.com';
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://gstatic.com';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-    authDomain: "://firebaseapp.com",
-    databaseURL: "https://firebaseio.com",
-    projectId: "doira-chat-v2",
-    storageBucket: "doira-chat-v2.firebasestorage.app",
-    messagingSenderId: "885552294238",
-    appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
-  };
+import { initializeApp } from 'https://www.gstatic.com';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, updateProfile } from 'https://www.gstatic.com';
+import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com';
+ const firebaseConfig = {
+  apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
+  authDomain: "://firebaseapp.com",
+  databaseURL: "https://firebaseio.com",
+  projectId: "doira-chat-v2",
+  storageBucket: "doira-chat-v2.firebasestorage.app",
+  messagingSenderId: "885552294238",
+  appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
+};
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
   const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
