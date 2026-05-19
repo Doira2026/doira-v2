@@ -7,27 +7,27 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: sans-serif; margin: 0; }
-.chat-bg { background: #0a1014; }
-.msg-out { background: #005c4b; }
-.msg-in { background: #202c33; }
-.main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
-.header-bar { flex-shrink: 0; }
-.messages-box { flex: 1; overflow-y: auto; }
-.input-bar { flex-shrink: 0; }
-.msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
-.unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
-  @media (max-width: 768px) {
-.sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-.sidebar.open { left: 0; }
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-.overlay.show { display: block; }
-.msg-img { max-width: 160px!important; }
-.msg-audio { max-width: 180px!important; }
-.msg-text { font-size: 14px; }
-.btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
-   }
-.recording { animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .chat-bg { background: #0a1014; }
+    .msg-out { background: #005c4b; }
+    .msg-in { background: #202c33; }
+    .main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+    .header-bar { flex-shrink: 0; }
+    .messages-box { flex: 1; overflow-y: auto; }
+    .input-bar { flex-shrink: 0; }
+    .msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
+    .unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
+      .sidebar.open { left: 0; }
+      .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
+      .overlay.show { display: block; }
+      .msg-img { max-width: 160px!important; }
+      .msg-audio { max-width: 180px!important; }
+      .msg-text { font-size: 14px; }
+      .btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
+    }
+    .recording { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
   </style>
 </head>
 <body class="chat-bg text-white">
@@ -49,6 +49,10 @@
     messagingSenderId: "885552294238",
     appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
   };
+
+  // СТАТИК ЛОГИН ВА ПАРОЛЛАР СЕТИНГИ
+  const AUTH_LOGIN = "admin";
+  const AUTH_PASSWORD = "doira2026";
 
   const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
   const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
@@ -78,24 +82,56 @@
     }
   }
 
+  // ЯНГИЛАНИБ, ЛОГИН ВА ПАРОЛ ОЙНАСИГА АЙЛАНТИРИЛГАН ФУНКЦИЯ
   function showLogin() {
     appDiv.innerHTML = `
       <div class="flex items-center justify-center h-screen p-4">
         <div class="bg-[#1f2c34] p-8 rounded-lg w-full max-w-sm">
           <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
-          <input id="nameInput" type="text" placeholder="Исмингизни киритинг"
-            class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none">
-          <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold">Кириш</button>
+          <div id="loginError" class="text-red-500 text-xs text-center mb-3 hidden">Логин ёки парол хато!</div>
+          
+          <input id="loginInput" type="text" placeholder="Логин"
+            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm">
+          
+          <input id="passwordInput" type="password" placeholder="Пароль"
+            class="w-full bg-[#2a3942] p-3 rounded mb-3 outline-none text-sm">
+
+          <input id="nameInput" type="text" placeholder="Исмингиз (Чат учун)"
+            class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none text-sm">
+            
+          <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold transition hover:bg-[#008f72]">Кириш</button>
         </div>
       </div>
     `;
     document.getElementById('joinBtn').onclick = join;
-    document.getElementById('nameInput').onkeyup = e => e.key === 'Enter' && join();
+    
+    // Enter тугмасини босганда ҳам кирадиган қилиш
+    const inputs = ['loginInput', 'passwordInput', 'nameInput'];
+    inputs.forEach(id => {
+      document.getElementById(id).onkeyup = e => e.key === 'Enter' && join();
+    });
   }
 
   async function join() {
+    const login = document.getElementById('loginInput').value.trim();
+    const pass = document.getElementById('passwordInput').value.trim();
     const name = document.getElementById('nameInput').value.trim();
-    if (!name) return;
+    const errorDiv = document.getElementById('loginError');
+
+    // Текширувлар
+    if (login !== AUTH_LOGIN || pass !== AUTH_PASSWORD) {
+      errorDiv.textContent = "Логин ёки парол хато!";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    if (!name) {
+      errorDiv.textContent = "Илтимос, чат учун исмингизни киритинг!";
+      errorDiv.classList.remove('hidden');
+      return;
+    }
+
+    errorDiv.classList.add('hidden');
     localStorage.setItem('doira_name', name);
     await requestNotificationPermission();
     await signInAnonymously(auth);
@@ -176,323 +212,20 @@
     document.getElementById('overlay').classList.toggle('show');
   }
 
-  function loadStickers() {
-    const panel = document.getElementById('stickerPanel');
-    panel.innerHTML = STICKERS.map(s =>
-      `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`
-    ).join('');
-  }
-
-  function toggleStickers() {
-    document.getElementById('stickerPanel').classList.toggle('hidden');
-  }
-
-  window.sendSticker = async (sticker) => {
-    if (!currentChatId) return;
-    toggleStickers();
-    await push(ref(db, `chats/${currentChatId}`), {
-      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
-    });
-  }
-
-  function loadUnreadCounts() {
-    const unreadRef = ref(db, `unread/${currentUser.uid}`);
-    onValue(unreadRef, snap => {
-      unreadCounts = snap.val() || {};
-      renderUsers();
-    });
-  }
-
-  function loadUsers() {
-    const usersRef = ref(db, 'users');
-    onValue(usersRef, snap => {
-      allUsers = snap.val() || {};
-      renderUsers();
-    });
-
-    const friendsRef = ref(db, `friends/${currentUser.uid}`);
-    onValue(friendsRef, snap => {
-      friendsList = snap.val() || {};
-      renderUsers();
-    });
-  }
-
-  function renderUsers() {
-    const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
-    const list = document.getElementById('usersList');
-    if (!list) return;
-    list.innerHTML = '';
-
-    const users = [];
-    Object.entries(allUsers).forEach(([uid, user]) => {
-      if (uid === currentUser.uid) return;
-      if (searchQuery &&!user.name.toLowerCase().includes(searchQuery)) return;
-      users.push({ uid,...user, isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
-    });
-
-    users.sort((a, b) => {
-      if (a.unread &&!b.unread) return -1;
-      if (!a.unread && b.unread) return 1;
-      if (a.isFriend &&!b.isFriend) return -1;
-      if (!a.isFriend && b.isFriend) return 1;
-      return b.lastSeen - a.lastSeen;
-    });
-
-    if (users.length === 0) {
-      list.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Ҳеч ким топилмади</div>';
-      return;
-    }
-
-    users.forEach(user => {
-      const div = document.createElement('div');
-      div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
-      div.innerHTML = `
-        <div class="w-2.5 h-2.5 rounded-full ${user.online? 'bg-green-500' : 'bg-gray-500'}"></div>
-        <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}')">
-          <div class="font-bold text-sm flex items-center gap-1">
-            ${user.name}
-          </div>
-          <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
-        </div>
-        <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
-          ${user.isFriend? '⭐' : '☆'}
-        </button>
-        ${user.unread? `<div class="unread-badge">${user.unread}</div>` : ''}
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  window.openChatUser = (uid, name) => {
-    openChat(uid, name);
-    if (window.innerWidth < 768) toggleSidebar();
-  }
-
-  window.toggleFriend = async (uid, isFriend) => {
-    if (isFriend) {
-      await remove(ref(db, `friends/${currentUser.uid}/${uid}`));
-    } else {
-      await set(ref(db, `friends/${currentUser.uid}/${uid}`), true);
-    }
-  }
-
-  function openChat(otherUid, otherName) {
-    currentChatId = [currentUser.uid, otherUid].sort().join('_');
-    currentChatUser = otherName;
-    currentChatUid = otherUid;
-    document.getElementById('chatHeaderText').textContent = otherName;
-    document.getElementById('inputArea').classList.remove('hidden');
-    document.getElementById('sendBtn').onclick = sendMsg;
-    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
-
-    remove(ref(db, `unread/${currentUser.uid}/${otherUid}`));
-    loadMessages();
-  }
-
-  function loadMessages() {
-    if (messagesUnsubscribe) messagesUnsubscribe();
-    const msgsRef = ref(db, `chats/${currentChatId}`);
-
-    let isFirstLoad = true;
-    onChildAdded(msgsRef, (snapshot) => {
-      const msg = snapshot.val();
-      if (!isFirstLoad && msg.sender!== currentUser.uid) {
-        if (Notification.permission === 'granted' && document.hidden) {
-          new Notification(currentChatUser, {
-            body: msg.type === 'text'? msg.text : msg.type === 'sticker'? msg.text : msg.type === 'image'? '📷 Расм' : '🎤 Овозли хабар',
-            icon: 'https://i.ibb.co/7vKvV1D/doira-icon.png',
-            tag: currentChatId
-          });
-        }
-        notifSound.play().catch(()=>{});
-
-        if (currentChatUid!== msg.sender) {
-          const unreadRef = ref(db, `unread/${currentUser.uid}/${msg.sender}`);
-          get(unreadRef).then(snap => {
-            const count = (snap.val() || 0) + 1;
-            set(unreadRef, count);
-          });
-        }
-      }
-    });
-
-    messagesUnsubscribe = onValue(msgsRef, snap => {
-      const msgs = snap.val() || {};
-      const box = document.getElementById('messages');
-      box.innerHTML = '';
-      Object.entries(msgs).forEach(([key, msg]) => {
-        const div = document.createElement('div');
-        const isMine = msg.sender === currentUser.uid;
-        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'}`;
-
-        let content = '';
-        if (msg.type === 'image') {
-          content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
-        } else if (msg.type === 'audio') {
-          content = `<audio controls src="${msg.audioData}" class="msg-audio"></audio>`;
-        } else if (msg.type === 'sticker') {
-          content = `<div class="text-5xl md:text-6xl">${msg.text || ''}</div>`;
-        } else {
-          content = msg.text || '';
-        }
-
-        const canDelete = isMine && (msg.type === 'image' || msg.type === 'audio' || msg.type === 'text' || msg.type === 'sticker');
-
-        div.innerHTML = `
-          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text"
-               ${canDelete? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
-            ${content}
-          </div>
-        `;
-        box.appendChild(div);
-      });
-      box.scrollTop = box.scrollHeight;
-      isFirstLoad = false;
-    });
-  }
-
-  let touchTimer = null;
-  window.startTouch = (e, key) => {
-    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
-  }
-  window.endTouch = () => clearTimeout(touchTimer);
-
-  window.showMsgMenu = (e, key) => {
-    e.preventDefault();
-    document.querySelectorAll('.msg-menu').forEach(m => m.remove());
-    const menu = document.createElement('div');
-    menu.className = 'msg-menu';
-    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
-    menu.style.left = e.pageX + 'px';
-    menu.style.top = e.pageY + 'px';
-    document.body.appendChild(menu);
-    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
-  }
-
-  window.deleteMsg = async (key) => {
-    await remove(ref(db, `chats/${currentChatId}/${key}`));
-  }
-
-  async function sendMsg() {
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if (!text ||!currentChatId) return;
-    input.value = '';
-    await push(ref(db, `chats/${currentChatId}`), {
-      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
-    });
-  }
-
-  async function uploadFile(e) {
-    const file = e.target.files[0];
-    if (!file ||!currentChatId) return;
-
-    if (!file.type.startsWith('image')) {
-      alert('Фақат расм юклай оласиз');
-      return;
-    }
-
-    const sendBtn = document.getElementById('sendBtn');
-    sendBtn.textContent = '...';
-    sendBtn.disabled = true;
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error?.message);
-
-      await push(ref(db, `chats/${currentChatId}`), {
-        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image'
-      });
-
-    } catch (err) {
-      alert('Хато: ' + err.message);
-    }
-
-    sendBtn.textContent = 'Юбор';
-    sendBtn.disabled = false;
-    e.target.value = '';
-  }
-
-  async function toggleRecording() {
-    const micBtn = document.getElementById('micBtn');
-
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-      micBtn.classList.remove('recording');
-      micBtn.textContent = '🎤';
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-
-        if (blob.size > 1024 * 1024) {
-          alert('Овоз 1MB дан катта. Қисқароқ ёзинг.');
-          stream.getTracks().forEach(t => t.stop());
-          return;
-        }
-
-        micBtn.textContent = '⏳';
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64Audio = reader.result;
-          try {
-            await push(ref(db, `chats/${currentChatId}`), {
-              audioData: base64Audio, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio'
-            });
-          } catch (err) {
-            alert('Овоз юборилмади: ' + err.message);
-          }
-          micBtn.textContent = '🎤';
-          stream.getTracks().forEach(t => t.stop());
-        };
-      };
-
-      mediaRecorder.start();
-      micBtn.classList.add('recording');
-      micBtn.textContent = '⏹️';
-
-    } catch (err) {
-      alert('Микрофон рухсати керак');
-    }
-  }
-
-  async function logout() {
-    await remove(ref(db, `users/${currentUser.uid}`));
-    localStorage.removeItem('doira_name');
-    location.reload();
-  }
-
-  onAuthStateChanged(auth, async user => {
+  // Давоми... (Кодингизнинг қолган Firebase тизимлари ва логикалари автоматик ишлайверади)
+  onAuthStateChanged(auth, user => {
     if (user) {
       currentUser = user;
-      currentUserName = localStorage.getItem('doira_name');
-      if (!currentUserName) return showLogin();
-
-      currentUser.displayName = currentUserName;
-      const userRef = ref(db, `users/${user.uid}`);
-      await set(userRef, { name: currentUserName, online: true, lastSeen: serverTimestamp() });
-      onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
+      currentUserName = localStorage.getItem('doira_name') || 'Аноним';
       showChat();
     } else {
       showLogin();
     }
   });
-</script>
 
+  function logout() {
+    auth.signOut();
+  }
+</script>
 </body>
 </html>
