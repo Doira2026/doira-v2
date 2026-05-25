@@ -2,148 +2,343 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DoiraChat — Kirish</title>
-<meta name="theme-color" content="#00a884">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UzChat - Messenger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
 :root {
-  --bg:#0b141a; --bg2:#111b21; --bg3:#1f2c34; --bg4:#2a3942;
-  --accent:#00a884; --text:#e9edef; --text2:#8696a0;
-  --border:#2a3942; --danger:#f15c6d;
+  --blue:#2AABEE;--blue-dark:#1A99DA;--green:#31C16F;--red:#E53935;
+  --bg:#ffffff;--bg2:#F4F4F5;--bg3:#EBEBEB;
+  --sidebar-bg:#ffffff;--chat-bg:#E8EEF3;
+  --bubble-me:#2AABEE;--bubble-them:#ffffff;
+  --text:#111827;--text2:#6B7280;--text3:#9CA3AF;
+  --border:#E5E7EB;--input-bg:#F3F4F6;--menu-bg:#ffffff;
+  --shadow:0 4px 24px rgba(0,0,0,0.10);--font:'Inter',sans-serif;--radius:14px;
 }
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px}
-button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
-input{font-family:inherit;border:none;outline:none;background:none;color:var(--text)}
-body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.wrap{width:min(400px,100%);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;text-align:center;animation:slideUp .5s ease}
-@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
-.logo{font-size:52px;margin-bottom:12px;display:block}
-.title{font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px}
-.sub{font-size:13px;color:var(--text2);margin-bottom:24px}
-.tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--bg3);border-radius:12px;padding:4px}
-.tab{flex:1;padding:9px;border-radius:9px;font-size:14px;font-weight:600;transition:.2s;color:var(--text2)}
-.tab.active{background:var(--accent);color:#fff}
-.field{width:100%;background:var(--bg3);border-radius:12px;padding:13px 16px;font-size:15px;color:var(--text);margin-bottom:10px;border:2px solid transparent;transition:.2s}
-.field:focus{border-color:var(--accent);background:var(--bg4)}
-.field::placeholder{color:var(--text2)}
-.err{font-size:12px;color:var(--danger);margin-bottom:8px;min-height:16px;text-align:left}
-.btn{width:100%;padding:14px;background:var(--accent);color:#fff;border-radius:12px;font-size:16px;font-weight:700;transition:.2s;margin-top:4px}
-.btn:active{transform:scale(0.98);opacity:.9}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.note{font-size:11px;color:var(--text2);margin-top:14px;line-height:1.6}
+.dark {
+  --bg:#17212B;--bg2:#0E1621;--bg3:#232E3C;
+  --sidebar-bg:#17212B;--chat-bg:#0E1621;
+  --bubble-me:#2B5278;--bubble-them:#182533;
+  --text:#F0F4F8;--text2:#8B99A8;--text3:#5A6A7A;
+  --border:#232E3C;--input-bg:#232E3C;--menu-bg:#1E2C3A;
+  --shadow:0 4px 24px rgba(0,0,0,0.40);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg2);color:var(--text);transition:background .3s,color .3s;min-height:100vh;}
+.screen{display:none;} .screen.active{display:flex;}
+/* LOGIN */
+#loginScreen{min-height:100vh;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1A77C9,#2AABEE);padding:20px;}
+.login-box{background:#fff;border-radius:20px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.15);text-align:center;}
+.login-logo{width:72px;height:72px;background:linear-gradient(135deg,#2AABEE,#1A77C9);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px;color:white;}
+.login-box h2{font-size:22px;font-weight:700;color:#111;margin-bottom:6px;}
+.login-box p{font-size:14px;color:#777;margin-bottom:28px;}
+.phone-input-wrap{display:flex;border:1.5px solid #E5E7EB;border-radius:12px;overflow:hidden;margin-bottom:14px;transition:border-color .2s;}
+.phone-input-wrap:focus-within{border-color:#2AABEE;}
+.phone-prefix{padding:13px 14px;background:#F3F4F6;font-size:15px;font-weight:500;color:#374151;border-right:1.5px solid #E5E7EB;white-space:nowrap;}
+.phone-input-wrap input{flex:1;padding:13px 14px;border:none;outline:none;font-size:15px;font-family:var(--font);color:#111;background:transparent;}
+.login-btn{width:100%;padding:14px;background:linear-gradient(135deg,#2AABEE,#1A77C9);color:white;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:transform .15s,box-shadow .15s;font-family:var(--font);}
+.login-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(42,171,238,0.4);}
+.login-note{margin-top:16px;font-size:12px;color:#9CA3AF;}
+.otp-inputs{display:flex;gap:10px;justify-content:center;margin-bottom:20px;}
+.otp-inputs input{width:52px;height:56px;text-align:center;font-size:22px;font-weight:700;border:1.5px solid #E5E7EB;border-radius:12px;outline:none;color:#111;transition:border-color .2s;font-family:var(--font);}
+.otp-inputs input:focus{border-color:#2AABEE;}
+/* APP */
+#appScreen{height:100vh;flex-direction:row;background:var(--bg);}
+/* SIDEBAR */
+.sidebar{width:300px;min-width:300px;display:flex;flex-direction:column;background:var(--sidebar-bg);border-right:1px solid var(--border);position:relative;z-index:10;transition:background .3s;}
+.sidebar-top{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);}
+.menu-btn{width:36px;height:36px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:20px;transition:background .2s;}
+.menu-btn:hover{background:var(--bg2);}
+.search-wrap{flex:1;display:flex;align-items:center;background:var(--input-bg);border-radius:20px;padding:7px 12px;gap:7px;}
+.search-wrap i{color:var(--text3);font-size:16px;}
+.search-wrap input{flex:1;border:none;background:transparent;outline:none;font-size:14px;color:var(--text);font-family:var(--font);}
+.search-wrap input::placeholder{color:var(--text3);}
+.pencil-btn{width:36px;height:36px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:20px;transition:background .2s;}
+.pencil-btn:hover{background:var(--bg2);}
+/* SLIDE MENU */
+.slide-menu{position:absolute;top:0;left:-300px;width:280px;height:100%;background:var(--menu-bg);box-shadow:var(--shadow);z-index:100;transition:left .3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;}
+.slide-menu.open{left:0;}
+.menu-profile{background:linear-gradient(135deg,#1A77C9,#2AABEE);padding:36px 20px 20px;color:white;}
+.menu-avatar{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin-bottom:10px;color:white;}
+.menu-name{font-size:16px;font-weight:600;margin-bottom:2px;}
+.menu-phone{font-size:13px;opacity:.85;}
+.menu-items{flex:1;padding:8px 0;overflow-y:auto;}
+.menu-item{display:flex;align-items:center;gap:14px;padding:13px 20px;cursor:pointer;color:var(--text);font-size:14px;font-weight:500;transition:background .15s;}
+.menu-item:hover{background:var(--bg2);}
+.menu-item i{font-size:20px;color:var(--blue);}
+.menu-divider{height:1px;background:var(--border);margin:6px 0;}
+.menu-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:99;}
+.menu-overlay.open{display:block;}
+/* CHAT LIST */
+.chat-list{flex:1;overflow-y:auto;}
+.chat-item{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s;}
+.chat-item:hover,.chat-item.active{background:var(--bg2);}
+.avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;flex-shrink:0;color:white;}
+.ci{flex:1;overflow:hidden;}
+.ci-top{display:flex;align-items:center;justify-content:space-between;}
+.ci-name{font-size:14px;font-weight:600;color:var(--text);}
+.ci-time{font-size:11px;color:var(--text3);}
+.ci-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:2px;}
+.ci-preview{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:170px;}
+.badge{background:var(--blue);color:white;border-radius:10px;font-size:11px;font-weight:600;padding:1px 7px;min-width:20px;text-align:center;}
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;background:var(--chat-bg);transition:background .3s;}
+.chat-header{display:flex;align-items:center;gap:12px;padding:11px 16px;background:var(--sidebar-bg);border-bottom:1px solid var(--border);transition:background .3s;}
+.ch-info{flex:1;}
+.ch-name{font-size:15px;font-weight:600;color:var(--text);}
+.ch-status{font-size:12px;color:var(--green);}
+.ch-actions{display:flex;gap:4px;}
+.icon-btn{width:36px;height:36px;border-radius:50%;border:none;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:20px;cursor:pointer;transition:background .15s;}
+.icon-btn:hover{background:var(--bg2);}
+/* MESSAGES */
+.messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:6px;}
+.day-label{text-align:center;font-size:12px;color:var(--text2);background:rgba(0,0,0,0.08);padding:4px 12px;border-radius:10px;align-self:center;margin:8px 0;}
+.dark .day-label{background:rgba(255,255,255,0.08);}
+.msg{display:flex;flex-direction:column;max-width:65%;}
+.msg.me{align-self:flex-end;align-items:flex-end;}
+.msg.them{align-self:flex-start;align-items:flex-start;}
+.bubble{padding:9px 13px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;}
+.msg.me .bubble{background:var(--bubble-me);color:white;border-bottom-right-radius:4px;}
+.msg.them .bubble{background:var(--bubble-them);color:var(--text);border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.msg-footer{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text3);margin-top:3px;padding:0 4px;}
+.msg.me .msg-footer{color:rgba(255,255,255,0.6);}
+.check-icon{font-size:14px;color:rgba(255,255,255,0.8);}
+/* Voice */
+.voice-bubble{display:flex;align-items:center;gap:10px;background:var(--bubble-them);border-radius:24px;padding:10px 14px;min-width:200px;box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+.msg.me .voice-bubble{background:var(--bubble-me);}
+.play-btn{width:36px;height:36px;border-radius:50%;background:var(--blue);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex-shrink:0;}
+.msg.me .play-btn{background:rgba(255,255,255,0.25);}
+.voice-wave{flex:1;height:28px;display:flex;align-items:center;gap:2px;}
+.wave-bar{width:3px;border-radius:2px;background:var(--blue);opacity:.6;}
+.msg.me .wave-bar{background:rgba(255,255,255,0.7);}
+.voice-dur{font-size:12px;color:var(--text2);}
+.msg.me .voice-dur{color:rgba(255,255,255,0.7);}
+/* Media */
+.media-bubble{border-radius:14px;overflow:hidden;position:relative;cursor:pointer;max-width:220px;}
+.media-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3);}
+.media-overlay i{color:white;font-size:36px;}
+/* Input */
+.input-area{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--sidebar-bg);border-top:1px solid var(--border);transition:background .3s;}
+.msg-input{flex:1;padding:10px 14px;border-radius:22px;border:1.5px solid var(--border);background:var(--input-bg);font-size:14px;color:var(--text);outline:none;font-family:var(--font);transition:border-color .2s;}
+.msg-input:focus{border-color:var(--blue);}
+.msg-input::placeholder{color:var(--text3);}
+.send-btn{width:40px;height:40px;border-radius:50%;background:var(--blue);border:none;color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;transition:background .2s,transform .15s;flex-shrink:0;}
+.send-btn:hover{background:var(--blue-dark);transform:scale(1.05);}
+/* Emoji */
+.emoji-panel{display:none;background:var(--sidebar-bg);border-top:1px solid var(--border);padding:10px 14px;font-size:24px;line-height:1.8;letter-spacing:4px;flex-wrap:wrap;}
+.emoji-panel.open{display:flex;}
+.emoji-panel span{cursor:pointer;transition:transform .1s;}
+.emoji-panel span:hover{transform:scale(1.3);}
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--bg);border-radius:18px;padding:28px 24px;width:340px;box-shadow:var(--shadow);}
+.modal h3{font-size:17px;font-weight:700;margin-bottom:18px;color:var(--text);}
+.modal input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;background:var(--input-bg);color:var(--text);outline:none;margin-bottom:12px;font-family:var(--font);transition:border-color .2s;}
+.modal input:focus{border-color:var(--blue);}
+.modal-btns{display:flex;gap:10px;margin-top:4px;}
+.btn-cancel{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:transparent;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);}
+.btn-add{flex:1;padding:12px;border-radius:12px;border:none;background:var(--blue);color:white;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font);}
+.btn-add:hover{background:var(--blue-dark);}
+/* Empty */
+.empty-chat{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text2);background:var(--chat-bg);}
+.empty-chat i{font-size:64px;color:var(--border);}
+.empty-chat p{font-size:15px;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <span class="logo">💬</span>
-  <div class="title">DoiraChat</div>
-  <div class="sub" id="subText">Hisobingizga kiring</div>
-  <div class="tabs">
-    <button class="tab active" id="tabLogin" onclick="switchTab('login')">Kirish</button>
-    <button class="tab" id="tabReg" onclick="switchTab('reg')">Ro'yxat</button>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <div class="login-box" id="phoneStep">
+    <div class="login-logo"><i class="ti ti-message-2"></i></div>
+    <h2>UzChat</h2>
+    <p>Telefon raqamingizni kiriting</p>
+    <div class="phone-input-wrap">
+      <div class="phone-prefix">🇺🇿 +998</div>
+      <input type="tel" id="phoneInput" placeholder="90 123 45 67" maxlength="12">
+    </div>
+    <button class="login-btn" onclick="sendOTP()">Davom etish</button>
+    <p class="login-note">Sizning raqamingiz xavfsiz saqlanadi</p>
   </div>
-  <input id="nameInput" class="field" type="text" placeholder="Ismingiz" style="display:none" autocomplete="name">
-  <input id="emailInput" class="field" type="email" placeholder="Email manzilingiz" autocomplete="email">
-  <input id="passInput" class="field" type="password" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password">
-  <div class="err" id="errMsg"></div>
-  <button class="btn" id="authBtn" onclick="doAuth()">Kirish</button>
-  <div class="note" id="noteText">📧 Gmail, Mail.ru yoki istalgan email bilan kiring.</div>
+  <div class="login-box" id="otpStep" style="display:none">
+    <div class="login-logo" style="background:linear-gradient(135deg,#31C16F,#1A99DA)"><i class="ti ti-lock"></i></div>
+    <h2>Kod kiriting</h2>
+    <p id="otpDesc">Raqamga kod yuborildi</p>
+    <div class="otp-inputs">
+      <input type="number" maxlength="1" oninput="otpInput(this,0)">
+      <input type="number" maxlength="1" oninput="otpInput(this,1)">
+      <input type="number" maxlength="1" oninput="otpInput(this,2)">
+      <input type="number" maxlength="1" oninput="otpInput(this,3)">
+    </div>
+    <button class="login-btn" onclick="verifyOTP()">Kirish</button>
+    <p class="login-note" style="margin-top:12px;cursor:pointer;color:#2AABEE" onclick="backToPhone()">← Orqaga</p>
+  </div>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getDatabase, ref, set, update, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+<!-- APP -->
+<div id="appScreen" class="screen">
+  <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
+  <div class="sidebar">
+    <div class="slide-menu" id="slideMenu">
+      <div class="menu-profile">
+        <div class="menu-avatar" id="menuAvatar">U</div>
+        <div class="menu-name" id="menuName">Foydalanuvchi</div>
+        <div class="menu-phone" id="menuPhone">+998 00 000 00 00</div>
+      </div>
+      <div class="menu-items">
+        <div class="menu-item" onclick="openAddContact();closeMenu()"><i class="ti ti-user-plus"></i> Kontakt qo'shish</div>
+        <div class="menu-item"><i class="ti ti-users"></i> Guruh yaratish</div>
+        <div class="menu-item"><i class="ti ti-bell"></i> Bildirishnomalar</div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" onclick="toggleDark();closeMenu()"><i class="ti ti-moon" id="darkIcon"></i> <span id="darkText">Qorong'u rejim</span></div>
+        <div class="menu-item"><i class="ti ti-settings"></i> Sozlamalar</div>
+        <div class="menu-item"><i class="ti ti-help"></i> Yordam</div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" onclick="logout()" style="color:var(--red)"><i class="ti ti-logout" style="color:var(--red)"></i> Chiqish</div>
+      </div>
+    </div>
+    <div class="sidebar-top">
+      <button class="menu-btn" onclick="openMenu()"><i class="ti ti-menu-2"></i></button>
+      <div class="search-wrap">
+        <i class="ti ti-search"></i>
+        <input type="text" placeholder="Qidirish..." oninput="searchChats(this.value)">
+      </div>
+      <button class="pencil-btn" onclick="openAddContact()"><i class="ti ti-edit"></i></button>
+    </div>
+    <div class="chat-list" id="chatList"></div>
+  </div>
+  <div class="main" id="mainArea">
+    <div class="empty-chat" id="emptyState">
+      <i class="ti ti-message-circle"></i>
+      <p>Chat tanlang yoki yangi xabar yozing</p>
+    </div>
+    <div id="chatView" style="display:none;flex-direction:column;flex:1;">
+      <div class="chat-header">
+        <div class="avatar" id="chAvatar" style="width:38px;height:38px;font-size:14px;"></div>
+        <div class="ch-info">
+          <div class="ch-name" id="chName"></div>
+          <div class="ch-status" id="chStatus">online</div>
+        </div>
+        <div class="ch-actions">
+          <button class="icon-btn"><i class="ti ti-phone"></i></button>
+          <button class="icon-btn"><i class="ti ti-video"></i></button>
+          <button class="icon-btn"><i class="ti ti-search"></i></button>
+          <button class="icon-btn"><i class="ti ti-dots-vertical"></i></button>
+        </div>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="emoji-panel" id="emojiPanel">
+        <span onclick="addEmoji('😀')">😀</span><span onclick="addEmoji('😂')">😂</span><span onclick="addEmoji('❤️')">❤️</span>
+        <span onclick="addEmoji('👍')">👍</span><span onclick="addEmoji('🔥')">🔥</span><span onclick="addEmoji('😎')">😎</span>
+        <span onclick="addEmoji('🥰')">🥰</span><span onclick="addEmoji('😭')">😭</span><span onclick="addEmoji('🤩')">🤩</span>
+        <span onclick="addEmoji('😅')">😅</span><span onclick="addEmoji('🤔')">🤔</span><span onclick="addEmoji('👋')">👋</span>
+        <span onclick="addEmoji('✅')">✅</span><span onclick="addEmoji('💯')">💯</span><span onclick="addEmoji('🎉')">🎉</span>
+        <span onclick="addEmoji('😴')">😴</span><span onclick="addEmoji('🙏')">🙏</span><span onclick="addEmoji('💪')">💪</span>
+      </div>
+      <div class="input-area">
+        <button class="icon-btn" onclick="triggerFile()"><i class="ti ti-paperclip"></i></button>
+        <input type="file" id="fileInput" style="display:none" accept="image/*,video/*,.pdf,.doc,.docx,.zip" onchange="handleFile(this)">
+        <button class="icon-btn" onclick="toggleEmoji()"><i class="ti ti-mood-smile"></i></button>
+        <input class="msg-input" id="msgInput" placeholder="Xabar yozing..." onkeydown="handleKey(event)">
+        <button class="icon-btn" onclick="startVoice()" id="voiceBtn"><i class="ti ti-microphone"></i></button>
+        <button class="send-btn" onclick="sendMsg()"><i class="ti ti-send"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
 
-const app = initializeApp({
-  apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-  authDomain: "doira-chat-v2.firebaseapp.com",
-  databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
-  projectId: "doira-chat-v2",
-  storageBucket: "doira-chat-v2.firebasestorage.app",
-  messagingSenderId: "885552294238",
-  appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
-});
-const auth = getAuth(app);
-const db = getDatabase(app);
+<!-- ADD CONTACT -->
+<div class="modal-overlay" id="addContactModal">
+  <div class="modal">
+    <h3>Yangi kontakt qo'shish</h3>
+    <input type="text" id="newName" placeholder="Ism Familiya">
+    <input type="tel" id="newPhone" placeholder="+998 XX XXX XX XX">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAddContact()">Bekor</button>
+      <button class="btn-add" onclick="addContact()">Qo'shish</button>
+    </div>
+  </div>
+</div>
 
-// MUHIM: onAuthStateChanged YO'Q — sahifa refresh bo'lmaydi!
-// Faqat tugma bosilganda kirish tekshiriladi
+<script>
+let myName='',myPhone='',activeChat=-1,isDark=false,isRecording=false;
+const avatarColors={blue:'#2AABEE',green:'#31C16F',orange:'#FF8C00',purple:'#8B5CF6',red:'#EF4444',teal:'#14B8A6'};
+const colorKeys=['blue','green','orange','purple','red','teal'];
+let chats=[
+  {name:'Sarvar Toshmatov',color:'blue',unread:2,time:'12:34',msgs:[
+    {type:'text',text:'Salom! Qalaysan birodar?',me:false,time:'12:10'},
+    {type:'text',text:"Yaxshi alhamdulillah! O'zing qalaysan?",me:true,time:'12:11'},
+    {type:'text',text:'Holmi kechqurun uchrashamizmi?',me:false,time:'12:34'}
+  ]},
+  {name:'Dilnoza Yusupova',color:'purple',unread:0,time:'11:20',msgs:[
+    {type:'text',text:'Loyiha haqida gaplashish kerak edi',me:false,time:'11:10'},
+    {type:'text',text:"Albatta, qachon qulay bo'ladi?",me:true,time:'11:15'},
+    {type:'voice',dur:'0:24',me:false,time:'11:20'}
+  ]},
+  {name:'Otabek Karimov',color:'green',unread:5,time:'Kecha',msgs:[
+    {type:'text',text:"Kodni ko'rdim, juda zo'r chiqibdi!",me:false,time:'14:00'},
+    {type:'text',text:'Rahmat! Yana nima qilaylik?',me:true,time:'14:05'},
+    {type:'image',me:false,time:'14:10'}
+  ]},
+  {name:'Malika Hasanova',color:'red',unread:0,time:'Kecha',msgs:[
+    {type:'text',text:"Yig'ilish soat nechada boshlandi?",me:true,time:'09:00'},
+    {type:'text',text:"Soat 10 da, ko'rishguncha!",me:false,time:'09:02'}
+  ]},
+  {name:'Jasur Mirzayev',color:'teal',unread:1,time:'2 kun',msgs:[
+    {type:'text',text:'Faylni oldingmi?',me:false,time:'2 kun'},
+    {type:'text',text:'Ha, rahmat! 👍',me:true,time:'2 kun'}
+  ]}
+];
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB';}
+function getPreview(c){const l=c.msgs[c.msgs.length-1];if(!l)return '';if(l.type==='text')return l.text;if(l.type==='voice')return '🎙 Ovozli xabar';if(l.type==='image')return '🖼 Rasm';if(l.type==='video')return '🎥 Video';if(l.type==='file')return '📎 '+(l.name||'Fayl');return '';}
 
-let currentTab = 'login';
+// LOGIN
+function sendOTP(){const ph=document.getElementById('phoneInput').value.trim();if(ph.length<9){alert("Telefon raqamni to'liq kiriting!");return;}myPhone='+998 '+ph;document.getElementById('otpDesc').textContent=myPhone+' ga kod yuborildi';document.getElementById('phoneStep').style.display='none';document.getElementById('otpStep').style.display='block';document.querySelector('.otp-inputs input').focus();}
+function otpInput(el,idx){const v=el.value.toString().slice(-1);el.value=v;if(v&&idx<3)document.querySelectorAll('.otp-inputs input')[idx+1].focus();}
+function verifyOTP(){const inputs=document.querySelectorAll('.otp-inputs input');const code=Array.from(inputs).map(i=>i.value).join('');if(code.length<4){alert("Kodni to'liq kiriting!");return;}myName='Foydalanuvchi';document.getElementById('menuName').textContent=myName;document.getElementById('menuPhone').textContent=myPhone;document.getElementById('menuAvatar').textContent=myName[0].toUpperCase();document.getElementById('loginScreen').classList.remove('active');document.getElementById('appScreen').classList.add('active');renderChatList(chats);}
+function backToPhone(){document.getElementById('otpStep').style.display='none';document.getElementById('phoneStep').style.display='block';}
+function logout(){document.getElementById('appScreen').classList.remove('active');document.getElementById('loginScreen').classList.add('active');document.getElementById('phoneInput').value='';document.querySelectorAll('.otp-inputs input').forEach(i=>i.value='');document.getElementById('phoneStep').style.display='block';document.getElementById('otpStep').style.display='none';activeChat=-1;}
 
-window.switchTab = function(tab) {
-  currentTab = tab;
-  document.getElementById('tabLogin').className = 'tab' + (tab==='login'?' active':'');
-  document.getElementById('tabReg').className = 'tab' + (tab==='reg'?' active':'');
-  document.getElementById('nameInput').style.display = tab==='reg'?'block':'none';
-  document.getElementById('authBtn').textContent = tab==='login'?'Kirish':"Ro'yxatdan o'tish";
-  document.getElementById('subText').textContent = tab==='login'?'Hisobingizga kiring':'Yangi hisob yarating';
-  document.getElementById('noteText').textContent = tab==='login'
-    ? "📧 Email va parol bilan kiring."
-    : "✅ Bir marta ro'yxatdan o'ting — keyingi safar email+parol bilan kirasiz.";
-  document.getElementById('errMsg').textContent = '';
-};
+// MENU
+function openMenu(){document.getElementById('slideMenu').classList.add('open');document.getElementById('menuOverlay').classList.add('open');}
+function closeMenu(){document.getElementById('slideMenu').classList.remove('open');document.getElementById('menuOverlay').classList.remove('open');}
+function toggleDark(){isDark=!isDark;document.body.classList.toggle('dark',isDark);document.getElementById('darkIcon').className=isDark?'ti ti-sun':'ti ti-moon';document.getElementById('darkText').textContent=isDark?"Yorug' rejim":"Qorong'u rejim";}
 
-window.doAuth = async function() {
-  const email = document.getElementById('emailInput').value.trim();
-  const pass = document.getElementById('passInput').value.trim();
-  const name = document.getElementById('nameInput').value.trim();
-  const errEl = document.getElementById('errMsg');
-  const btn = document.getElementById('authBtn');
+// CHAT LIST
+function renderChatList(list){const el=document.getElementById('chatList');el.innerHTML=list.map((c,i)=>`<div class="chat-item${chats.indexOf(c)===activeChat?' active':''}" onclick="selectChat(${chats.indexOf(c)})"><div class="avatar" style="background:${avatarColors[c.color]}">${initials(c.name)}</div><div class="ci"><div class="ci-top"><span class="ci-name">${c.name}</span><span class="ci-time">${c.time}</span></div><div class="ci-bottom"><span class="ci-preview">${getPreview(c)}</span>${c.unread?`<span class="badge">${c.unread}</span>`:''}</div></div></div>`).join('');}
+function searchChats(q){renderChatList(chats.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())));}
 
-  errEl.textContent = '';
-  if (!email || !email.includes('@')) { errEl.textContent = '❌ Email kiriting'; return; }
-  if (!pass || pass.length < 6) { errEl.textContent = '❌ Parol kamida 6 belgi'; return; }
-  if (currentTab==='reg' && !name) { errEl.textContent = '❌ Ismingizni kiriting'; return; }
+// MESSAGES
+function renderMessages(){const chat=chats[activeChat];const box=document.getElementById('messages');box.innerHTML='<div class="day-label">Bugun</div>'+chat.msgs.map(m=>renderMsg(m)).join('');box.scrollTop=box.scrollHeight;}
+function renderMsg(m){const side=m.me?'me':'them';const tick=m.me?'<i class="ti ti-checks check-icon"></i>':'';if(m.type==='text')return`<div class="msg ${side}"><div class="bubble">${m.text}</div><div class="msg-footer">${m.time} ${tick}</div></div>`;if(m.type==='voice'){const bars=Array.from({length:24},(_,i)=>`<div class="wave-bar" style="height:${6+Math.random()*18}px"></div>`).join('');return`<div class="msg ${side}"><div class="voice-bubble"><button class="play-btn"><i class="ti ti-player-play"></i></button><div class="voice-wave">${bars}</div><span class="voice-dur">${m.dur||'0:10'}</span></div><div class="msg-footer">${m.time} ${tick}</div></div>`;}if(m.type==='image'){const bg=['#b3d9f7','#b3f0d5','#f7d1b3','#e8d0f7'][Math.floor(Math.random()*4)];return`<div class="msg ${side}"><div class="media-bubble" style="background:${bg};height:150px;display:flex;align-items:center;justify-content:center;"><i class="ti ti-photo" style="font-size:40px;color:rgba(0,0,0,0.2)"></i></div><div class="msg-footer">${m.time} ${tick}</div></div>`;}if(m.type==='video')return`<div class="msg ${side}"><div class="media-bubble" style="background:#1a1a2e;height:150px;"><div class="media-overlay"><i class="ti ti-player-play"></i></div></div><div class="msg-footer">${m.time} ${tick}</div></div>`;if(m.type==='file')return`<div class="msg ${side}"><div class="bubble" style="display:flex;align-items:center;gap:10px;"><i class="ti ti-file" style="font-size:24px;"></i><div><div style="font-weight:600;font-size:13px;">${m.name||'Fayl'}</div><div style="font-size:11px;opacity:.7;">${m.size||''}</div></div></div><div class="msg-footer">${m.time} ${tick}</div></div>`;return'';}
 
-  btn.disabled = true;
-  btn.textContent = '...';
+function selectChat(i){activeChat=i;chats[i].unread=0;document.getElementById('emptyState').style.display='none';const cv=document.getElementById('chatView');cv.style.display='flex';document.getElementById('chName').textContent=chats[i].name;document.getElementById('chAvatar').textContent=initials(chats[i].name);document.getElementById('chAvatar').style.background=avatarColors[chats[i].color];renderMessages();renderChatList(chats);}
 
-  try {
-    let userCred;
-    if (currentTab === 'reg') {
-      userCred = await createUserWithEmailAndPassword(auth, email, pass);
-      await updateProfile(userCred.user, { displayName: name });
-      await set(ref(db, `users/${userCred.user.uid}`), {
-        name: name, email: email, phone: '',
-        online: true, lastSeen: serverTimestamp(), createdAt: serverTimestamp()
-      });
-    } else {
-      userCred = await signInWithEmailAndPassword(auth, email, pass);
-      await update(ref(db, `users/${userCred.user.uid}`), { online: true, lastSeen: serverTimestamp() });
-    }
+// SEND
+function sendMsg(){if(activeChat<0)return;const inp=document.getElementById('msgInput');const text=inp.value.trim();if(!text)return;chats[activeChat].msgs.push({type:'text',text,me:true,time:now()});chats[activeChat].time=now();inp.value='';document.getElementById('emojiPanel').classList.remove('open');renderMessages();renderChatList(chats);setTimeout(()=>{const r=['Ha, tushundim!','Ok 👍',"Yaxshi, ko'rib chiqaman",'😊','Rahmat!','Albatta!','💯','Zo\'r!'];chats[activeChat].msgs.push({type:'text',text:r[Math.floor(Math.random()*r.length)],me:false,time:now()});if(activeChat>=0)renderMessages();renderChatList(chats);},1200);}
+function handleKey(e){if(e.key==='Enter')sendMsg();}
 
-    const uid = userCred.user.uid;
-    const displayName = userCred.user.displayName || name || email.split('@')[0];
+// EMOJI
+function toggleEmoji(){document.getElementById('emojiPanel').classList.toggle('open');}
+function addEmoji(e){document.getElementById('msgInput').value+=e;document.getElementById('msgInput').focus();}
 
-    onDisconnect(ref(db, `users/${uid}`)).update({ online: false, lastSeen: serverTimestamp() });
-    localStorage.setItem('dc_uid', uid);
-    localStorage.setItem('dc_name', displayName);
-    localStorage.setItem('dc_email', email);
+// FILE
+function triggerFile(){if(activeChat<0)return;document.getElementById('fileInput').click();}
+function handleFile(input){const file=input.files[0];if(!file)return;let type='file';if(file.type.startsWith('image/'))type='image';else if(file.type.startsWith('video/'))type='video';chats[activeChat].msgs.push({type,name:file.name,size:formatSize(file.size),me:true,time:now()});chats[activeChat].time=now();renderMessages();renderChatList(chats);input.value='';}
 
-    // Chatga o'tish
-    window.location.replace('index.html');
+// VOICE
+function startVoice(){if(activeChat<0)return;if(!isRecording){isRecording=true;document.getElementById('voiceBtn').innerHTML='<i class="ti ti-square" style="color:red"></i>';}else{isRecording=false;document.getElementById('voiceBtn').innerHTML='<i class="ti ti-microphone"></i>';const s=Math.floor(Math.random()*50+5);chats[activeChat].msgs.push({type:'voice',dur:'0:'+s.toString().padStart(2,'0'),me:true,time:now()});chats[activeChat].time=now();renderMessages();renderChatList(chats);}}
 
-  } catch(e) {
-    btn.disabled = false;
-    btn.textContent = currentTab==='login'?'Kirish':"Ro'yxatdan o'tish";
-    const codes = {
-      'auth/email-already-in-use': "❌ Bu email ro'yxatdan o'tgan. Kirish tabiga o'ting.",
-      'auth/user-not-found': "❌ Bu email topilmadi. Ro'yxatdan o'ting.",
-      'auth/wrong-password': '❌ Parol noto\'g\'ri.',
-      'auth/invalid-credential': '❌ Email yoki parol noto\'g\'ri.',
-      'auth/invalid-email': '❌ Email noto\'g\'ri formatda.',
-      'auth/too-many-requests': '❌ Juda ko\'p urinish. Biroz kuting.',
-      'auth/network-request-failed': '❌ Internet aloqasi yo\'q.',
-    };
-    errEl.textContent = codes[e.code] || ('❌ ' + e.message);
-  }
-};
-
-document.addEventListener('keydown', e => { if(e.key==='Enter') window.doAuth(); });
+// CONTACTS
+function openAddContact(){document.getElementById('addContactModal').classList.add('open');}
+function closeAddContact(){document.getElementById('addContactModal').classList.remove('open');}
+function addContact(){const name=document.getElementById('newName').value.trim();if(!name){alert('Ism kiriting!');return;}chats.push({name,color:colorKeys[chats.length%colorKeys.length],unread:0,time:'Yangi',msgs:[]});renderChatList(chats);closeAddContact();document.getElementById('newName').value='';document.getElementById('newPhone').value='';}
 </script>
 </body>
 </html>
