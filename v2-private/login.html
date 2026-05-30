@@ -1,1 +1,149 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DoiraChat — Kirish</title>
+<meta name="theme-color" content="#00a884">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b141a; --bg2:#111b21; --bg3:#1f2c34; --bg4:#2a3942;
+  --accent:#00a884; --text:#e9edef; --text2:#8696a0;
+  --border:#2a3942; --danger:#f15c6d;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input{font-family:inherit;border:none;outline:none;background:none;color:var(--text)}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.wrap{width:min(400px,100%);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;text-align:center;animation:slideUp .5s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.logo{font-size:52px;margin-bottom:12px;display:block}
+.title{font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.sub{font-size:13px;color:var(--text2);margin-bottom:24px}
+.tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--bg3);border-radius:12px;padding:4px}
+.tab{flex:1;padding:9px;border-radius:9px;font-size:14px;font-weight:600;transition:.2s;color:var(--text2)}
+.tab.active{background:var(--accent);color:#fff}
+.field{width:100%;background:var(--bg3);border-radius:12px;padding:13px 16px;font-size:15px;color:var(--text);margin-bottom:10px;border:2px solid transparent;transition:.2s}
+.field:focus{border-color:var(--accent);background:var(--bg4)}
+.field::placeholder{color:var(--text2)}
+.err{font-size:12px;color:var(--danger);margin-bottom:8px;min-height:16px;text-align:left}
+.btn{width:100%;padding:14px;background:var(--accent);color:#fff;border-radius:12px;font-size:16px;font-weight:700;transition:.2s;margin-top:4px}
+.btn:active{transform:scale(0.98);opacity:.9}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.note{font-size:11px;color:var(--text2);margin-top:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="logo">💬</span>
+  <div class="title">DoiraChat</div>
+  <div class="sub" id="subText">Hisobingizga kiring</div>
+  <div class="tabs">
+    <button class="tab active" id="tabLogin" onclick="switchTab('login')">Kirish</button>
+    <button class="tab" id="tabReg" onclick="switchTab('reg')">Ro'yxat</button>
+  </div>
+  <input id="nameInput" class="field" type="text" placeholder="Ismingiz" style="display:none" autocomplete="name">
+  <input id="emailInput" class="field" type="email" placeholder="Email manzilingiz" autocomplete="email">
+  <input id="passInput" class="field" type="password" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password">
+  <div class="err" id="errMsg"></div>
+  <button class="btn" id="authBtn" onclick="doAuth()">Kirish</button>
+  <div class="note" id="noteText">📧 Gmail, Mail.ru yoki istalgan email bilan kiring.</div>
+</div>
 
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, set, update, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const app = initializeApp({
+  apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
+  authDomain: "doira-chat-v2.firebaseapp.com",
+  databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
+  projectId: "doira-chat-v2",
+  storageBucket: "doira-chat-v2.firebasestorage.app",
+  messagingSenderId: "885552294238",
+  appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
+});
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// MUHIM: onAuthStateChanged YO'Q — sahifa refresh bo'lmaydi!
+// Faqat tugma bosilganda kirish tekshiriladi
+
+let currentTab = 'login';
+
+window.switchTab = function(tab) {
+  currentTab = tab;
+  document.getElementById('tabLogin').className = 'tab' + (tab==='login'?' active':'');
+  document.getElementById('tabReg').className = 'tab' + (tab==='reg'?' active':'');
+  document.getElementById('nameInput').style.display = tab==='reg'?'block':'none';
+  document.getElementById('authBtn').textContent = tab==='login'?'Kirish':"Ro'yxatdan o'tish";
+  document.getElementById('subText').textContent = tab==='login'?'Hisobingizga kiring':'Yangi hisob yarating';
+  document.getElementById('noteText').textContent = tab==='login'
+    ? "📧 Email va parol bilan kiring."
+    : "✅ Bir marta ro'yxatdan o'ting — keyingi safar email+parol bilan kirasiz.";
+  document.getElementById('errMsg').textContent = '';
+};
+
+window.doAuth = async function() {
+  const email = document.getElementById('emailInput').value.trim();
+  const pass = document.getElementById('passInput').value.trim();
+  const name = document.getElementById('nameInput').value.trim();
+  const errEl = document.getElementById('errMsg');
+  const btn = document.getElementById('authBtn');
+
+  errEl.textContent = '';
+  if (!email || !email.includes('@')) { errEl.textContent = '❌ Email kiriting'; return; }
+  if (!pass || pass.length < 6) { errEl.textContent = '❌ Parol kamida 6 belgi'; return; }
+  if (currentTab==='reg' && !name) { errEl.textContent = '❌ Ismingizni kiriting'; return; }
+
+  btn.disabled = true;
+  btn.textContent = '...';
+
+  try {
+    let userCred;
+    if (currentTab === 'reg') {
+      userCred = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(userCred.user, { displayName: name });
+      await set(ref(db, `users/${userCred.user.uid}`), {
+        name: name, email: email, phone: '',
+        online: true, lastSeen: serverTimestamp(), createdAt: serverTimestamp()
+      });
+    } else {
+      userCred = await signInWithEmailAndPassword(auth, email, pass);
+      await update(ref(db, `users/${userCred.user.uid}`), { online: true, lastSeen: serverTimestamp() });
+    }
+
+    const uid = userCred.user.uid;
+    const displayName = userCred.user.displayName || name || email.split('@')[0];
+
+    onDisconnect(ref(db, `users/${uid}`)).update({ online: false, lastSeen: serverTimestamp() });
+    localStorage.setItem('dc_uid', uid);
+    localStorage.setItem('dc_name', displayName);
+    localStorage.setItem('dc_email', email);
+
+    // Chatga o'tish
+    window.location.replace('index.html');
+
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = currentTab==='login'?'Kirish':"Ro'yxatdan o'tish";
+    const codes = {
+      'auth/email-already-in-use': "❌ Bu email ro'yxatdan o'tgan. Kirish tabiga o'ting.",
+      'auth/user-not-found': "❌ Bu email topilmadi. Ro'yxatdan o'ting.",
+      'auth/wrong-password': '❌ Parol noto\'g\'ri.',
+      'auth/invalid-credential': '❌ Email yoki parol noto\'g\'ri.',
+      'auth/invalid-email': '❌ Email noto\'g\'ri formatda.',
+      'auth/too-many-requests': '❌ Juda ko\'p urinish. Biroz kuting.',
+      'auth/network-request-failed': '❌ Internet aloqasi yo\'q.',
+    };
+    errEl.textContent = codes[e.code] || ('❌ ' + e.message);
+  }
+};
+
+document.addEventListener('keydown', e => { if(e.key==='Enter') window.doAuth(); });
+</script>
+</body>
+</html>
