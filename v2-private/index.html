@@ -1,498 +1,1265 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Doira Private</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: sans-serif; margin: 0; }
-.chat-bg { background: #0a1014; }
-.msg-out { background: #005c4b; }
-.msg-in { background: #202c33; }
-.main-wrap { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
-.header-bar { flex-shrink: 0; }
-.messages-box { flex: 1; overflow-y: auto; }
-.input-bar { flex-shrink: 0; }
-.msg-menu { position: absolute; background: #1f2c34; border-radius: 8px; padding: 4px; z-index: 100; }
-.unread-badge { background: #ff3b30; color: white; border-radius: 10px; padding: 2px 6px; font-size: 11px; font-weight: bold; }
-  @media (max-width: 768px) {
-.sidebar { position: fixed; z-index: 50; left: -100%; transition: 0.3s; width: 85%!important; height: 100vh; height: 100dvh; }
-.sidebar.open { left: 0; }
-.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 40; }
-.overlay.show { display: block; }
-.msg-img { max-width: 160px!important; }
-.msg-audio { max-width: 180px!important; }
-.msg-text { font-size: 14px; }
-.btn-icon { font-size: 18px!important; padding: 2px 4px!important; }
-   }
-.recording { animation: pulse 1.5s infinite; }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DoiraChat</title>
+<meta name="theme-color" content="#00c6a2">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== VARIABLES ========== */
+:root {
+  --bg:       #0b141a;
+  --bg2:      #111b21;
+  --bg3:      #1f2c34;
+  --bg4:      #2a3942;
+  --accent:   #00a884;
+  --accent2:  #00cf9d;
+  --text:     #e9edef;
+  --text2:    #8696a0;
+  --border:   #2a3942;
+  --msg-out:  #005c4b;
+  --msg-in:   #202c33;
+  --danger:   #f15c6d;
+  --gold:     #f7c948;
+  --radius:   12px;
+}
+body.light {
+  --bg:#dfe5e7; --bg2:#ffffff; --bg3:#f0f2f5; --bg4:#e2e8ea;
+  --text:#111b21; --text2:#667781; --border:#d1dde3;
+  --msg-out:#d9fdd3; --msg-in:#ffffff;
+}
+
+/* ========== RESET ========== */
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit;outline:none}
+input,textarea{font-family:inherit;border:none;outline:none;background:none;color:var(--text)}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* ========== LAYOUT ========== */
+#app{display:flex;height:100vh;height:100dvh;position:relative}
+
+/* ========== LOADING SCREEN ========== */
+#loadingScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  transition:opacity .4s;
+}
+.load-logo{font-size:52px;animation:bounce .8s ease infinite alternate}
+@keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+.load-title{font-size:24px;font-weight:700;color:var(--accent)}
+.load-bar{width:180px;height:3px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.load-progress{height:100%;background:var(--accent);border-radius:3px;animation:loadAnim 1.5s ease-in-out infinite}
+@keyframes loadAnim{0%{width:0%;margin-left:0}50%{width:70%}100%{width:0%;margin-left:100%}}
+
+/* ========== LOGIN ========== */
+#loginScreen{
+  position:fixed;inset:0;z-index:1000;
+  background:var(--bg);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:20px;
+}
+.login-wrap{
+  width:min(400px,100%);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:20px;padding:40px 32px;text-align:center;
+  animation:slideUp .5s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.login-emoji{font-size:56px;margin-bottom:12px;display:block}
+.login-title{font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px}
+.login-input{
+  width:100%;background:var(--bg3);border-radius:12px;
+  padding:13px 16px;font-size:16px;color:var(--text);
+  margin-bottom:10px;text-align:center;border:2px solid transparent;
+  transition:.2s;
+}
+.login-input:focus{border-color:var(--accent)}
+.login-input::placeholder{color:var(--text2)}
+.login-err{font-size:12px;color:var(--danger);margin-bottom:8px;min-height:16px}
+.login-btn{
+  width:100%;padding:14px;background:var(--accent);color:#fff;
+  border-radius:12px;font-size:16px;font-weight:700;
+  transition:.2s;margin-top:4px;
+}
+.login-btn:hover{background:var(--accent2);transform:translateY(-1px)}
+.login-btn:active{transform:translateY(0)}
+.login-note{font-size:11px;color:var(--text2);margin-top:14px;line-height:1.5}
+
+/* ========== SIDEBAR ========== */
+#sidebar{
+  width:360px;min-width:360px;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  transition:transform .25s cubic-bezier(.4,0,.2,1);
+  z-index:100;
+}
+.sb-head{
+  background:var(--bg3);padding:12px 16px;
+  display:flex;flex-direction:column;gap:10px;flex-shrink:0;
+}
+.sb-top{display:flex;align-items:center;justify-content:space-between}
+.sb-logo{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:-.3px}
+.sb-logo span{color:var(--text)}
+.sb-actions{display:flex;gap:6px}
+.sb-btn{
+  padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;
+  background:var(--bg4);color:var(--text);transition:.15s;
+}
+.sb-btn:hover{background:var(--accent);color:#fff}
+.sb-btn.danger:hover{background:var(--danger)}
+.my-card{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:10px;background:var(--bg4);
+  cursor:pointer;transition:.15s;
+}
+.my-card:hover{background:var(--border)}
+.avatar{
+  border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#fff;flex-shrink:0;font-size:16px;
+  width:38px;height:38px;
+}
+.avatar.sm{width:32px;height:32px;font-size:13px}
+.avatar.lg{width:46px;height:46px;font-size:20px}
+.search-row{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg4);border-radius:10px;padding:8px 12px;
+}
+.search-row input{flex:1;font-size:14px}
+.search-row input::placeholder{color:var(--text2)}
+#usersList{flex:1;overflow-y:auto}
+.uitem{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;cursor:pointer;
+  border-bottom:1px solid var(--border);
+  transition:.12s;position:relative;
+}
+.uitem:hover,.uitem.active{background:var(--bg3)}
+.uitem .info{flex:1;min-width:0}
+.uitem .uname{
+  font-weight:600;font-size:14px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.uitem .usub{
+  font-size:12px;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-top:1px;
+}
+.odot{width:9px;height:9px;border-radius:50%;background:var(--text2);flex-shrink:0}
+.odot.on{background:#44c767}
+.badge{
+  background:var(--accent);color:#fff;
+  border-radius:10px;padding:2px 7px;
+  font-size:11px;font-weight:700;min-width:20px;text-align:center;flex-shrink:0;
+}
+.star-btn{font-size:16px;padding:4px;opacity:.5;transition:.15s}
+.star-btn:hover{opacity:1;transform:scale(1.2)}
+.tag{font-size:10px;padding:1px 5px;border-radius:4px;font-weight:700}
+.tag.grp{background:rgba(0,168,132,.15);color:var(--accent)}
+.tag.pro{background:rgba(247,201,72,.15);color:var(--gold)}
+
+/* ========== MAIN ========== */
+#main{
+  flex:1;display:flex;flex-direction:column;min-width:0;
+  background:var(--bg);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='%23ffffff' fill-opacity='.02'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E");
+}
+#chatHead{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;
+}
+#menuBtn{font-size:22px;display:none;padding:4px;color:var(--text2)}
+#chatHead .info{flex:1;cursor:pointer}
+#chatTitle{font-weight:700;font-size:15px}
+#chatSub{font-size:12px;color:var(--text2)}
+#callBtn{font-size:20px;padding:6px 8px;border-radius:8px;transition:.15s;display:none}
+#callBtn:hover{background:var(--bg4)}
+#pinnedBar{
+  background:var(--bg3);border-left:3px solid var(--accent);
+  padding:7px 14px;cursor:pointer;flex-shrink:0;display:none;
+  font-size:13px;
+}
+#pinnedBar .pt{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:1px}
+#pinnedBar .px{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#typingBar{
+  padding:3px 16px;font-size:12px;
+  color:var(--accent);font-style:italic;flex-shrink:0;display:none;
+}
+
+/* ========== MESSAGES ========== */
+#messages{
+  flex:1;overflow-y:auto;padding:8px 10px;
+  display:flex;flex-direction:column;gap:3px;
+}
+.mrow{display:flex;max-width:78%;margin-bottom:2px}
+.mrow.out{align-self:flex-end;flex-direction:row-reverse}
+.mrow.in{align-self:flex-start}
+.mbub{
+  padding:7px 11px 5px;border-radius:var(--radius);
+  font-size:14px;line-height:1.5;word-break:break-word;
+  position:relative;cursor:context-menu;
+}
+.mrow.out .mbub{background:var(--msg-out);border-bottom-right-radius:3px}
+.mrow.in .mbub{background:var(--msg-in);border-bottom-left-radius:3px}
+body.light .mbub{color:#111b21}
+.msender{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:3px}
+.mmeta{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:10px;color:var(--text2);margin-top:3px}
+.tick{font-size:12px}.tick.seen{color:var(--accent)}
+.edited-lbl{font-size:10px;color:var(--text2);font-style:italic}
+.mimg{border-radius:10px;max-width:240px;cursor:pointer;display:block}
+.msticker{font-size:54px;line-height:1}
+.rbar{
+  position:absolute;bottom:-13px;right:6px;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:12px;padding:2px 7px;font-size:12px;z-index:1;
+}
+.maudio audio{width:180px;max-width:100%;display:block;border-radius:8px}
+.date-divider{
+  align-self:center;background:var(--bg3);
+  border-radius:8px;padding:3px 10px;
+  font-size:11px;color:var(--text2);margin:6px 0;
+}
+
+/* ========== EMPTY ========== */
+#empty{
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  flex:1;gap:14px;color:var(--text2);
+}
+.empty-icon{font-size:70px;opacity:.2}
+.empty-text{font-size:14px;text-align:center;line-height:1.6}
+
+/* ========== INPUT BAR ========== */
+#inputBar{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:8px 10px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom));
+  flex-shrink:0;
+}
+#editBan{
+  display:none;background:var(--bg3);padding:5px 12px;
+  font-size:12px;color:var(--text2);border-left:3px solid var(--accent);
+  justify-content:space-between;align-items:center;
+  margin-bottom:6px;border-radius:4px;
+}
+#editBan.show{display:flex}
+.irow{display:flex;align-items:flex-end;gap:6px}
+.ibtn{font-size:20px;padding:8px;border-radius:9px;color:var(--text2);transition:.15s;flex-shrink:0}
+.ibtn:hover{background:var(--bg4);color:var(--text)}
+#msgInput{
+  flex:1;background:var(--bg4);border-radius:20px;
+  padding:10px 15px;font-size:15px;line-height:1.4;
+  min-height:42px;max-height:130px;resize:none;
+  border:2px solid transparent;transition:.2s;
+}
+#msgInput:focus{border-color:var(--accent);background:var(--bg3)}
+#msgInput::placeholder{color:var(--text2)}
+#sendBtn{
+  width:42px;height:42px;border-radius:50%;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:.2s;flex-shrink:0;
+}
+#sendBtn:hover{background:var(--accent2);transform:scale(1.06)}
+#sendBtn:active{transform:scale(.95)}
+.recording #micBtn{animation:pulse 1s infinite;color:var(--danger)!important}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ========== STICKER PANEL ========== */
+#stickerPanel{
+  background:var(--bg2);border-top:1px solid var(--border);
+  padding:8px;display:none;
+  grid-template-columns:repeat(8,1fr);gap:4px;
+  max-height:130px;overflow-y:auto;
+}
+#stickerPanel.open{display:grid}
+.sitem{
+  font-size:26px;text-align:center;padding:5px;
+  border-radius:9px;cursor:pointer;transition:.12s;
+}
+.sitem:hover{background:var(--bg4);transform:scale(1.18)}
+
+/* ========== REACTION PANEL ========== */
+#reactPanel{
+  display:none;position:fixed;z-index:600;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:16px;padding:8px 12px;gap:6px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:popIn .15s ease;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+#reactPanel.open{display:flex}
+.ritem{font-size:26px;cursor:pointer;transition:.12s;padding:3px}
+.ritem:hover{transform:scale(1.35)}
+
+/* ========== MSG MENU ========== */
+.mmenu{
+  position:fixed;z-index:700;background:var(--bg2);
+  border:1px solid var(--border);border-radius:12px;
+  padding:6px;min-width:160px;
+  box-shadow:0 8px 24px rgba(0,0,0,.4);
+  animation:popIn .15s ease;
+}
+.mmenu button{
+  display:block;width:100%;padding:9px 13px;text-align:left;
+  font-size:13px;font-weight:500;border-radius:8px;transition:.12s;
+}
+.mmenu button:hover{background:var(--bg4)}
+.mmenu button.rd{color:var(--danger)}
+.mmenu .divider{height:1px;background:var(--border);margin:4px 0}
+
+/* ========== MODALS ========== */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:500;display:none;align-items:center;justify-content:center;
+  padding:16px;backdrop-filter:blur(2px);
+}
+.modal-bg.open{display:flex}
+.modal-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:18px;padding:24px;
+  width:min(440px,100%);max-height:85vh;overflow-y:auto;
+  animation:slideUp .25s ease;
+}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal-input{
+  width:100%;background:var(--bg4);border-radius:10px;
+  padding:11px 14px;font-size:14px;color:var(--text);
+  margin-bottom:10px;border:2px solid transparent;transition:.2s;
+}
+.modal-input:focus{border-color:var(--accent);background:var(--bg3)}
+.modal-input::placeholder{color:var(--text2)}
+.modal-btns{display:flex;gap:8px;margin-top:6px}
+.mbtn{flex:1;padding:11px;border-radius:10px;font-size:14px;font-weight:600;transition:.15s}
+.mbtn.primary{background:var(--accent);color:#fff}
+.mbtn.primary:hover{background:var(--accent2)}
+.mbtn.gray{background:var(--bg4)}
+.mbtn.gray:hover{background:var(--border)}
+.gcb-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:9px;background:var(--bg3);
+  margin-bottom:6px;cursor:pointer;transition:.12s;
+}
+.gcb-item:hover{background:var(--bg4)}
+.gcb-item input{width:16px;height:16px;accent-color:var(--accent)}
+.member-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:9px;background:var(--bg3);margin-bottom:6px;
+}
+
+/* ========== CALL MODAL ========== */
+#callModal{
+  position:fixed;inset:0;z-index:800;
+  background:linear-gradient(160deg,#0b141a 0%,#162030 100%);
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;
+}
+#callModal.open{display:flex}
+.call-av{
+  width:96px;height:96px;border-radius:50%;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  font-size:42px;font-weight:700;color:#fff;margin-bottom:16px;
+  animation:callPulse 2s ease infinite;
+}
+@keyframes callPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,168,132,.4)}
+  50%{box-shadow:0 0 0 20px rgba(0,168,132,0)}
+}
+.call-name{font-size:24px;font-weight:700;color:#fff}
+.call-stat{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:40px}
+.call-btns{display:flex;gap:24px}
+.cbtn{
+  width:64px;height:64px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;transition:.15s;
+}
+.cbtn:hover{transform:scale(1.1)}
+.cbtn.acc{background:#44c767}
+.cbtn.end{background:var(--danger)}
+
+/* ========== OVERLAY ========== */
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:none}
+#overlay.open{display:block}
+
+/* ========== AD BAR ========== */
+#adBar{
+  background:linear-gradient(90deg,#005c4b,#00a884);
+  padding:7px 16px;font-size:12px;font-weight:600;
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;flex-shrink:0;transition:.2s;
+}
+#adBar:hover{background:linear-gradient(90deg,#00a884,#00cf9d)}
+
+/* ========== IMG PREVIEW ========== */
+#imgPrev{
+  position:fixed;inset:0;background:rgba(0,0,0,.95);
+  z-index:900;display:none;align-items:center;justify-content:center;
+  cursor:zoom-out;
+}
+#imgPrev.open{display:flex}
+#imgPrev img{max-width:95vw;max-height:95vh;border-radius:8px;cursor:default}
+.prev-close{
+  position:absolute;top:14px;right:14px;
+  background:rgba(255,255,255,.1);width:38px;height:38px;
+  border-radius:50%;font-size:22px;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:8px 16px;font-size:13px;
+  z-index:999;animation:toastIn .3s ease;pointer-events:none;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ========== MOBILE ========== */
+@media(max-width:768px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);width:88%;min-width:unset}
+  #sidebar.open{transform:translateX(0)}
+  #menuBtn{display:block!important}
+  .mrow{max-width:88%}
+  .mimg{max-width:190px}
+  #stickerPanel{grid-template-columns:repeat(6,1fr)}
+}
+</style>
 </head>
-<body class="chat-bg text-white">
+<body>
 
-<div id="app"></div>
-<audio id="notifSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="load-logo">💬</div>
+  <div class="load-title">DoiraChat</div>
+  <div class="load-bar"><div class="load-progress"></div></div>
+</div>
 
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-  import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-  import { getDatabase, ref, set, onValue, push, onDisconnect, serverTimestamp, remove, onChildAdded, update, get } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <span class="login-emoji">👋</span>
+    <div class="login-title">DoiraChat ga xush kelibsiz!</div>
+    <div class="login-sub">Telegram kabi — tez, qulay va bepul</div>
+    <input id="nameInput" class="login-input" type="text" placeholder="Ismingizni kiriting" maxlength="24" autocomplete="off" autocorrect="off">
+    <div class="login-err" id="loginErr"></div>
+    <button id="joinBtn" class="login-btn">Kirish →</button>
+    <div class="login-note">Ism faqat bir marta kiritiladi.<br>Keyingi safar avtomatik kirасиз.</div>
+  </div>
+</div>
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-    authDomain: "doira-chat-v2.firebaseapp.com",
-    databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
-    projectId: "doira-chat-v2",
-    storageBucket: "doira-chat-v2.firebasestorage.app",
-    messagingSenderId: "885552294238",
-    appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
-  };
+<!-- APP -->
+<div id="app" style="display:none">
+  <div id="overlay"></div>
 
-  const IMGBB_API_KEY = 'e4cecebb229f451e3322c126e3d09399';
-  const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱'];
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
-  let currentUser = null;
-  let currentUserName = '';
-  let currentChatId = null;
-  let currentChatUser = null;
-  let currentChatUid = null;
-  let messagesUnsubscribe = null;
-  let mediaRecorder = null;
-  let audioChunks = [];
-  let allUsers = {};
-  let friendsList = {};
-  let unreadCounts = {};
-
-  const appDiv = document.getElementById('app');
-  const notifSound = document.getElementById('notifSound');
-
-  async function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission === 'default') {
-      await Notification.requestPermission();
-    }
-  }
-
-  function showLogin() {
-    appDiv.innerHTML = `
-      <div class="flex items-center justify-center h-screen p-4">
-        <div class="bg-[#1f2c34] p-8 rounded-lg w-full max-w-sm">
-          <h1 class="text-3xl font-bold text-center mb-6">DOIRA</h1>
-          <input id="nameInput" type="text" placeholder="Исмингизни киритинг"
-            class="w-full bg-[#2a3942] p-3 rounded mb-4 outline-none">
-          <button id="joinBtn" class="w-full bg-[#00a884] p-3 rounded font-bold">Кириш</button>
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-head">
+      <div class="sb-top">
+        <div class="sb-logo">Doira<span>Chat</span></div>
+        <div class="sb-actions">
+          <button class="sb-btn" id="themeBtn">☀️</button>
+          <button class="sb-btn" id="newGrpBtn">＋ Guruh</button>
+          <button class="sb-btn danger" id="logoutBtn">Chiqish</button>
         </div>
       </div>
-    `;
-    document.getElementById('joinBtn').onclick = join;
-    document.getElementById('nameInput').onkeyup = e => e.key === 'Enter' && join();
-  }
+      <div class="my-card" id="myCard">
+        <div class="avatar" id="myAv">?</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:11px;color:var(--text2)">Mening profilim</div>
+          <div style="font-size:14px;font-weight:700" id="myName">—</div>
+        </div>
+        <span style="font-size:13px;color:var(--text2)">✏️</span>
+      </div>
+      <div class="search-row">
+        <span style="color:var(--text2)">🔍</span>
+        <input id="searchInput" type="text" placeholder="Qidirish...">
+      </div>
+    </div>
+    <div id="usersList"></div>
+  </div>
 
-  async function join() {
-    const name = document.getElementById('nameInput').value.trim();
-    if (!name) return;
-    localStorage.setItem('doira_name', name);
-    await requestNotificationPermission();
+  <!-- MAIN -->
+  <div id="main">
+    <div id="adBar">
+      <span>💎 DoiraChat Premium — reklamasiz, ko'proq stiker, katta fayllar</span>
+      <span>Batafsil →</span>
+    </div>
+    <div id="chatHead">
+      <button id="menuBtn">☰</button>
+      <div class="info" id="chatInfoBtn">
+        <div id="chatTitle">Suhbatdoshni tanlang</div>
+        <div id="chatSub"></div>
+      </div>
+      <button id="callBtn">📞</button>
+    </div>
+    <div id="pinnedBar"><div class="pt">📌 Mahkamlangan xabar</div><div class="px" id="pinnedTxt"></div></div>
+    <div id="messages">
+      <div id="empty">
+        <div class="empty-icon">💬</div>
+        <div class="empty-text">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div>
+      </div>
+    </div>
+    <div id="typingBar"></div>
+    <div id="stickerPanel"></div>
+    <div id="inputBar">
+      <div id="editBan">
+        <span>✏️ Xabarni tahrirlash</span>
+        <button id="cancelEditBtn" style="color:var(--danger);font-weight:700">✕ Bekor</button>
+      </div>
+      <div class="irow">
+        <button class="ibtn" id="attachBtn" title="Rasm yuborish">📎</button>
+        <button class="ibtn" id="stickerBtn" title="Stikerlar">😊</button>
+        <textarea id="msgInput" rows="1" placeholder="Xabar yozing..."></textarea>
+        <button class="ibtn" id="micBtn" title="Ovozli xabar">🎤</button>
+        <button id="sendBtn" title="Yuborish">➤</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+    </div>
+  </div>
+</div>
+
+<!-- REACTION PANEL -->
+<div id="reactPanel"></div>
+
+<!-- GROUP CREATE MODAL -->
+<div class="modal-bg" id="grpModal">
+  <div class="modal-box">
+    <div class="modal-title">🏘️ Yangi guruh</div>
+    <input id="grpNameInput" class="modal-input" type="text" placeholder="Guruh nomi">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Ishtirokchilarni tanlang:</div>
+    <div id="grpUsersList" style="max-height:220px;overflow-y:auto;margin-bottom:10px"></div>
+    <div class="modal-btns">
+      <button class="mbtn primary" id="createGrpBtn">✓ Yaratish</button>
+      <button class="mbtn gray" id="cancelGrpBtn">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- GROUP INFO MODAL -->
+<div class="modal-bg" id="grpInfoModal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" id="grpInfoName" style="margin:0"></div>
+      <button id="closeGrpInfo" style="font-size:24px;color:var(--text2)">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">A'zolar</div>
+    <div id="grpMembersList"></div>
+  </div>
+</div>
+
+<!-- CALL MODAL -->
+<div id="callModal">
+  <div class="call-av" id="callAv">?</div>
+  <div class="call-name" id="callName"></div>
+  <div class="call-stat" id="callStat"></div>
+  <div class="call-btns">
+    <button class="cbtn acc" id="acceptBtn" style="display:none">📞</button>
+    <button class="cbtn end" id="endBtn">📵</button>
+  </div>
+  <audio id="remoteAudio" autoplay></audio>
+</div>
+
+<!-- IMAGE PREVIEW -->
+<div id="imgPrev">
+  <img id="prevImg" src="" alt="">
+  <button class="prev-close" id="closePrevBtn">×</button>
+</div>
+
+<audio id="notifSnd" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3" preload="auto"></audio>
+<audio id="ringSnd"  src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a7968b45.mp3" loop preload="auto"></audio>
+
+<!-- ===================== SCRIPT ===================== -->
+<script type="module">
+import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged }
+                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, set, get, push, update, remove,
+         onValue, onChildAdded, onDisconnect, serverTimestamp, off }
+                                   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+/* ===== FIREBASE ===== */
+const FB_CFG = {
+  apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
+  authDomain:"doira-chat-v2.firebaseapp.com",
+  databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",
+  projectId:"doira-chat-v2",
+  storageBucket:"doira-chat-v2.firebasestorage.app",
+  messagingSenderId:"885552294238",
+  appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"
+};
+const IMGBB = 'e4cecebb229f451e3322c126e3d09399';
+const STICKERS = ['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🤡','🥳','😇','😈','🤪','🥺','😱','🫡','🤝','🥹','🫶','💪','🎵','🎮','🚀','🌟','🌈','🎯','🏆','💎','🤩','🦋','🌺'];
+const REACTS  = ['❤️','😂','👍','😮','😢','🙏','🔥','😎'];
+
+const fbApp = initializeApp(FB_CFG);
+const auth  = getAuth(fbApp);
+const db    = getDatabase(fbApp);
+
+/* ===== HELPERS ===== */
+const $  = id => document.getElementById(id);
+const av = n  => (n||'?')[0].toUpperCase();
+const esc= s  => String(s||'')
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+function toast(msg){
+  const t=document.createElement('div');
+  t.className='toast';t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+/* ===== STATE ===== */
+let me,myUid,myName;
+let chatId,chatName,chatUid,isGrp=false;
+let users={},frds={},unreads={},grps={};
+let editKey=null,reactKey=null,typTimer=null;
+let mediaRec=null,audChunks=[];
+let peerConn=null,locStream=null,callId=null;
+let offFns=[];
+let dark=localStorage.getItem('dc_theme')!=='light';
+
+/* ===== BOOT ===== */
+onAuthStateChanged(auth, async u=>{
+  if(u){
+    me=u; myUid=u.uid;
+    myName=localStorage.getItem('dc_name')||'';
+    if(!myName){
+      // New user — show login
+      hideLoader(); showLogin();
+    } else {
+      await setupUser(myName);
+      hideLoader(); showApp();
+    }
+  } else {
+    // Not signed in — sign in anonymously first
     await signInAnonymously(auth);
   }
+});
 
-  function showChat() {
-    appDiv.innerHTML = `
-      <div class="overlay" id="overlay"></div>
-      <div class="flex h-screen">
-        <div class="sidebar w-1/3 bg-[#111b21] border-r border-gray-700 md:relative md:left-0" id="sidebar">
-          <div class="bg-[#202c33] p-3 header-bar">
-            <div class="flex justify-between items-center mb-2">
-              <h1 class="text-lg font-bold">DOIRA</h1>
-              <button id="logoutBtn" class="bg-red-600 px-2 py-1 rounded text-xs">Чиқиш</button>
-            </div>
-            <div id="myProfile" class="bg-[#2a3942] p-2 rounded flex items-center gap-2 cursor-pointer">
-              <div class="w-8 h-8 bg-[#00a884] rounded-full flex items-center justify-center text-sm font-bold">👤</div>
-              <div class="flex-1">
-                <div class="text-xs text-gray-400">Сен:</div>
-                <div id="myName" class="text-sm font-bold"></div>
-              </div>
-              <div class="text-xs">✏️</div>
-            </div>
-            <input id="searchInput" type="text" placeholder="🔍 Қидириш..."
-              class="w-full bg-[#2a3942] p-2 rounded mt-2 outline-none text-sm">
-          </div>
-          <div id="usersList" class="overflow-y-auto" style="height: calc(100vh - 140px); height: calc(100dvh - 140px);"></div>
+function hideLoader(){
+  const l=$('loadingScreen');
+  l.style.opacity='0';
+  setTimeout(()=>l.style.display='none',400);
+}
+function showLogin(){
+  $('loginScreen').style.display='flex';
+}
+
+/* ===== JOIN ===== */
+async function join(){
+  const n=$('nameInput').value.trim();
+  $('loginErr').textContent='';
+  if(!n){$('loginErr').textContent='Iltimos, ism kiriting';return;}
+  if(n.length<2){$('loginErr').textContent='Ism kamida 2 harf bo\'lsin';return;}
+
+  // Check name uniqueness
+  const snap=await get(ref(db,'users'));
+  const allU=snap.val()||{};
+  const taken=Object.entries(allU).some(([uid,u])=>uid!==myUid && u.name&&u.name.toLowerCase()===n.toLowerCase());
+  if(taken){$('loginErr').textContent='Bu ism band, boshqa ism tanlang';return;}
+
+  localStorage.setItem('dc_name',n);
+  myName=n;
+  if('Notification' in window && Notification.permission==='default') await Notification.requestPermission();
+  await setupUser(n);
+  $('loginScreen').style.display='none';
+  showApp();
+}
+$('joinBtn').onclick=join;
+$('nameInput').onkeyup=e=>{if(e.key==='Enter')join();};
+
+/* ===== SETUP USER ===== */
+async function setupUser(name){
+  const ur=ref(db,`users/${myUid}`);
+  await update(ur,{name,online:true,lastSeen:serverTimestamp()});
+  onDisconnect(ur).update({online:false,lastSeen:serverTimestamp()});
+}
+
+/* ===== SHOW APP ===== */
+function showApp(){
+  $('app').style.display='flex';
+  applyTheme();
+  $('myName').textContent=myName;
+  $('myAv').textContent=av(myName);
+  bindAll();
+  buildStickers();
+  buildReacts();
+  onValue(ref(db,'users'),   s=>{users=s.val()||{}; renderList();});
+  onValue(ref(db,`friends/${myUid}`),s=>{frds=s.val()||{};renderList();});
+  onValue(ref(db,'groups'),  s=>{grps=s.val()||{}; renderList();});
+  onValue(ref(db,`unread/${myUid}`), s=>{unreads=s.val()||{};renderList();});
+  listenCalls();
+}
+
+/* ===== THEME ===== */
+function applyTheme(){document.body.className=dark?'':'light';$('themeBtn').textContent=dark?'☀️':'🌙';}
+function togTheme(){dark=!dark;localStorage.setItem('dc_theme',dark?'dark':'light');applyTheme();}
+
+/* ===== BIND ===== */
+function bindAll(){
+  $('themeBtn').onclick   = togTheme;
+  $('logoutBtn').onclick  = doLogout;
+  $('menuBtn').onclick    = togSidebar;
+  $('overlay').onclick    = togSidebar;
+  $('myCard').onclick     = changeName;
+  $('searchInput').oninput= renderList;
+  $('newGrpBtn').onclick  = openGrpModal;
+  $('cancelGrpBtn').onclick=closeGrpModal;
+  $('createGrpBtn').onclick=createGrp;
+  $('attachBtn').onclick  = ()=>$('fileInput').click();
+  $('fileInput').onchange = uploadImg;
+  $('stickerBtn').onclick = togStickers;
+  $('micBtn').onclick     = togRec;
+  $('sendBtn').onclick    = sendMsg;
+  $('cancelEditBtn').onclick=cancelEdit;
+  $('chatInfoBtn').onclick= ()=>isGrp&&openGrpInfo();
+  $('closeGrpInfo').onclick=()=>$('grpInfoModal').classList.remove('open');
+  $('callBtn').onclick    = startCall;
+  $('acceptBtn').onclick  = acceptCall;
+  $('endBtn').onclick     = endCall;
+  $('adBar').onclick      = ()=>toast('Premium tez orada!');
+  $('closePrevBtn').onclick=closePrev;
+  $('imgPrev').onclick    = e=>e.target===$('imgPrev')&&closePrev();
+  $('msgInput').addEventListener('input',()=>{handleTyping();autoH();});
+  $('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+  document.addEventListener('click',e=>{
+    if(!e.target.closest('#reactPanel'))$('reactPanel').classList.remove('open');
+    if(!e.target.closest('.mmenu'))document.querySelectorAll('.mmenu').forEach(m=>m.remove());
+  });
+}
+
+function autoH(){const el=$('msgInput');el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px';}
+function togSidebar(){$('sidebar').classList.toggle('open');$('overlay').classList.toggle('open');}
+
+/* ===== LOGOUT ===== */
+function doLogout(){
+  if(!confirm('Chiqmoqchimisiz? Keyingi safar avtomatik kirasiz.'))return;
+  update(ref(db,`users/${myUid}`),{online:false,lastSeen:serverTimestamp()});
+  localStorage.removeItem('dc_name');
+  location.reload();
+}
+
+/* ===== CHANGE NAME ===== */
+async function changeName(){
+  const n=prompt('Yangi ism kiriting:',myName);
+  if(!n||!n.trim()||n.trim()===myName)return;
+  const nn=n.trim();
+  const snap=await get(ref(db,'users'));
+  const allU=snap.val()||{};
+  const taken=Object.entries(allU).some(([uid,u])=>uid!==myUid&&u.name&&u.name.toLowerCase()===nn.toLowerCase());
+  if(taken){toast('Bu ism band, boshqa ism tanlang');return;}
+  myName=nn;
+  localStorage.setItem('dc_name',nn);
+  $('myName').textContent=nn;
+  $('myAv').textContent=av(nn);
+  await update(ref(db,`users/${myUid}`),{name:nn});
+  toast('Ism o\'zgartirildi ✓');
+}
+
+/* ===== RENDER USER LIST ===== */
+function renderList(){
+  const q=($('searchInput')?.value||'').toLowerCase().trim();
+  const list=$('usersList');if(!list)return;
+  list.innerHTML='';
+  const items=[];
+
+  // Groups
+  Object.entries(grps).forEach(([gid,g])=>{
+    if(!g.members?.[myUid])return;
+    if(q&&!g.name.toLowerCase().includes(q))return;
+    items.push({id:gid,name:g.name,type:'grp',unread:unreads[gid]||0,members:Object.keys(g.members||{}).length});
+  });
+
+  // Users
+  Object.entries(users).forEach(([uid,u])=>{
+    if(uid===myUid)return;
+    if(!u.name)return;
+    if(q&&!u.name.toLowerCase().includes(q))return;
+    items.push({id:uid,...u,type:'user',isFrd:!!frds[uid],unread:unreads[uid]||0});
+  });
+
+  // Sort: unread → friend → online → lastSeen
+  items.sort((a,b)=>{
+    if(a.unread&&!b.unread)return -1;if(!a.unread&&b.unread)return 1;
+    if(a.isFrd&&!b.isFrd)return -1;if(!a.isFrd&&b.isFrd)return 1;
+    if(a.online&&!b.online)return -1;if(!a.online&&b.online)return 1;
+    return (b.lastSeen||0)-(a.lastSeen||0);
+  });
+
+  if(!items.length){
+    list.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--text2)">Hech kim topilmadi</div>';
+    return;
+  }
+
+  items.forEach(item=>{
+    const d=document.createElement('div');
+    const isActive=(isGrp?chatId:chatUid)===item.id;
+    d.className='uitem'+(isActive?' active':'');
+
+    if(item.type==='grp'){
+      d.innerHTML=`
+        <div class="avatar" style="background:#1d6a4a">👥</div>
+        <div class="info" onclick="window._openGrp('${item.id}','${esc(item.name)}')">
+          <div class="uname">${esc(item.name)} <span class="tag grp">GURUH</span></div>
+          <div class="usub">${item.members} a'zo</div>
         </div>
-        <div class="flex-1 main-wrap bg-[#0b141a] w-full">
-          <div id="chatHeader" class="bg-[#202c33] p-3 flex items-center gap-3 header-bar">
-            <button id="menuBtn" class="md:hidden text-2xl">☰</button>
-            <span id="chatHeaderText" class="font-bold text-sm">Суҳбатдошни танланг</span>
-          </div>
-          <div id="messages" class="messages-box p-2"></div>
-          <div id="stickerPanel" class="bg-[#202c33] p-2 hidden grid grid-cols-8 gap-1 max-h-28 overflow-y-auto input-bar"></div>
-          <div id="inputArea" class="bg-[#202c33] p-2 hidden input-bar">
-            <div class="flex gap-1 items-center">
-              <button id="attachBtn" class="btn-icon text-lg px-1">📎</button>
-              <button id="stickerBtn" class="btn-icon text-lg px-1">😊</button>
-              <input id="msgInput" type="text" placeholder="Хабар..."
-                class="flex-1 bg-[#2a3942] p-2 rounded outline-none text-sm">
-              <button id="micBtn" class="btn-icon text-lg px-1">🎤</button>
-              <button id="sendBtn" class="bg-[#00a884] px-3 py-2 rounded text-xs">Юбор</button>
-            </div>
-            <input type="file" id="fileInput" accept="image/*" class="hidden">
-          </div>
-        </div>
-      </div>
-    `;
-    document.getElementById('logoutBtn').onclick = logout;
-    document.getElementById('attachBtn').onclick = () => document.getElementById('fileInput').click();
-    document.getElementById('stickerBtn').onclick = toggleStickers;
-    document.getElementById('micBtn').onclick = toggleRecording;
-    document.getElementById('fileInput').onchange = uploadFile;
-    document.getElementById('menuBtn').onclick = toggleSidebar;
-    document.getElementById('overlay').onclick = toggleSidebar;
-    document.getElementById('searchInput').oninput = renderUsers;
-    document.getElementById('myProfile').onclick = changeName;
-    document.getElementById('myName').textContent = currentUserName;
-    loadStickers();
-    loadUsers();
-    loadUnreadCounts();
-  }
-
-  window.changeName = async () => {
-    const newName = prompt('Янги исм киритинг:', currentUserName);
-    if (!newName || newName.trim() === '' || newName === currentUserName) return;
-    const name = newName.trim();
-    localStorage.setItem('doira_name', name);
-    currentUserName = name;
-    currentUser.displayName = name;
-    document.getElementById('myName').textContent = name;
-    await update(ref(db, `users/${currentUser.uid}`), { name });
-  }
-
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('show');
-  }
-
-  function loadStickers() {
-    const panel = document.getElementById('stickerPanel');
-    panel.innerHTML = STICKERS.map(s =>
-      `<div class="text-2xl cursor-pointer hover:bg-[#2a3942] rounded p-1 text-center" onclick="sendSticker('${s}')">${s}</div>`
-    ).join('');
-  }
-
-  function toggleStickers() {
-    document.getElementById('stickerPanel').classList.toggle('hidden');
-  }
-
-  window.sendSticker = async (sticker) => {
-    if (!currentChatId) return;
-    toggleStickers();
-    await push(ref(db, `chats/${currentChatId}`), {
-      text: sticker, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'sticker'
-    });
-  }
-
-  function loadUnreadCounts() {
-    const unreadRef = ref(db, `unread/${currentUser.uid}`);
-    onValue(unreadRef, snap => {
-      unreadCounts = snap.val() || {};
-      renderUsers();
-    });
-  }
-
-  function loadUsers() {
-    const usersRef = ref(db, 'users');
-    onValue(usersRef, snap => {
-      allUsers = snap.val() || {};
-      renderUsers();
-    });
-
-    const friendsRef = ref(db, `friends/${currentUser.uid}`);
-    onValue(friendsRef, snap => {
-      friendsList = snap.val() || {};
-      renderUsers();
-    });
-  }
-
-  function renderUsers() {
-    const searchQuery = document.getElementById('searchInput')?.value.toLowerCase() || '';
-    const list = document.getElementById('usersList');
-    if (!list) return;
-    list.innerHTML = '';
-
-    const users = [];
-    Object.entries(allUsers).forEach(([uid, user]) => {
-      if (uid === currentUser.uid) return;
-      if (searchQuery &&!user.name.toLowerCase().includes(searchQuery)) return;
-      users.push({ uid,...user, isFriend:!!friendsList[uid], unread: unreadCounts[uid] || 0 });
-    });
-
-    users.sort((a, b) => {
-      if (a.unread &&!b.unread) return -1;
-      if (!a.unread && b.unread) return 1;
-      if (a.isFriend &&!b.isFriend) return -1;
-      if (!a.isFriend && b.isFriend) return 1;
-      return b.lastSeen - a.lastSeen;
-    });
-
-    if (users.length === 0) {
-      list.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Ҳеч ким топилмади</div>';
-      return;
-    }
-
-    users.forEach(user => {
-      const div = document.createElement('div');
-      div.className = 'p-3 border-b border-gray-700 hover:bg-[#202c33] cursor-pointer flex items-center gap-3';
-      div.innerHTML = `
-        <div class="w-2.5 h-2.5 rounded-full ${user.online? 'bg-green-500' : 'bg-gray-500'}"></div>
-        <div class="flex-1" onclick="openChatUser('${user.uid}', '${user.name}')">
-          <div class="font-bold text-sm flex items-center gap-1">
-            ${user.name}
-          </div>
-          <div class="text-xs text-gray-400">${user.online? 'онлайн' : 'оффлайн'}</div>
-        </div>
-        <button onclick="event.stopPropagation(); toggleFriend('${user.uid}', ${user.isFriend})" class="text-lg px-2">
-          ${user.isFriend? '⭐' : '☆'}
-        </button>
-        ${user.unread? `<div class="unread-badge">${user.unread}</div>` : ''}
+        ${item.unread?`<div class="badge">${item.unread}</div>`:''}
       `;
-      list.appendChild(div);
-    });
-  }
-
-  window.openChatUser = (uid, name) => {
-    openChat(uid, name);
-    if (window.innerWidth < 768) toggleSidebar();
-  }
-
-  window.toggleFriend = async (uid, isFriend) => {
-    if (isFriend) {
-      await remove(ref(db, `friends/${currentUser.uid}/${uid}`));
     } else {
-      await set(ref(db, `friends/${currentUser.uid}/${uid}`), true);
+      const lastT=item.lastSeen?new Date(item.lastSeen).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}):'';
+      d.innerHTML=`
+        <div class="odot ${item.online?'on':''}"></div>
+        <div class="avatar">${av(item.name)}</div>
+        <div class="info" onclick="window._openUsr('${item.id}','${esc(item.name)}')">
+          <div class="uname">${esc(item.name)}</div>
+          <div class="usub">${item.online?'🟢 online':(lastT?'Oxirgi: '+lastT:'offline')}</div>
+        </div>
+        <button class="star-btn" onclick="event.stopPropagation();window._togFrd('${item.id}',${item.isFrd})">${item.isFrd?'⭐':'☆'}</button>
+        ${item.unread?`<div class="badge">${item.unread}</div>`:''}
+      `;
     }
+    list.appendChild(d);
+  });
+}
+
+window._openUsr=(uid,name)=>{openChat(uid,name,false);if(window.innerWidth<768)togSidebar();};
+window._openGrp=(gid,name)=>{openChat(gid,name,true);if(window.innerWidth<768)togSidebar();};
+window._togFrd=async(uid,is)=>{
+  if(is){await remove(ref(db,`friends/${myUid}/${uid}`));toast('Sevimlilardan olib tashlandi');}
+  else{await set(ref(db,`friends/${myUid}/${uid}`),true);toast('Sevimliylarga qo\'shildi ⭐');}
+};
+
+/* ===== OPEN CHAT ===== */
+function openChat(id,name,isGroup){
+  isGrp=isGroup; chatName=name;
+  $('empty')?.remove();
+  const msgs=$('messages');msgs.innerHTML='';
+
+  if(isGroup){
+    chatId=id;chatUid=null;
+    $('callBtn').style.display='none';
+    const cnt=Object.keys(grps[id]?.members||{}).length;
+    $('chatSub').textContent=`${cnt} a'zo`;
+  } else {
+    chatId=[myUid,id].sort().join('_');
+    chatUid=id;
+    $('callBtn').style.display='';
+    $('chatSub').textContent=users[id]?.online?'🟢 online':'⚫ offline';
   }
+  $('chatTitle').textContent=name;
+  remove(ref(db,`unread/${myUid}/${id}`));
+  loadMsgs(); listenTyping(); loadPinned(); renderList();
+}
 
-  function openChat(otherUid, otherName) {
-    currentChatId = [currentUser.uid, otherUid].sort().join('_');
-    currentChatUser = otherName;
-    currentChatUid = otherUid;
-    document.getElementById('chatHeaderText').textContent = otherName;
-    document.getElementById('inputArea').classList.remove('hidden');
-    document.getElementById('sendBtn').onclick = sendMsg;
-    document.getElementById('msgInput').onkeyup = e => e.key === 'Enter' && sendMsg();
+/* ===== LOAD MESSAGES ===== */
+function loadMsgs(){
+  offFns.forEach(f=>f());offFns=[];
+  const box=$('messages');box.innerHTML='';
+  let first=true, lastDate='';
 
-    remove(ref(db, `unread/${currentUser.uid}/${otherUid}`));
-    loadMessages();
-  }
-
-  function loadMessages() {
-    if (messagesUnsubscribe) messagesUnsubscribe();
-    const msgsRef = ref(db, `chats/${currentChatId}`);
-
-    let isFirstLoad = true;
-    onChildAdded(msgsRef, (snapshot) => {
-      const msg = snapshot.val();
-      if (!isFirstLoad && msg.sender!== currentUser.uid) {
-        if (Notification.permission === 'granted' && document.hidden) {
-          new Notification(currentChatUser, {
-            body: msg.type === 'text'? msg.text : msg.type === 'sticker'? msg.text : msg.type === 'image'? '📷 Расм' : '🎤 Овозли хабар',
-            icon: 'https://i.ibb.co/7vKvV1D/doira-icon.png',
-            tag: currentChatId
-          });
-        }
-        notifSound.play().catch(()=>{});
-
-        if (currentChatUid!== msg.sender) {
-          const unreadRef = ref(db, `unread/${currentUser.uid}/${msg.sender}`);
-          get(unreadRef).then(snap => {
-            const count = (snap.val() || 0) + 1;
-            set(unreadRef, count);
-          });
-        }
+  const cr=ref(db,`chats/${chatId}`);
+  const u1=onChildAdded(cr,snap=>{
+    if(first)return;
+    const msg=snap.val();
+    if(msg.sender!==myUid){
+      $('notifSnd').play().catch(()=>{});
+      if(document.hidden&&Notification.permission==='granted'){
+        new Notification(chatName,{
+          body:msg.type==='image'?'📷 Rasm':msg.type==='audio'?'🎤 Ovoz':msg.text,
+          icon:'./icon-192.png',tag:chatId
+        });
       }
-    });
-
-    messagesUnsubscribe = onValue(msgsRef, snap => {
-      const msgs = snap.val() || {};
-      const box = document.getElementById('messages');
-      box.innerHTML = '';
-      Object.entries(msgs).forEach(([key, msg]) => {
-        const div = document.createElement('div');
-        const isMine = msg.sender === currentUser.uid;
-        div.className = `mb-2 flex ${isMine? 'justify-end' : 'justify-start'}`;
-
-        let content = '';
-        if (msg.type === 'image') {
-          content = `<img src="${msg.url}" class="msg-img rounded-lg">`;
-        } else if (msg.type === 'audio') {
-          content = `<audio controls src="${msg.audioData}" class="msg-audio"></audio>`;
-        } else if (msg.type === 'sticker') {
-          content = `<div class="text-5xl md:text-6xl">${msg.text || ''}</div>`;
-        } else {
-          content = msg.text || '';
-        }
-
-        const canDelete = isMine && (msg.type === 'image' || msg.type === 'audio' || msg.type === 'text' || msg.type === 'sticker');
-
-        div.innerHTML = `
-          <div class="max-w-[75%] px-3 py-2 rounded-lg text-sm ${isMine? 'msg-out' : 'msg-in'} break-words msg-text"
-               ${canDelete? `oncontextmenu="showMsgMenu(event, '${key}'); return false;" ontouchstart="startTouch(event, '${key}')" ontouchend="endTouch()"` : ''}>
-            ${content}
-          </div>
-        `;
-        box.appendChild(div);
-      });
-      box.scrollTop = box.scrollHeight;
-      isFirstLoad = false;
-    });
-  }
-
-  let touchTimer = null;
-  window.startTouch = (e, key) => {
-    touchTimer = setTimeout(() => showMsgMenu(e, key), 600);
-  }
-  window.endTouch = () => clearTimeout(touchTimer);
-
-  window.showMsgMenu = (e, key) => {
-    e.preventDefault();
-    document.querySelectorAll('.msg-menu').forEach(m => m.remove());
-    const menu = document.createElement('div');
-    menu.className = 'msg-menu';
-    menu.innerHTML = `<button onclick="deleteMsg('${key}')" class="block px-4 py-2 hover:bg-[#2a3942] rounded text-sm">Ўчириш</button>`;
-    menu.style.left = e.pageX + 'px';
-    menu.style.top = e.pageY + 'px';
-    document.body.appendChild(menu);
-    setTimeout(() => document.addEventListener('click', () => menu.remove(), { once: true }), 0);
-  }
-
-  window.deleteMsg = async (key) => {
-    await remove(ref(db, `chats/${currentChatId}/${key}`));
-  }
-
-  async function sendMsg() {
-    const input = document.getElementById('msgInput');
-    const text = input.value.trim();
-    if (!text ||!currentChatId) return;
-    input.value = '';
-    await push(ref(db, `chats/${currentChatId}`), {
-      text, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'text'
-    });
-  }
-
-  async function uploadFile(e) {
-    const file = e.target.files[0];
-    if (!file ||!currentChatId) return;
-
-    if (!file.type.startsWith('image')) {
-      alert('Фақат расм юклай оласиз');
-      return;
-    }
-
-    const sendBtn = document.getElementById('sendBtn');
-    sendBtn.textContent = '...';
-    sendBtn.disabled = true;
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error?.message);
-
-      await push(ref(db, `chats/${currentChatId}`), {
-        url: data.data.url, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'image'
-      });
-
-    } catch (err) {
-      alert('Хато: ' + err.message);
-    }
-
-    sendBtn.textContent = 'Юбор';
-    sendBtn.disabled = false;
-    e.target.value = '';
-  }
-
-  async function toggleRecording() {
-    const micBtn = document.getElementById('micBtn');
-
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-      mediaRecorder.stop();
-      micBtn.classList.remove('recording');
-      micBtn.textContent = '🎤';
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-
-      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-
-      mediaRecorder.onstop = async () => {
-        const blob = new Blob(audioChunks, { type: 'audio/webm' });
-
-        if (blob.size > 1024 * 1024) {
-          alert('Овоз 1MB дан катта. Қисқароқ ёзинг.');
-          stream.getTracks().forEach(t => t.stop());
-          return;
-        }
-
-        micBtn.textContent = '⏳';
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = async () => {
-          const base64Audio = reader.result;
-          try {
-            await push(ref(db, `chats/${currentChatId}`), {
-              audioData: base64Audio, sender: currentUser.uid, senderName: currentUserName, time: serverTimestamp(), type: 'audio'
-            });
-          } catch (err) {
-            alert('Овоз юборилмади: ' + err.message);
-          }
-          micBtn.textContent = '🎤';
-          stream.getTracks().forEach(t => t.stop());
-        };
-      };
-
-      mediaRecorder.start();
-      micBtn.classList.add('recording');
-      micBtn.textContent = '⏹️';
-
-    } catch (err) {
-      alert('Микрофон рухсати керак');
-    }
-  }
-
-  async function logout() {
-    await remove(ref(db, `users/${currentUser.uid}`));
-    localStorage.removeItem('doira_name');
-    location.reload();
-  }
-
-  onAuthStateChanged(auth, async user => {
-    if (user) {
-      currentUser = user;
-      currentUserName = localStorage.getItem('doira_name');
-      if (!currentUserName) return showLogin();
-
-      currentUser.displayName = currentUserName;
-      const userRef = ref(db, `users/${user.uid}`);
-      await set(userRef, { name: currentUserName, online: true, lastSeen: serverTimestamp() });
-      onDisconnect(userRef).update({ online: false, lastSeen: serverTimestamp() });
-      showChat();
-    } else {
-      showLogin();
     }
   });
-</script>
 
+  const u2=onValue(cr,snap=>{
+    const msgs=snap.val()||{};
+    box.innerHTML='';lastDate='';
+    Object.entries(msgs).forEach(([k,m])=>{
+      // Date divider
+      if(m.time){
+        const d=new Date(m.time).toLocaleDateString('uz',{day:'numeric',month:'long'});
+        if(d!==lastDate){
+          lastDate=d;
+          const dv=document.createElement('div');
+          dv.className='date-divider mrow';dv.textContent=d;
+          dv.style.maxWidth='100%';dv.style.alignSelf='center';
+          box.appendChild(dv);
+        }
+      }
+      renderMsg(k,m,box);
+    });
+    box.scrollTop=box.scrollHeight;
+    first=false;
+    // Mark seen
+    if(chatUid) Object.entries(msgs).forEach(([k,m])=>{
+      if(m.sender!==myUid&&m.status!=='seen')
+        update(ref(db,`chats/${chatId}/${k}`),{status:'seen'});
+    });
+  });
+  offFns=[()=>off(cr)];
+}
+
+/* ===== RENDER MESSAGE ===== */
+function renderMsg(key,msg,box){
+  const mine=msg.sender===myUid;
+  const row=document.createElement('div');
+  row.className='mrow '+(mine?'out':'in');
+  row.setAttribute('data-msg-id',key);
+
+  let content='';
+  if(msg.type==='image')
+    content=`<img src="${esc(msg.url)}" class="mimg" onclick="window._prevImg('${esc(msg.url)}')" loading="lazy">`;
+  else if(msg.type==='audio')
+    content=`<div class="maudio"><audio controls src="${esc(msg.url)}"></audio></div>`;
+  else if(msg.type==='sticker')
+    content=`<div class="msticker">${msg.text}</div>`;
+  else
+    content=`<div>${esc(msg.text||'')}</div>`;
+
+  let reacts='';
+  if(msg.reactions){
+    const c={};Object.values(msg.reactions).forEach(r=>c[r]=(c[r]||0)+1);
+    reacts=`<div class="rbar">${Object.entries(c).map(([e,n])=>`${e}${n>1?n:''}`).join(' ')}</div>`;
+  }
+
+  const t=msg.time?new Date(msg.time).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}):'';
+  const ed=msg.edited?'<span class="edited-lbl"> (tahrirlangan)</span>':'';
+  const tick=mine?`<span class="tick ${msg.status==='seen'?'seen':''}">${msg.status==='seen'?'✓✓':'✓'}</span>`:'';
+
+  row.innerHTML=`
+    <div class="mbub"
+      oncontextmenu="window._showMenu(event,'${key}',${mine});return false;"
+      ontouchstart="window._sTouch(event,'${key}',${mine})"
+      ontouchend="window._eTouch()">
+      ${!mine&&msg.senderName?`<div class="msender">${esc(msg.senderName)}</div>`:''}
+      ${content}${ed}${reacts}
+      <div class="mmeta">${t} ${tick}</div>
+    </div>`;
+  box.appendChild(row);
+}
+
+/* ===== SEND ===== */
+async function sendMsg(){
+  const inp=$('msgInput'),txt=inp.value.trim();
+  if(!txt||!chatId)return;
+  inp.value='';inp.style.height='auto';
+  if(editKey){
+    await update(ref(db,`chats/${chatId}/${editKey}`),{text:txt,edited:true,editTime:serverTimestamp()});
+    cancelEdit();
+  } else {
+    await push(ref(db,`chats/${chatId}`),{
+      text:txt,sender:myUid,senderName:myName,
+      time:serverTimestamp(),type:'text',status:'sent'
+    });
+    notifyOther(txt,'text');
+  }
+}
+
+/* ===== NOTIFY (unread) ===== */
+function notifyOther(txt,type){
+  if(!chatUid&&!isGrp)return;
+  if(chatUid){
+    const ur=ref(db,`unread/${chatUid}/${myUid}`);
+    get(ur).then(s=>set(ur,(s.val()||0)+1));
+  } else if(isGrp&&chatId){
+    const g=grps[chatId];
+    if(g?.members) Object.keys(g.members).forEach(uid=>{
+      if(uid===myUid)return;
+      const ur=ref(db,`unread/${uid}/${chatId}`);
+      get(ur).then(s=>set(ur,(s.val()||0)+1));
+    });
+  }
+}
+
+/* ===== STICKERS ===== */
+function buildStickers(){
+  $('stickerPanel').innerHTML=STICKERS.map(s=>
+    `<div class="sitem" onclick="window._sendStkr('${s}')">${s}</div>`
+  ).join('');
+}
+function togStickers(){$('stickerPanel').classList.toggle('open');}
+window._sendStkr=async s=>{
+  if(!chatId)return;
+  $('stickerPanel').classList.remove('open');
+  await push(ref(db,`chats/${chatId}`),{
+    text:s,sender:myUid,senderName:myName,
+    time:serverTimestamp(),type:'sticker',status:'sent'
+  });
+  notifyOther(s,'sticker');
+};
+
+/* ===== REACTIONS ===== */
+function buildReacts(){
+  $('reactPanel').innerHTML=REACTS.map(r=>
+    `<div class="ritem" onclick="window._addReact('${r}')">${r}</div>`
+  ).join('');
+}
+window._showReactPanel=(key,x,y)=>{
+  reactKey=key;
+  const p=$('reactPanel');p.classList.add('open');
+  p.style.left=Math.min(x,window.innerWidth-240)+'px';
+  p.style.top=Math.max(y-70,4)+'px';
+};
+window._addReact=async emoji=>{
+  if(!reactKey||!chatId)return;
+  $('reactPanel').classList.remove('open');
+  const rr=ref(db,`chats/${chatId}/${reactKey}/reactions/${myUid}`);
+  const s=await get(rr);
+  if(s.val()===emoji)await remove(rr);else await set(rr,emoji);
+  reactKey=null;
+};
+
+/* ===== MSG MENU ===== */
+let touchT=null;
+window._sTouch=(e,k,mine)=>{touchT=setTimeout(()=>window._showMenu(e.touches[0],k,mine),600);};
+window._eTouch=()=>clearTimeout(touchT);
+window._showMenu=(e,key,mine)=>{
+  document.querySelectorAll('.mmenu').forEach(m=>m.remove());
+  const m=document.createElement('div');m.className='mmenu';
+  m.innerHTML=`
+    <button onclick="window._showReactPanel('${key}',${e.pageX},${e.pageY})">😊 Reaksiya</button>
+    <button onclick="window._pinMsg('${key}')">📌 Mahkamlash</button>
+    <button onclick="window._copyMsg('${key}')">📋 Nusxa olish</button>
+    ${mine?`<div class="divider"></div>
+    <button onclick="window._startEdit('${key}')">✏️ Tahrirlash</button>
+    <button class="rd" onclick="window._delMsg('${key}')">🗑️ O'chirish</button>`:''}
+  `;
+  m.style.left=Math.min(e.pageX,window.innerWidth-175)+'px';
+  m.style.top=Math.min(e.pageY,window.innerHeight-200)+'px';
+  document.body.appendChild(m);
+};
+window._pinMsg=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));
+  const m=s.val();if(m.type!=='text')return toast('Faqat matnni mahkamlash mumkin');
+  await set(ref(db,`pinned/${chatId}`),{msgId:key,text:m.text});
+  toast('Xabar mahkamlandi 📌');
+};
+window._copyMsg=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));
+  const m=s.val();if(m.text)navigator.clipboard?.writeText(m.text).then(()=>toast('Nusxa olindi ✓'));
+};
+window._startEdit=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));
+  const m=s.val();if(m.type!=='text')return toast('Faqat matnni tahrirlash mumkin');
+  editKey=key;$('msgInput').value=m.text;
+  $('editBan').classList.add('show');$('msgInput').focus();
+};
+function cancelEdit(){editKey=null;$('msgInput').value='';$('editBan').classList.remove('show');}
+window._delMsg=async key=>{
+  if(!confirm('Xabarni o\'chirishga ishonchingiz komilmi?'))return;
+  await remove(ref(db,`chats/${chatId}/${key}`));
+  toast('Xabar o\'chirildi');
+};
+
+/* ===== PINNED ===== */
+function loadPinned(){
+  onValue(ref(db,`pinned/${chatId}`),snap=>{
+    const p=snap.val();
+    if(p){
+      $('pinnedTxt').textContent=p.text;
+      $('pinnedBar').style.display='';
+      $('pinnedBar').onclick=()=>{
+        document.querySelector(`[data-msg-id="${p.msgId}"]`)
+          ?.scrollIntoView({behavior:'smooth',block:'center'});
+      };
+    } else $('pinnedBar').style.display='none';
+  });
+}
+
+/* ===== TYPING ===== */
+function listenTyping(){
+  if(isGrp||!chatUid)return;
+  onValue(ref(db,`typing/${chatId}/${chatUid}`),snap=>{
+    const tb=$('typingBar');
+    if(snap.val()){tb.style.display='';tb.textContent=`${chatName} yozyapti...`;}
+    else tb.style.display='none';
+  });
+}
+function handleTyping(){
+  if(!chatId||isGrp)return;
+  set(ref(db,`typing/${chatId}/${myUid}`),true);
+  clearTimeout(typTimer);
+  typTimer=setTimeout(()=>set(ref(db,`typing/${chatId}/${myUid}`),false),2000);
+}
+
+/* ===== IMAGE UPLOAD ===== */
+async function uploadImg(e){
+  const f=e.target.files[0];if(!f||!chatId)return;
+  e.target.value='';
+  toast('Rasm yuklanmoqda...');
+  const fd=new FormData();fd.append('image',f);
+  try{
+    const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.success){
+      await push(ref(db,`chats/${chatId}`),{
+        url:d.data.url,sender:myUid,senderName:myName,
+        time:serverTimestamp(),type:'image',status:'sent'
+      });
+      notifyOther('📷 Rasm','image');
+    }
+  }catch{toast('Rasm yuklashda xato!');}
+}
+
+/* ===== AUDIO RECORD ===== */
+async function togRec(){
+  if(mediaRec&&mediaRec.state==='recording'){
+    mediaRec.stop();$('inputBar').classList.remove('recording');return;
+  }
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    audChunks=[];mediaRec=new MediaRecorder(stream);
+    mediaRec.ondataavailable=e=>audChunks.push(e.data);
+    mediaRec.onstop=async()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      const blob=new Blob(audChunks,{type:'audio/webm'});
+      toast('Ovoz yuklanmoqda...');
+      const fd=new FormData();fd.append('image',blob,'audio.webm');
+      try{
+        const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`,{method:'POST',body:fd});
+        const d=await r.json();
+        if(d.success){
+          await push(ref(db,`chats/${chatId}`),{
+            url:d.data.url,sender:myUid,senderName:myName,
+            time:serverTimestamp(),type:'audio',status:'sent'
+          });
+          notifyOther('🎤 Ovozli','audio');
+        }
+      }catch{toast('Ovoz yuklashda xato!');}
+    };
+    mediaRec.start();
+    $('inputBar').classList.add('recording');
+    toast('Yozish boshlandi 🔴 (to\'xtatish uchun yana bosing)');
+  }catch{toast('Mikrofon ruxsati berilmagan!');}
+}
+
+/* ===== GROUPS ===== */
+function openGrpModal(){
+  const list=$('grpUsersList');list.innerHTML='';
+  Object.entries(users).forEach(([uid,u])=>{
+    if(uid===myUid||!u.name)return;
+    const d=document.createElement('div');d.className='gcb-item';
+    d.innerHTML=`<input type="checkbox" value="${uid}"><div class="avatar sm">${av(u.name)}</div><span style="font-size:14px">${esc(u.name)}</span>`;
+    d.onclick=e=>{if(e.target.tagName!=='INPUT')d.querySelector('input').click();};
+    list.appendChild(d);
+  });
+  $('grpModal').classList.add('open');
+}
+function closeGrpModal(){$('grpModal').classList.remove('open');$('grpNameInput').value='';}
+async function createGrp(){
+  const name=$('grpNameInput').value.trim();
+  if(!name)return toast('Guruh nomini kiriting');
+  const cbs=document.querySelectorAll('.gcb-item input:checked');
+  if(!cbs.length)return toast('Kamida 1 kishi tanlang');
+  const members={[myUid]:true};
+  cbs.forEach(cb=>members[cb.value]=true);
+  await push(ref(db,'groups'),{name,creator:myUid,members,created:serverTimestamp()});
+  closeGrpModal();toast('Guruh yaratildi ✓');
+}
+function openGrpInfo(){
+  if(!chatId||!isGrp)return;
+  const g=grps[chatId];if(!g)return;
+  $('grpInfoName').textContent=g.name;
+  const ml=$('grpMembersList');ml.innerHTML='';
+  Object.keys(g.members||{}).forEach(uid=>{
+    const u=users[uid];if(!u)return;
+    const d=document.createElement('div');d.className='member-item';
+    d.innerHTML=`
+      <div class="odot ${u.online?'on':''}"></div>
+      <div class="avatar sm">${av(u.name)}</div>
+      <span style="font-size:14px;font-weight:600">${esc(u.name)}</span>
+      ${uid===g.creator?'<span class="tag pro" style="margin-left:auto">Admin</span>':''}
+    `;
+    ml.appendChild(d);
+  });
+  $('grpInfoModal').classList.add('open');
+}
+
+/* ===== CALLS (WebRTC) ===== */
+function listenCalls(){
+  onValue(ref(db,`calls/${myUid}/incoming`),snap=>{
+    const d=snap.val();if(!d)return;
+    callId=d.callId;
+    $('callName').textContent=d.callerName;
+    $('callAv').textContent=av(d.callerName);
+    $('callStat').textContent="📲 Qo'ng'iroq kelmoqda...";
+    $('acceptBtn').style.display='';
+    $('callModal').classList.add('open');
+    $('ringSnd').play().catch(()=>{});
+  });
+}
+async function startCall(){
+  if(!chatUid)return;
+  callId=push(ref(db,'callSessions')).key;
+  try{
+    locStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    peerConn=mkPeer();
+    locStream.getTracks().forEach(t=>peerConn.addTrack(t,locStream));
+    const offer=await peerConn.createOffer();
+    await peerConn.setLocalDescription(offer);
+    await set(ref(db,`calls/${chatUid}/incoming`),{
+      callId,callerName:myName,callerUid:myUid,offer:JSON.stringify(offer)
+    });
+    $('callName').textContent=users[chatUid]?.name||chatName;
+    $('callAv').textContent=av(users[chatUid]?.name||chatName);
+    $('callStat').textContent="Ulanmoqda...";
+    $('acceptBtn').style.display='none';
+    $('callModal').classList.add('open');
+    $('ringSnd').play().catch(()=>{});
+    onValue(ref(db,`calls/${myUid}/answer`),async s=>{
+      const d=s.val();if(!d||!peerConn)return;
+      await peerConn.setRemoteDescription(JSON.parse(d.answer));
+      $('callStat').textContent="✓ Ulandi";$('ringSnd').pause();
+    });
+  }catch{toast('Mikrofon ruxsati kerak!');}
+}
+async function acceptCall(){
+  if(!callId)return;
+  $('ringSnd').pause();
+  const snap=await get(ref(db,`calls/${myUid}/incoming`));
+  const data=snap.val();if(!data)return;
+  try{
+    locStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    peerConn=mkPeer();
+    locStream.getTracks().forEach(t=>peerConn.addTrack(t,locStream));
+    await peerConn.setRemoteDescription(JSON.parse(data.offer));
+    const answer=await peerConn.createAnswer();
+    await peerConn.setLocalDescription(answer);
+    await set(ref(db,`calls/${data.callerUid}/answer`),{answer:JSON.stringify(answer)});
+    $('callStat').textContent="✓ Ulandi";
+    $('acceptBtn').style.display='none';
+  }catch{toast('Mikrofon ruxsati kerak!');}
+}
+function mkPeer(){
+  const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
+  pc.ontrack=e=>{$('remoteAudio').srcObject=e.streams[0];};
+  pc.onicecandidate=e=>{
+    if(e.candidate&&chatUid)
+      push(ref(db,`calls/${chatUid}/candidates`),JSON.stringify(e.candidate));
+  };
+  return pc;
+}
+function endCall(){
+  $('ringSnd').pause();
+  $('callModal').classList.remove('open');
+  locStream?.getTracks().forEach(t=>t.stop());
+  peerConn?.close();
+  peerConn=null;locStream=null;callId=null;
+  if(myUid)remove(ref(db,`calls/${myUid}`));
+  if(chatUid)remove(ref(db,`calls/${chatUid}`));
+}
+
+/* ===== IMAGE PREVIEW ===== */
+window._prevImg=url=>{$('prevImg').src=url;$('imgPrev').classList.add('open');};
+function closePrev(){$('imgPrev').classList.remove('open');$('prevImg').src='';}
+</script>
 </body>
 </html>
