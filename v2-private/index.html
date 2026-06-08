@@ -171,6 +171,25 @@ img{display:block;max-width:100%}
   #clearChatBtn,#statsBtn{display:none!important}
   #chatHead{padding:8px 10px}
 }
+/* ЯНГИ МОДАЛ ОЙНАЛАР ВА АВАТАР КАТТАЛАШИШИ УЧУН СТИЛЛАР */
+.custom-modal { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75); z-index: 9999; align-items: center; justify-content: center; }
+.custom-modal.active { display: flex; }
+.modal-content { background: var(--bg2); border: 1px solid var(--border); padding: 24px; border-radius: var(--radius); width: 90%; max-width: 340px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+.menu-divider { border: 0; border-top: 1px solid var(--border); margin: 15px 0; }
+.lang-selector { margin: 20px 0; text-align: left; }
+.lang-selector select { width: 100%; padding: 10px; background: var(--bg4); color: var(--text); border: 1px solid var(--border); border-radius: 8px; margin-top: 8px; outline: none; }
+.menu-close-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border-radius: 8px; font-weight: 600; font-size: 14px; margin-top: 10px; }
+.lightbox-modal { display: none; position: fixed; z-index: 10000; inset: 0; background-color: rgba(0,0,0,0.92); align-items: center; justify-content: center; }
+.lightbox-modal.active { display: flex; }
+.lightbox-img { max-width: 92%; max-height: 82vh; border-radius: 8px; box-shadow: 0 0 25px rgba(0,0,0,0.7); animation: zoomAnim 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+@keyframes zoomAnim { from { transform: scale(0.75); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.close-lightbox { position: absolute; top: 25px; right: 30px; color: #fff; font-size: 42px; font-weight: bold; cursor: pointer; opacity: 0.8; }
+.close-lightbox:hover { opacity: 1; }
+.profile-avatar-wrapper { cursor: pointer; display: inline-block; position: relative; border-radius: 50%; padding: 3px; background: var(--border); }
+.profile-avatar-wrapper:hover { transform: scale(1.03); }
+.profile-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+.profile-actions .sb-btn { width: 100%; padding: 11px; text-align: center; justify-content: center; font-size: 14px; }
+  
 </style>
 </head>
 <body>
@@ -321,6 +340,43 @@ img{display:block;max-width:100%}
 <div id="imgPrev"><img id="prevImg" src="" alt=""><button class="prev-close" id="closePrevBtn">×</button></div>
 <audio id="notifSnd" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3" preload="auto"></audio>
 <audio id="ringSnd" src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a7968b45.mp3" loop preload="auto"></audio>
+<!-- ТИЛ ТАНЛАШ ВА УМУМИЙ МЕНЮ ОЙНАСИ -->
+<div id="generalMenu" class="custom-modal">
+  <div class="modal-content">
+    <h3 data-i18n="menuTitle">Умумий меню</h3>
+    <hr class="menu-divider">
+    <div class="lang-selector">
+      <label data-i18n="selectLang">Тилни танланг / Выберите язык:</label>
+      <select id="langSelect" onchange="changeLanguage(this.value)">
+        <option value="uz">O'zbekcha</option>
+        <option value="ru">Русский</option>
+        <option value="en">English</option>
+      </select>
+    </div>
+    <button onclick="toggleGeneralMenu()" class="menu-close-btn" data-i18n="close">Ёпиш</button>
+  </div>
+</div>
+
+<!-- АВАТАРНИ КАТТАЛАШТИРИБ КЎРИШ ОЙНАСИ -->
+<div id="avatarLightbox" class="lightbox-modal" onclick="closeAvatarLightbox()">
+  <span class="close-lightbox">&times;</span>
+  <img class="lightbox-img" id="lightboxImg">
+</div>
+
+<!-- ФОЙДАЛАНУВЧИ МАЪЛУМОТЛАРИ ВА ШАХСИЙ ЧАТ МЕНЮСИ -->
+<div id="userProfileModal" class="custom-modal">
+  <div class="modal-content">
+    <div class="profile-avatar-wrapper" onclick="viewLargeAvatarFromProfile()">
+      <div id="pModalAvatar" class="avatar" style="width: 85px; height: 85px; font-size: 34px; margin: 0 auto; background-size: cover;"></div>
+    </div>
+    <h3 id="pModalName" style="margin-top: 12px; font-size: 17px; font-weight: 600;">-</h3>
+    <p id="pModalStatus" style="color: var(--text2); font-size: 13px; margin-top: 4px; margin-bottom: 5px;">-</p>
+    <div class="profile-actions">
+      <button id="startDirectChatBtn" class="sb-btn" style="background: var(--accent); color: #fff;" data-i18n="startChat">Шахсий чат бошлаш</button>
+      <button onclick="closeUserProfile()" class="sb-btn danger" data-i18n="close">Ёпиш</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -353,6 +409,185 @@ const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+      document.getElementById('empty').style.display = 'none';
+
+      // ГУРУҲДАН ЧИҚИШ ТУГМАСИНИНГ КЎРИНИШИНИ БОШҚАРИШ
+      const leaveBtn = document.getElementById('leaveGroupBtn');
+      if (leaveBtn) {
+        if (isGroup) {
+          leaveBtn.style.display = 'block';
+          leaveBtn.setAttribute('data-current-group', chatId);
+        } else {
+          leaveBtn.style.display = 'none';
+        }
+      }
+    }
+
+    // ГУРУҲНИ ТАРК ЭТИШ ФУНКЦИЯСИ (FIREBASE БАЗА БИЛАН ИШЛАЙДИ)
+    function leaveCurrentGroup() {
+      const leaveBtn = document.getElementById('leaveGroupBtn');
+      const groupId = leaveBtn ? leaveBtn.getAttribute('data-current-group') : null;
+      if (!groupId) return;
+
+      const confirmMsg = currentLang === 'uz' ? "Гуруҳни тарк этмоқчимисиз?" : 
+                         currentLang === 'ru' ? "Вы хотите покинуть группу?" : "Do you want to leave the group?";
+
+      if (confirm(confirmMsg)) {
+        // Firebaseъдан сизни ушбу гуруҳ аъзолари (members) рўйхатидан ўчиради
+        const groupMembersRef = ref(db, `groups/${groupId}/members/${myUid}`);
+        remove(groupMembersRef).then(() => {
+          const alertMsg = currentLang === 'uz' ? "Сиз гуруҳдан чиқдингиз." : 
+                           currentLang === 'ru' ? "Вы вышли из группы." : "You successfully left the group.";
+          alert(alertMsg);
+          location.reload();
+        }).catch((err) => {
+          console.error("Гуруҳдан чиқишда хатолик юз берди:", err);
+        });
+      }
+    }
+
+    // АВАТАРНИ КАТТАЛАШТИРИБ КЎРСАТИШ
+    function openAvatarLightbox(imgSrc) {
+      if (!imgSrc || imgSrc.includes('data:image') || imgSrc.includes('placeholder')) return;
+      const lightbox = document.getElementById('avatarLightbox');
+      const lightboxImg = document.getElementById('lightboxImg');
+      if (lightbox && lightboxImg) {
+        lightboxImg.src = imgSrc;
+        lightbox.classList.add('active');
+      }
+    }
+
+    function closeAvatarLightbox() {
+      const lightbox = document.getElementById('avatarLightbox');
+      if (lightbox) lightbox.classList.remove('active');
+    }
+
+    function toggleGeneralMenu() {
+      const genMenu = document.getElementById('generalMenu');
+      if (genMenu) genMenu.classList.toggle('active');
+    }
+
+    // ФОЙДАЛАНУВЧИ ПРОФИЛИ ОЙНАСИНИ КЎРСАТИШ ВА ШАХСИЙ ЧАТ ОЧИШ
+    function showUserProfile(userId, name, avatarUrl, isOnline) {
+      document.getElementById('pModalName').textContent = name;
+      document.getElementById('pModalStatus').textContent = isOnline ? "Online" : "Offline";
+      const avatarDiv = document.getElementById('pModalAvatar');
+      
+      if (avatarUrl && !avatarUrl.includes('placeholder')) {
+        avatarDiv.style.backgroundImage = `url(${avatarUrl})`;
+        avatarDiv.textContent = "";
+      } else {
+        avatarDiv.style.backgroundImage = "none";
+        avatarDiv.textContent = name.charAt(0).toUpperCase();
+      }
+
+      const startChatBtn = document.getElementById('startDirectChatBtn');
+      if (userId === myUid) {
+        if (startChatBtn) startChatBtn.style.display = 'none';
+      } else {
+        if (startChatBtn) {
+          startChatBtn.style.display = 'block';
+          startChatBtn.onclick = () => {
+            document.getElementById('userProfileModal').classList.remove('active');
+            startPrivateChatWith(userId, name);
+          };
+        }
+      }
+      document.getElementById('userProfileModal').classList.add('active');
+    }
+
+    function startPrivateChatWith(targetUid, targetName) {
+      // Сайдбар рўйхатидан ўша фойдаланувчи элементларини қидириб топади ва автоматик босади
+      const userItem = document.querySelector(`.uitem[data-uid="${targetUid}"]`);
+      if (userItem) {
+        userItem.click();
+      } else {
+        // Агар рўйхатда ҳали йўқ бўлса, чатни очиш функциянгизни тўғридан-тўғри чақириши мумкин
+        if (typeof selectChat === 'function') {
+          selectChat(targetUid, targetName, false, null);
+        }
+      }
+    }
+
+    // 3 ХИЛ ТИЛ ТАРЖИМАЛАРИ БАЗАСИ
+    const translations = {
+      uz: { menuTitle: "Умумий меню", selectLang: "Тилни танланг:", close: "Ёпиш", startChat: "Шахсий чат бошлаш", leaveGroup: "Тарк этиш", groupTag: "Гуруҳ" },
+      ru: { menuTitle: "Главное меню", selectLang: "Выберите язык:", close: "Закрыть", startChat: "Личный чат", leaveGroup: "Выйти", groupTag: "Группа" },
+      en: { menuTitle: "General Menu", selectLang: "Select Language:", close: "Close", startChat: "Direct Chat", leaveGroup: "Leave", groupTag: "Group" }
+    };
+
+    let currentLang = localStorage.getItem('chatLang') || 'uz';
+
+    function changeLanguage(lang) {
+      currentLang = lang;
+      localStorage.setItem('chatLang', lang);
+      document.getElementById('langSelect').value = lang;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) el.textContent = translations[lang][key];
+      });
+      const leaveBtn = document.getElementById('leaveGroupBtn');
+      if (leaveBtn) leaveBtn.textContent = translations[lang].leaveGroup;
+    }
+
+    function viewLargeAvatarFromProfile() {
+      const bg = window.getComputedStyle(document.getElementById('pModalAvatar')).backgroundImage;
+      if (bg && bg !== 'none') {
+        const url = bg.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+        openAvatarLightbox(url);
+      }
+    }
+
+    // РЎЙХАТДАГИ АВАТАР ЁКИ ЭЛЕМЕНТ БОСИЛГАНДА ИШЛАЙДИГАН ХОДИСАЛАР
+    document.addEventListener('click', (e) => {
+      // Аватар устига босилганда
+      if (e.target.classList.contains('avatar')) {
+        const uitem = e.target.closest('.uitem');
+        if (uitem) {
+          e.stopPropagation(); // Чат очилиб кетмаслиги учун тўхтатамиз
+          const uid = uitem.getAttribute('data-uid');
+          const isGroup = uitem.getAttribute('data-is-group') === 'true' || uitem.querySelector('.tag.grp') !== null;
+          const name = uitem.querySelector('.uname').textContent.replace("Гуруҳ", "").trim();
+          const bg = window.getComputedStyle(e.target).backgroundImage;
+          const url = bg !== 'none' ? bg.replace(/^url\(["']?/, '').replace(/["']?\)$/, '') : null;
+          
+          if (!isGroup) {
+            const isOnline = uitem.querySelector('.odot') && uitem.querySelector('.odot').classList.contains('on');
+            showUserProfile(uid, name, url, isOnline);
+          } else {
+            openAvatarLightbox(url);
+          }
+        }
+      }
+    });
+
+    // ИЛОВА ИШГА ТУШГАНДА БАЖАРИЛАДИГАН СОЗЛАМАЛАР
+    document.addEventListener("DOMContentLoaded", () => {
+      changeLanguage(currentLang);
+      
+      // Сайдбар тепасидаги умумий созламалар тугмасини улаш
+      const sbLogo = document.querySelector('.sb-logo');
+      if (sbLogo && !document.getElementById('openMenuGlobalBtn')) {
+        const menuBtn = document.createElement('button');
+        menuBtn.id = 'openMenuGlobalBtn';
+        menuBtn.style.cssText = "font-size: 16px; cursor: pointer; padding: 4px 8px; margin-left: 10px; background: var(--bg4); border-radius: 6px;";
+        menuBtn.textContent = "⚙️";
+        menuBtn.onclick = toggleGeneralMenu;
+        sbLogo.appendChild(menuBtn);
+      }
+
+      // Гуруҳдан чиқиш тугмасини чат тепасига динамик қўшиш
+      const headBtns = document.querySelector('.head-btns');
+      if (headBtns && !document.getElementById('leaveGroupBtn')) {
+        const btn = document.createElement('button');
+        btn.id = 'leaveGroupBtn';
+        btn.className = 'sb-btn danger';
+        btn.style.cssText = "display: none; font-size: 12px; padding: 6px 12px; font-weight: 600;";
+        btn.onclick = leaveCurrentGroup;
+        headBtns.appendChild(btn);
+        changeLanguage(currentLang);
+      }
+    });
 
 let myUid,myName,myAvatar='';
 let chatId,chatName,chatUid,isGrp=false;
