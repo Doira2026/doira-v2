@@ -409,19 +409,6 @@ const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
-      document.getElementById('empty').style.display = 'none';
-
-      // ГУРУҲДАН ЧИҚИШ ТУГМАСИНИНГ КЎРИНИШИНИ БОШҚАРИШ
-      const leaveBtn = document.getElementById('leaveGroupBtn');
-      if (leaveBtn) {
-        if (isGroup) {
-          leaveBtn.style.display = 'block';
-          leaveBtn.setAttribute('data-current-group', chatId);
-        } else {
-          leaveBtn.style.display = 'none';
-        }
-      }
-    }
 
     // ГУРУҲНИ ТАРК ЭТИШ ФУНКЦИЯСИ (FIREBASE БАЗА БИЛАН ИШЛАЙДИ)
     function leaveCurrentGroup() {
