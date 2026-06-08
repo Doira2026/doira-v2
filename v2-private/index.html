@@ -343,10 +343,23 @@ img{display:block;max-width:100%}
 <!-- ТИЛ ТАНЛАШ ВА УМУМИЙ МЕНЮ ОЙНАСИ -->
 <div id="generalMenu" class="custom-modal">
   <div class="modal-content">
-    <h3 data-i18n="menuTitle">Умумий меню</h3>
+    <h3 data-i18n="menuTitle">Умумий созламалар</h3>
     <hr class="menu-divider">
+    
+    <!-- Менинг профилим бўлими (Янги созлама) -->
+    <div style="margin-bottom: 20px; text-align: left; background: var(--bg4); padding: 10px; border-radius: 8px;">
+      <p style="font-size: 12px; color: var(--text2);">Менинг профилим:</p>
+      <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+        <div id="menuMyAvatar" class="avatar" style="width: 40px; height: 40px;"></div>
+        <div>
+          <div id="menuMyName" style="font-weight: 600; font-size: 14px;">Юкланмоқда...</div>
+          <div id="menuMyEmail" style="font-size: 11px; color: var(--text2);">-</div>
+        </div>
+      </div>
+    </div>
+
     <div class="lang-selector">
-      <label data-i18n="selectLang">Тилни танланг / Выберите язык:</label>
+      <label data-i18n="selectLang">Тилни танланг:</label>
       <select id="langSelect" onchange="changeLanguage(this.value)">
         <option value="uz">O'zbekcha</option>
         <option value="ru">Русский</option>
@@ -484,17 +497,36 @@ function toast(msg){const t=document.createElement('div');t.className='toast';t.
     }
 
     function startPrivateChatWith(targetUid, targetName) {
-      // Сайдбар рўйхатидан ўша фойдаланувчи элементларини қидириб топади ва автоматик босади
-      const userItem = document.querySelector(`.uitem[data-uid="${targetUid}"]`);
-      if (userItem) {
-        userItem.click();
+  if (typeof openChat === 'function') {
+    openChat(targetUid, targetName, false);
+    // Профиль модал ойнасини ёпиш
+    const uModal = document.getElementById('userProfileModal');
+    if (uModal) uModal.classList.remove('active');
+  }
+}
+
+// Сайдбардаги аватарлар босилганда профилни ёки катта расмни очиш
+document.getElementById('usersList')?.addEventListener('click', (e) => {
+  if (e.target.classList.contains('avatar')) {
+    const uitem = e.target.closest('.uitem');
+    if (uitem) {
+      e.stopPropagation();
+      e.preventDefault();
+      const uid = uitem.getAttribute('data-uid') || uitem.id || "";
+      const name = uitem.querySelector('.uname')?.textContent || "User";
+      const bg = window.getComputedStyle(e.target).backgroundImage;
+      const url = bg !== 'none' ? bg.replace(/^url\(["']?/, '').replace(/["']?\)$/, '') : null;
+      const isOnline = uitem.querySelector('.odot')?.classList.contains('on') || false;
+      const isGroup = uitem.querySelector('.tag.grp') !== null || uitem.getAttribute('data-is-group') === 'true';
+
+      if (isGroup) {
+        if (typeof openAvatarLightbox === 'function') openAvatarLightbox(url);
       } else {
-        // Агар рўйхатда ҳали йўқ бўлса, чатни очиш функциянгизни тўғридан-тўғри чақириши мумкин
-        if (typeof selectChat === 'function') {
-          selectChat(targetUid, targetName, false, null);
-        }
+        if (typeof showUserProfile === 'function') showUserProfile(uid, name, url, isOnline);
       }
     }
+  }
+}, true);
 
     // 3 ХИЛ ТИЛ ТАРЖИМАЛАРИ БАЗАСИ
     const translations = {
@@ -732,8 +764,13 @@ function renderList(){
   const q=($('searchInput')?.value||'').toLowerCase().trim();
   const list=$('usersList');if(!list)return;
   list.innerHTML='';
+        // Гуруҳларни яратилган вақти бўйича саралаш (янгилари тепага чиқади)
+      const sortedGrps = Object.entries(grps || {}).sort((a, b) => {
+        return (b[1].createdAt || 0) - (a[1].createdAt || 0);
+      });
+
   const items=[];
-  Object.entries(grps).forEach(([gid,g])=>{
+ sortedGrps.forEach(([gid,g])=>{
     if(!g.members?.[myUid])return;
     if(q&&!g.name.toLowerCase().includes(q))return;
     items.push({id:gid,name:g.name,type:'grp',unread:unreads[gid]||0,members:Object.keys(g.members||{}).length});
@@ -772,7 +809,8 @@ function renderList(){
         <button class="star-btn" onclick="event.stopPropagation();window._togFrd('${item.id}',${item.isFrd})">${item.isFrd?'⭐':'☆'}</button>
         ${item.unread?`<div class="badge">${item.unread}</div>`:''}`;
     }
-    list.appendChild(d);
+    list.prepend(d);
+
   });
 }
 
