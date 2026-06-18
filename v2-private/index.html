@@ -55,14 +55,15 @@ img{display:block;max-width:100%}
 .tag.grp{background:rgba(0,168,132,.15);color:var(--accent)}
 .tag.pro{background:rgba(247,201,72,.15);color:var(--gold)}
 #main{flex:1;display:flex;flex-direction:column;min-width:0;background:var(--bg);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cg fill='%23ffffff' fill-opacity='.02'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E")}
-#chatHead{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+#chatHead{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0}
 #menuBtn{font-size:22px;display:none;padding:4px;color:var(--text2)}
-#chatHead .info{flex:1;cursor:pointer}
-#chatTitle{font-weight:700;font-size:15px}
+#chatHead .info{flex:1;cursor:pointer;min-width:0}
+#chatTitle{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #chatSub{font-size:12px;color:var(--text2)}
-.head-btns{display:flex;gap:4px}
-#audioCallBtn,#videoCallBtn,#clearChatBtn,#statsBtn{font-size:18px;padding:6px 8px;border-radius:8px;transition:.15s;display:none}#audioCallBtn,#videoCallBtn{font-size:24px;flex-shrink:0}.head-btns{display:flex;gap:2px;align-items:center;flex-shrink:0}
-#audioCallBtn:hover,#videoCallBtn:hover,#clearChatBtn:hover,#statsBtn:hover{background:var(--bg4)}
+.head-btns{display:flex;gap:4px;align-items:center;flex-shrink:0}
+.hbtn{font-size:18px;padding:6px 8px;border-radius:8px;transition:.15s;display:none}
+.hbtn:hover{background:var(--bg4)}
+.hbtn.show{display:flex;align-items:center;justify-content:center}
 #pinnedBar{background:var(--bg3);border-left:3px solid var(--accent);padding:7px 14px;cursor:pointer;flex-shrink:0;display:none;font-size:13px}
 #pinnedBar .pt{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:1px}
 #typingBar{padding:3px 16px;font-size:12px;color:var(--accent);font-style:italic;flex-shrink:0;display:none}
@@ -73,7 +74,8 @@ img{display:block;max-width:100%}
 .mbub{padding:7px 11px 5px;border-radius:var(--radius);font-size:14px;line-height:1.5;word-break:break-word;position:relative;cursor:context-menu}
 .mrow.out .mbub{background:var(--msg-out);border-bottom-right-radius:3px}
 .mrow.in .mbub{background:var(--msg-in);border-bottom-left-radius:3px}
-.msender{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:3px}
+.msender{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:3px;cursor:pointer}
+.msender:hover{text-decoration:underline}
 .mmeta{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:10px;color:var(--text2);margin-top:3px}
 .tick{font-size:12px}.tick.seen{color:var(--accent)}
 .edited-lbl{font-size:10px;color:var(--text2);font-style:italic}
@@ -84,6 +86,14 @@ img{display:block;max-width:100%}
 .date-divider{align-self:center;background:var(--bg3);border-radius:8px;padding:3px 10px;font-size:11px;color:var(--text2);margin:6px 0}
 #empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:14px;color:var(--text2)}
 .empty-icon{font-size:70px;opacity:.2}
+/* REPLY BAR */
+#replyBar{display:none;background:var(--bg3);border-left:3px solid var(--accent);padding:6px 12px;font-size:12px;color:var(--text2);justify-content:space-between;align-items:center;margin-bottom:6px;border-radius:4px}
+#replyBar.show{display:flex}
+#replyText{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* REPLY PREVIEW IN MESSAGE */
+.reply-prev{background:rgba(0,0,0,.15);border-left:3px solid var(--accent);border-radius:6px;padding:4px 8px;margin-bottom:6px;font-size:12px;cursor:pointer}
+.reply-prev .rp-name{font-weight:700;color:var(--accent);font-size:11px;margin-bottom:2px}
+.reply-prev .rp-text{color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #inputBar{background:var(--bg2);border-top:1px solid var(--border);padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom));flex-shrink:0}
 #editBan{display:none;background:var(--bg3);padding:5px 12px;font-size:12px;color:var(--text2);border-left:3px solid var(--accent);justify-content:space-between;align-items:center;margin-bottom:6px;border-radius:4px}
 #editBan.show{display:flex}
@@ -101,12 +111,12 @@ img{display:block;max-width:100%}
 #stickerPanel.open{display:grid}
 .sitem{font-size:26px;text-align:center;padding:5px;border-radius:9px;cursor:pointer;transition:.12s}
 .sitem:hover{background:var(--bg4);transform:scale(1.18)}
-#reactPanel{display:none;position:fixed;z-index:600;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:8px 12px;gap:6px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:popIn .15s ease}
+#reactPanel{display:none;position:fixed;z-index:800;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:8px 12px;gap:6px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:popIn .15s ease}
 @keyframes popIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 #reactPanel.open{display:flex}
 .ritem{font-size:26px;cursor:pointer;transition:.12s;padding:3px}
 .ritem:hover{transform:scale(1.35)}
-.mmenu{position:fixed;z-index:700;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:popIn .15s ease}
+.mmenu{position:fixed;z-index:700;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:6px;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:popIn .15s ease}
 .mmenu button{display:block;width:100%;padding:9px 13px;text-align:left;font-size:13px;font-weight:500;border-radius:8px;transition:.12s}
 .mmenu button:hover{background:var(--bg4)}
 .mmenu button.rd{color:var(--danger)}
@@ -128,14 +138,22 @@ img{display:block;max-width:100%}
 .gcb-item:hover{background:var(--bg4)}
 .gcb-item input{width:16px;height:16px;accent-color:var(--accent)}
 .member-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;background:var(--bg3);margin-bottom:6px}
-/* Stats */
+.member-item .m-acts{margin-left:auto;display:flex;gap:6px}
+.member-item .m-acts button{font-size:13px;padding:3px 8px;border-radius:6px;background:var(--bg4);transition:.15s}
+.member-item .m-acts button:hover{background:var(--accent);color:#fff}
+.member-item .m-acts button.rd:hover{background:var(--danger)}
 .stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
 .stat-row:last-child{border:none}
 .stat-label{font-size:13px;color:var(--text2)}
 .stat-val{font-size:15px;font-weight:700;color:var(--accent)}
-/* Profile modal */
 .prof-av{width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;margin:0 auto 16px;cursor:pointer;transition:.2s;background-size:cover;background-position:center}
 .prof-av:hover{opacity:.85}
+/* USER INFO MODAL */
+.uinfo-av{width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:#fff;margin:0 auto 12px;cursor:pointer;background-size:cover;background-position:center;transition:.2s}
+.uinfo-av:hover{opacity:.85}
+/* FORWARD MODAL */
+.fwd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:.12s}
+.fwd-item:hover{background:var(--bg3)}
 /* Call */
 #callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #callModal.open{display:flex}
@@ -154,22 +172,25 @@ img{display:block;max-width:100%}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:none}
 #overlay.open{display:block}
 #adBar{background:linear-gradient(90deg,#005c4b,#00a884);padding:7px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;cursor:pointer;flex-shrink:0}
-#imgPrev{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:900;display:none;align-items:center;justify-content:center;cursor:zoom-out}
+#imgPrev{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:900;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px}
 #imgPrev.open{display:flex}
-#imgPrev img{max-width:95vw;max-height:95vh;border-radius:8px;cursor:default}
-.prev-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.1);width:38px;height:38px;border-radius:50%;font-size:22px;color:#fff;display:flex;align-items:center;justify-content:center}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:13px;z-index:999;animation:toastIn .3s ease;pointer-events:none}
+#imgPrev img{max-width:95vw;max-height:85vh;border-radius:8px;cursor:default}
+.prev-close{position:absolute;top:14px;right:14px;background:rgba(255,255,255,.1);width:38px;height:38px;border-radius:50%;font-size:22px;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.prev-download{background:rgba(255,255,255,.15);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.prev-download:hover{background:var(--accent)}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:13px;z-index:999;animation:toastIn .3s ease;pointer-events:none;white-space:nowrap}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+/* LANG MODAL */
+.lang-row{display:flex;gap:8px;margin-top:12px}
+.lang-btn{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;background:var(--bg4);transition:.15s;text-align:center;cursor:pointer}
+.lang-btn:hover,.lang-btn.active{background:var(--accent);color:#fff}
 @media(max-width:768px){
   #sidebar{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%);width:88%;min-width:unset}
   #sidebar.open{transform:translateX(0)}
   #menuBtn{display:block!important}
-  .mrow{max-width:88%}
-  .mimg{max-width:190px}
+  .mrow{max-width:90%}
+  .mimg{max-width:200px}
   #stickerPanel{grid-template-columns:repeat(6,1fr)}
-  #audioCallBtn,#videoCallBtn{font-size:20px;padding:5px 6px}
-  #clearChatBtn,#statsBtn{display:none!important}
-  #chatHead{padding:8px 10px}
 }
 </style>
 </head>
@@ -188,8 +209,9 @@ img{display:block;max-width:100%}
         <div class="sb-logo">Doira<span>Chat</span></div>
         <div class="sb-actions">
           <button class="sb-btn" id="themeBtn">☀️</button>
-          <button class="sb-btn" id="newGrpBtn">＋ Guruh</button>
-          <button class="sb-btn danger" id="logoutBtn">Chiqish</button>
+          <button class="sb-btn" id="langBtn">🌐</button>
+          <button class="sb-btn" id="newGrpBtn">＋</button>
+          <button class="sb-btn danger" id="logoutBtn">⏻</button>
         </div>
       </div>
       <div class="my-card" id="myCard">
@@ -217,10 +239,10 @@ img{display:block;max-width:100%}
         <div id="chatSub"></div>
       </div>
       <div class="head-btns">
-        <button id="statsBtn" title="Tahlil">📊</button>
-        <button id="clearChatBtn" title="Chatni tozalash">🗑️</button>
-        <button id="audioCallBtn" title="Ovozli qo'ng'iroq">📞</button>
-        <button id="videoCallBtn" title="Video qo'ng'iroq">📹</button>
+        <button class="hbtn" id="statsBtn" title="Tahlil">📊</button>
+        <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️</button>
+        <button class="hbtn" id="audioCallBtn" title="Ovozli">📞</button>
+        <button class="hbtn" id="videoCallBtn" title="Video">📹</button>
       </div>
     </div>
     <div id="pinnedBar"><div class="pt">📌 Mahkamlangan xabar</div><div class="px" id="pinnedTxt"></div></div>
@@ -233,9 +255,16 @@ img{display:block;max-width:100%}
     <div id="typingBar"></div>
     <div id="stickerPanel"></div>
     <div id="inputBar">
+      <div id="replyBar">
+        <div>
+          <div style="font-size:10px;color:var(--accent);font-weight:700">↩️ Javob</div>
+          <div id="replyText"></div>
+        </div>
+        <button onclick="cancelReply()" style="color:var(--danger);font-size:18px;padding:4px 8px">✕</button>
+      </div>
       <div id="editBan">
-        <span>✏️ Xabarni tahrirlash</span>
-        <button id="cancelEditBtn" style="color:var(--danger);font-weight:700">✕ Bekor</button>
+        <span>✏️ Tahrirlash</span>
+        <button id="cancelEditBtn" style="color:var(--danger);font-weight:700">✕</button>
       </div>
       <div class="irow">
         <button class="ibtn" id="attachBtn">📎</button>
@@ -274,6 +303,9 @@ img{display:block;max-width:100%}
     </div>
     <div style="font-size:12px;color:var(--text2);margin-bottom:10px">A'zolar</div>
     <div id="grpMembersList"></div>
+    <div class="modal-btns" style="margin-top:12px">
+      <button class="mbtn danger" id="leaveGrpBtn">🚪 Guruhdan chiqish</button>
+    </div>
   </div>
 </div>
 
@@ -292,6 +324,23 @@ img{display:block;max-width:100%}
   </div>
 </div>
 
+<!-- USER INFO MODAL -->
+<div class="modal-bg" id="userInfoModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button id="closeUserInfo" style="font-size:24px;color:var(--text2)">×</button>
+    </div>
+    <div class="uinfo-av" id="uinfoAv">?</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:4px" id="uinfoName"></div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px" id="uinfoStatus"></div>
+    <div style="text-align:left;background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:16px" id="uinfoRows"></div>
+    <div class="modal-btns">
+      <button class="mbtn primary" id="uinfoChatBtn">💬 Chat</button>
+      <button class="mbtn gray" id="uinfoCallBtn">📞 Qo'ng'iroq</button>
+    </div>
+  </div>
+</div>
+
 <!-- STATS MODAL -->
 <div class="modal-bg" id="statsModal">
   <div class="modal-box">
@@ -300,6 +349,32 @@ img{display:block;max-width:100%}
       <button id="closeStatsBtn" style="font-size:24px;color:var(--text2)">×</button>
     </div>
     <div id="statsContent"></div>
+  </div>
+</div>
+
+<!-- FORWARD MODAL -->
+<div class="modal-bg" id="fwdModal">
+  <div class="modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="modal-title" style="margin:0">↗️ Yuborish</div>
+      <button id="closeFwdBtn" style="font-size:24px;color:var(--text2)">×</button>
+    </div>
+    <div id="fwdList" style="max-height:350px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- LANG MODAL -->
+<div class="modal-bg" id="langModal">
+  <div class="modal-box">
+    <div class="modal-title">🌐 Til tanlash</div>
+    <div class="lang-row">
+      <div class="lang-btn" onclick="setLang('uz')">🇺🇿 O'zbek</div>
+      <div class="lang-btn" onclick="setLang('ru')">🇷🇺 Русский</div>
+      <div class="lang-btn" onclick="setLang('en')">🇬🇧 English</div>
+    </div>
+    <div class="modal-btns" style="margin-top:16px">
+      <button class="mbtn gray" onclick="document.getElementById('langModal').classList.remove('open')">✕</button>
+    </div>
   </div>
 </div>
 
@@ -318,7 +393,11 @@ img{display:block;max-width:100%}
 </div>
 <audio id="remoteAudio" autoplay playsinline style="display:none"></audio>
 
-<div id="imgPrev"><img id="prevImg" src="" alt=""><button class="prev-close" id="closePrevBtn">×</button></div>
+<div id="imgPrev">
+  <button class="prev-close" id="closePrevBtn">×</button>
+  <img id="prevImg" src="" alt="">
+  <button class="prev-download" id="downloadImgBtn">⬇️ Yuklab olish</button>
+</div>
 <audio id="notifSnd" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3" preload="auto"></audio>
 <audio id="ringSnd" src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a7968b45.mp3" loop preload="auto"></audio>
 
@@ -328,46 +407,124 @@ import { getAuth, onAuthStateChanged, signOut, updateProfile } from 'https://www
 import { getDatabase, ref, set, get, push, update, remove, onValue, onChildAdded, onDisconnect, serverTimestamp, off }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-
-
-const FB = {
-  apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-  authDomain:"doira-chat-v2.firebaseapp.com",
-  databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",
-  projectId:"doira-chat-v2",
-  storageBucket:"doira-chat-v2.firebasestorage.app",
-  messagingSenderId:"885552294238",
-  appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"
-};
+const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-chat-v2.firebaseapp.com",databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",projectId:"doira-chat-v2",storageBucket:"doira-chat-v2.firebasestorage.app",messagingSenderId:"885552294238",appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"};
 const IMGBB='e4cecebb229f451e3322c126e3d09399';
 const STICKERS=['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🥳','😇','😈','🤪','🥺','😱','🫡','🤝','🥹','🫶','💪','🎵','🎮','🚀','🌟','🌈','🎯','🏆','💎','🤩','🦋','🌺'];
 const REACTS=['❤️','😂','👍','😮','😢','🙏','🔥','😎'];
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]};
 
+// === TILLAR ===
+const LANGS={
+  uz:{search:'Qidirish...',typeMsg:'Xabar yozing...',online:'🟢 online',offline:'⚫ offline',
+    lastSeen:'Oxirgi: ',members:"a'zo",noOne:'Hech kim topilmadi',
+    reply:'↩️ Javob',forward:'↗️ Yuborish',download:'⬇️ Yuklab olish',
+    react:'😊 Reaksiya',pin:'📌 Mahkamlash',copy:'📋 Nusxa',edit:'✏️ Tahrirlash',
+    del:'🗑️ O\'chirish',save:'✓ Saqlash',leave:'🚪 Guruhdan chiqish',
+    confirmLeave:'Guruhdan chiqmoqchimisiz?',confirmDel:'O\'chirishga ishonchingiz komilmi?',
+    msgDeleted:'Xabar o\'chirildi',msgCopied:'Nusxa olindi ✓',msgPinned:'Xabar mahkamlandi 📌',
+    groupLeft:'Guruhdan chiqdingiz',memberRemoved:'A\'zo chiqarildi',
+    fwdSent:'Xabar yuborildi ✓',onlyText:'Faqat matn',
+    imgUploading:'Rasm yuklanmoqda...',imgSent:'Rasm yuborildi ✓',
+    voiceStart:'Yozish boshlandi 🔴',voiceSent:'Ovozli xabar yuborildi 🎤',
+    micError:'Mikrofon ruxsati berilmagan!',profileSaved:'Profil yangilandi ✓',
+    grpCreated:'Guruh yaratildi ✓',enterName:'Ism kiriting',enterGroup:'Guruh nomini kiriting',
+    selectOne:'Kamida 1 kishi tanlang',noMsgsToDelete:'O\'chirish uchun xabar yo\'q',
+    confirmClear:'ta xabarni o\'chirishni xohlaysizmi?',cleared:'ta xabar o\'chirildi',
+    callAudio:"📞 Qo'ng'iroq...",callVideo:"📹 Video...",callConnected:'✓ Ulandi',
+    callFailed:'Ulanish uzildi',callPerm:'Mikrofon/kamera ruxsati kerak!',
+    mutedMic:"Mikrofon o'chirildi",unmutedMic:'Mikrofon yoqildi',
+    directChat:'💬 Chat boshlash',callBtn:'📞 Qo\'ng\'iroq'},
+  ru:{search:'Поиск...',typeMsg:'Написать...',online:'🟢 онлайн',offline:'⚫ офлайн',
+    lastSeen:'Был: ',members:'участник',noOne:'Никого не найдено',
+    reply:'↩️ Ответить',forward:'↗️ Переслать',download:'⬇️ Скачать',
+    react:'😊 Реакция',pin:'📌 Закрепить',copy:'📋 Копировать',edit:'✏️ Изменить',
+    del:'🗑️ Удалить',save:'✓ Сохранить',leave:'🚪 Покинуть группу',
+    confirmLeave:'Покинуть группу?',confirmDel:'Удалить сообщение?',
+    msgDeleted:'Сообщение удалено',msgCopied:'Скопировано ✓',msgPinned:'Закреплено 📌',
+    groupLeft:'Вы покинули группу',memberRemoved:'Участник удалён',
+    fwdSent:'Сообщение отправлено ✓',onlyText:'Только текст',
+    imgUploading:'Загрузка...',imgSent:'Фото отправлено ✓',
+    voiceStart:'Запись 🔴',voiceSent:'Голосовое отправлено 🎤',
+    micError:'Нет доступа к микрофону!',profileSaved:'Профиль обновлён ✓',
+    grpCreated:'Группа создана ✓',enterName:'Введите имя',enterGroup:'Введите название',
+    selectOne:'Выберите хотя бы 1',noMsgsToDelete:'Нет сообщений',
+    confirmClear:' сообщений удалить?',cleared:' удалено',
+    callAudio:'📞 Звонок...',callVideo:'📹 Видеозвонок...',callConnected:'✓ Подключено',
+    callFailed:'Соединение разорвано',callPerm:'Нужен доступ к микрофону/камере!',
+    mutedMic:'Микрофон выключен',unmutedMic:'Микрофон включён',
+    directChat:'💬 Написать',callBtn:'📞 Позвонить'},
+  en:{search:'Search...',typeMsg:'Type a message...',online:'🟢 online',offline:'⚫ offline',
+    lastSeen:'Last seen: ',members:'member',noOne:'Nobody found',
+    reply:'↩️ Reply',forward:'↗️ Forward',download:'⬇️ Download',
+    react:'😊 React',pin:'📌 Pin',copy:'📋 Copy',edit:'✏️ Edit',
+    del:'🗑️ Delete',save:'✓ Save',leave:'🚪 Leave group',
+    confirmLeave:'Leave the group?',confirmDel:'Delete message?',
+    msgDeleted:'Message deleted',msgCopied:'Copied ✓',msgPinned:'Pinned 📌',
+    groupLeft:'You left the group',memberRemoved:'Member removed',
+    fwdSent:'Message forwarded ✓',onlyText:'Text only',
+    imgUploading:'Uploading...',imgSent:'Image sent ✓',
+    voiceStart:'Recording 🔴',voiceSent:'Voice sent 🎤',
+    micError:'Microphone permission denied!',profileSaved:'Profile updated ✓',
+    grpCreated:'Group created ✓',enterName:'Enter name',enterGroup:'Enter group name',
+    selectOne:'Select at least 1',noMsgsToDelete:'No messages',
+    confirmClear:' messages to delete?',cleared:' deleted',
+    callAudio:'📞 Calling...',callVideo:'📹 Video call...',callConnected:'✓ Connected',
+    callFailed:'Connection failed',callPerm:'Microphone/camera permission needed!',
+    mutedMic:'Mic off',unmutedMic:'Mic on',
+    directChat:'💬 Message',callBtn:'📞 Call'}
+};
+let lang=localStorage.getItem('dc_lang')||'uz';
+const t=k=>LANGS[lang][k]||LANGS.uz[k]||k;
+window.setLang=l=>{lang=l;localStorage.setItem('dc_lang',l);applyLang();document.getElementById('langModal').classList.remove('open');toast('✓');};
+function applyLang(){
+  const s=document.getElementById('searchInput');if(s)s.placeholder=t('search');
+  const m=document.getElementById('msgInput');if(m)m.placeholder=t('typeMsg');
+}
+
 const fbApp=initializeApp(FB);
 const auth=getAuth(fbApp);
 const db=getDatabase(fbApp);
 
-
 const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+function toast(msg,dur=2500){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),dur);}
+
+// Sana formati: 12.01.2026
+function fmtDate(ts){
+  if(!ts)return '—';
+  const d=new Date(ts);
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const yy=d.getFullYear();
+  return `${dd}.${mm}.${yy}`;
+}
+function fmtTime(ts){
+  if(!ts)return '';
+  return new Date(ts).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'});
+}
+function fmtDateLong(ts){
+  if(!ts)return '';
+  const d=new Date(ts);
+  return d.toLocaleDateString(lang==='ru'?'ru-RU':lang==='en'?'en-US':'uz-UZ',{day:'numeric',month:'long'});
+}
 
 let myUid,myName,myAvatar='';
 let chatId,chatName,chatUid,isGrp=false;
 let users={},frds={},unreads={},grps={};
-let editKey=null,reactKey=null,typTimer=null;
+let editKey=null,replyKey=null,replyData=null,reactKey=null,typTimer=null;
+let fwdMsgData=null;
 let mediaRec=null,audChunks=[];
 let peerConn=null,locStream=null,callId=null,isMuted=false;
 let offFns=[];
 let dark=localStorage.getItem('dc_theme')!=='light';
+let uinfoUid=null;
 
 // BOOT
 onAuthStateChanged(auth,user=>{
   if(user){
     myUid=user.uid;
-    myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'Foydalanuvchi';
+    myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'User';
     myAvatar=user.photoURL||'';
     setupUser().then(()=>showApp());
   } else {
@@ -387,6 +544,7 @@ function showApp(){
   hideLoader();
   $('app').style.display='flex';
   applyTheme();
+  applyLang();
   updateMyCard();
   bindAll();
   buildStickers();
@@ -400,13 +558,8 @@ function showApp(){
 
 function updateMyCard(){
   $('myName').textContent=myName;
-  if(myAvatar){
-    $('myAv').style.backgroundImage=`url(${myAvatar})`;
-    $('myAv').textContent='';
-  } else {
-    $('myAv').style.backgroundImage='';
-    $('myAv').textContent=av(myName);
-  }
+  if(myAvatar){$('myAv').style.backgroundImage=`url(${myAvatar})`;$('myAv').textContent='';}
+  else{$('myAv').style.backgroundImage='';$('myAv').textContent=av(myName);}
 }
 
 function applyTheme(){document.body.className=dark?'':'light';$('themeBtn').textContent=dark?'☀️':'🌙';}
@@ -414,6 +567,7 @@ function togTheme(){dark=!dark;localStorage.setItem('dc_theme',dark?'dark':'ligh
 
 function bindAll(){
   $('themeBtn').onclick=togTheme;
+  $('langBtn').onclick=()=>$('langModal').classList.add('open');
   $('logoutBtn').onclick=doLogout;
   $('menuBtn').onclick=togSidebar;
   $('overlay').onclick=togSidebar;
@@ -430,6 +584,7 @@ function bindAll(){
   $('cancelEditBtn').onclick=cancelEdit;
   $('chatInfoBtn').onclick=()=>isGrp&&openGrpInfo();
   $('closeGrpInfo').onclick=()=>$('grpInfoModal').classList.remove('open');
+  $('leaveGrpBtn').onclick=leaveGroup;
   $('audioCallBtn').onclick=()=>startCall(false);
   $('videoCallBtn').onclick=()=>startCall(true);
   $('acceptBtn').onclick=acceptCall;
@@ -438,12 +593,24 @@ function bindAll(){
   $('clearChatBtn').onclick=clearChat;
   $('statsBtn').onclick=showStats;
   $('closeStatsBtn').onclick=()=>$('statsModal').classList.remove('open');
+  $('closeFwdBtn').onclick=()=>$('fwdModal').classList.remove('open');
   $('adBar').onclick=()=>toast('Premium tez orada!');
   $('closePrevBtn').onclick=closePrev;
-  $('imgPrev').onclick=e=>e.target===$('imgPrev')&&closePrev();
+  $('imgPrev').onclick=e=>{if(e.target===$('imgPrev'))closePrev();};
+  $('downloadImgBtn').onclick=downloadImg;
   $('saveProfileBtn').onclick=saveProfile;
   $('closeProfileBtn').onclick=()=>$('profileModal').classList.remove('open');
   $('avatarInput').onchange=uploadAvatar;
+  $('closeUserInfo').onclick=()=>$('userInfoModal').classList.remove('open');
+  $('uinfoChatBtn').onclick=()=>{
+    $('userInfoModal').classList.remove('open');
+    if(uinfoUid&&users[uinfoUid])openChat(uinfoUid,users[uinfoUid].name,false);
+    if(window.innerWidth<768)togSidebar();
+  };
+  $('uinfoCallBtn').onclick=()=>{
+    $('userInfoModal').classList.remove('open');
+    if(uinfoUid){chatUid=uinfoUid;startCall(false);}
+  };
   $('msgInput').addEventListener('input',()=>{handleTyping();autoH();});
   $('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
   document.addEventListener('click',e=>{
@@ -455,7 +622,7 @@ function bindAll(){
 function autoH(){const el=$('msgInput');el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px';}
 function togSidebar(){$('sidebar').classList.toggle('open');$('overlay').classList.toggle('open');}
 
-// PROFILE
+// === PROFILE ===
 function openProfile(){
   $('newNameInput').value=myName;
   const pa=$('profAv');
@@ -463,22 +630,20 @@ function openProfile(){
   else{pa.style.backgroundImage='';pa.textContent=av(myName);}
   $('profileModal').classList.add('open');
 }
-
 async function saveProfile(){
   const newName=$('newNameInput').value.trim();
-  if(!newName){toast('Ism kiriting');return;}
+  if(!newName){toast(t('enterName'));return;}
   myName=newName;
   localStorage.setItem('dc_name',newName);
   await updateProfile(auth.currentUser,{displayName:newName});
   await update(ref(db,`users/${myUid}`),{name:newName});
   updateMyCard();
   $('profileModal').classList.remove('open');
-  toast('Profil yangilandi ✓');
+  toast(t('profileSaved'));
 }
-
 async function uploadAvatar(e){
   const f=e.target.files[0];if(!f)return;
-  toast('Rasm yuklanmoqda...');
+  toast(t('imgUploading'));
   const fd=new FormData();fd.append('image',f);
   try{
     const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`,{method:'POST',body:fd});
@@ -491,44 +656,71 @@ async function uploadAvatar(e){
       const pa=$('profAv');
       pa.style.backgroundImage=`url(${url})`;pa.textContent='';
       updateMyCard();
-      toast('Rasm yangilandi ✓');
+      toast(t('imgSent'));
     }
-  }catch{toast('Rasm yuklashda xato!');}
+  }catch{toast('Xato!');}
 }
 
-// LOGOUT
+// === USER INFO MODAL ===
+function openUserInfo(uid){
+  const u=users[uid];if(!u)return;
+  uinfoUid=uid;
+  const av_el=$('uinfoAv');
+  if(u.avatar){av_el.style.backgroundImage=`url(${u.avatar})`;av_el.textContent='';}
+  else{av_el.style.backgroundImage='';av_el.textContent=av(u.name);}
+  av_el.onclick=()=>{if(u.avatar)previewImg(u.avatar);};
+  $('uinfoName').textContent=u.name;
+  $('uinfoStatus').textContent=u.online?t('online'):t('offline');
+  $('uinfoRows').innerHTML=`
+    <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${t('lastSeen')}</div>
+    <div style="font-size:14px;font-weight:600">${u.online?'—':fmtDate(u.lastSeen)+' '+fmtTime(u.lastSeen)}</div>
+  `;
+  $('uinfoChatBtn').textContent=t('directChat');
+  $('uinfoCallBtn').textContent=t('callBtn');
+  $('userInfoModal').classList.add('open');
+}
+
+// === LOGOUT ===
 async function doLogout(){
   if(!confirm('Chiqmoqchimisiz?'))return;
   await update(ref(db,`users/${myUid}`),{online:false,lastSeen:serverTimestamp()});
-  await signOut(auth);
-  localStorage.clear();
+  await signOut(auth);localStorage.clear();
   window.location.replace('login.html');
 }
 
-// RENDER LIST
+// === RENDER LIST ===
+// Tartib: 1) Guruhlar (yangi yuqorida) → 2) Online foydalanuvchilar → 3) Offline
 function renderList(){
   const q=($('searchInput')?.value||'').toLowerCase().trim();
   const list=$('usersList');if(!list)return;
   list.innerHTML='';
-  const items=[];
+
+  // 1. Guruhlar (yuqorida)
+  const grpItems=[];
   Object.entries(grps).forEach(([gid,g])=>{
     if(!g.members?.[myUid])return;
     if(q&&!g.name.toLowerCase().includes(q))return;
-    items.push({id:gid,name:g.name,type:'grp',unread:unreads[gid]||0,members:Object.keys(g.members||{}).length});
+    grpItems.push({id:gid,name:g.name,type:'grp',unread:unreads[gid]||0,members:Object.keys(g.members||{}).length,created:g.created||0});
   });
+  grpItems.sort((a,b)=>b.created-a.created);
+
+  // 2. Foydalanuvchilar: avval online, keyin offline
+  const userItems=[];
   Object.entries(users).forEach(([uid,u])=>{
     if(uid===myUid||!u.name)return;
     if(q&&!u.name.toLowerCase().includes(q))return;
-    items.push({id:uid,...u,type:'user',isFrd:!!frds[uid],unread:unreads[uid]||0});
+    userItems.push({id:uid,...u,type:'user',isFrd:!!frds[uid],unread:unreads[uid]||0});
   });
-  items.sort((a,b)=>{
+  userItems.sort((a,b)=>{
     if(a.unread&&!b.unread)return -1;if(!a.unread&&b.unread)return 1;
-    if(a.isFrd&&!b.isFrd)return -1;if(!a.isFrd&&b.isFrd)return 1;
     if(a.online&&!b.online)return -1;if(!a.online&&b.online)return 1;
     return(b.lastSeen||0)-(a.lastSeen||0);
   });
-  if(!items.length){list.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--text2)">Hech kim topilmadi</div>';return;}
-  items.forEach(item=>{
+
+  const allItems=[...grpItems,...userItems];
+  if(!allItems.length){list.innerHTML=`<div style="padding:20px;text-align:center;font-size:13px;color:var(--text2)">${t('noOne')}</div>`;return;}
+
+  allItems.forEach(item=>{
     const d=document.createElement('div');
     const isActive=(isGrp?chatId:chatUid)===item.id;
     d.className='uitem'+(isActive?' active':'');
@@ -536,16 +728,17 @@ function renderList(){
       d.innerHTML=`<div class="avatar" style="background:#1d6a4a">👥</div>
         <div class="info" onclick="window._openGrp('${item.id}','${esc(item.name)}')">
           <div class="uname">${esc(item.name)} <span class="tag grp">GURUH</span></div>
-          <div class="usub">${item.members} a'zo</div>
+          <div class="usub">${item.members} ${t('members')}</div>
         </div>${item.unread?`<div class="badge">${item.unread}</div>`:''}`;
     } else {
-      const lastT=item.lastSeen?new Date(item.lastSeen).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}):'';
+      // Sana formati: 12.01.2026
+      const lastStr=item.lastSeen?fmtDate(item.lastSeen):'';
       const avStyle=item.avatar?`style="background-image:url(${item.avatar});background-size:cover;background-position:center"`:'' ;
       d.innerHTML=`<div class="odot ${item.online?'on':''}"></div>
-        <div class="avatar" ${avStyle}>${item.avatar?'':av(item.name)}</div>
+        <div class="avatar" ${avStyle} onclick="event.stopPropagation();window._openUserInfo('${item.id}')">${item.avatar?'':av(item.name)}</div>
         <div class="info" onclick="window._openUsr('${item.id}','${esc(item.name)}')">
           <div class="uname">${esc(item.name)}</div>
-          <div class="usub">${item.online?'🟢 online':(lastT?'Oxirgi: '+lastT:'offline')}</div>
+          <div class="usub">${item.online?t('online'):(lastStr?t('lastSeen')+lastStr:t('offline'))}</div>
         </div>
         <button class="star-btn" onclick="event.stopPropagation();window._togFrd('${item.id}',${item.isFrd})">${item.isFrd?'⭐':'☆'}</button>
         ${item.unread?`<div class="badge">${item.unread}</div>`:''}`;
@@ -556,35 +749,37 @@ function renderList(){
 
 window._openUsr=(uid,name)=>{openChat(uid,name,false);if(window.innerWidth<768)togSidebar();};
 window._openGrp=(gid,name)=>{openChat(gid,name,true);if(window.innerWidth<768)togSidebar();};
+window._openUserInfo=uid=>openUserInfo(uid);
 window._togFrd=async(uid,is)=>{
-  if(is){await remove(ref(db,`friends/${myUid}/${uid}`));toast('Sevimlilardan olib tashlandi');}
-  else{await set(ref(db,`friends/${myUid}/${uid}`),true);toast('Sevimliylarga qo\'shildi ⭐');}
+  if(is){await remove(ref(db,`friends/${myUid}/${uid}`));toast('★');}
+  else{await set(ref(db,`friends/${myUid}/${uid}`),true);toast('⭐');}
 };
 
-// OPEN CHAT
+// === OPEN CHAT ===
 function openChat(id,name,isGroup){
   isGrp=isGroup;chatName=name;
   const msgs=$('messages');msgs.innerHTML='';
   if(isGroup){
     chatId=id;chatUid=null;
-    $('audioCallBtn').style.display='none';
-    $('videoCallBtn').style.display='none';
-    $('chatSub').textContent=`${Object.keys(grps[id]?.members||{}).length} a'zo`;
+    $('audioCallBtn').classList.remove('show');
+    $('videoCallBtn').classList.remove('show');
+    $('chatSub').textContent=`${Object.keys(grps[id]?.members||{}).length} ${t('members')}`;
   } else {
     chatId=[myUid,id].sort().join('_');
     chatUid=id;
-    $('audioCallBtn').style.display='flex';
-    $('videoCallBtn').style.display='flex';
-    $('chatSub').textContent=users[id]?.online?'🟢 online':'⚫ offline';
+    $('audioCallBtn').classList.add('show');
+    $('videoCallBtn').classList.add('show');
+    $('chatSub').textContent=users[id]?.online?t('online'):t('offline');
   }
   $('chatTitle').textContent=name;
-  $('clearChatBtn').style.display='';
-  $('statsBtn').style.display='';
+  $('clearChatBtn').classList.add('show');
+  $('statsBtn').classList.add('show');
   remove(ref(db,`unread/${myUid}/${id}`));
+  cancelReply();cancelEdit();
   loadMsgs();listenTyping();loadPinned();renderList();
 }
 
-// LOAD MESSAGES
+// === LOAD MESSAGES ===
 function loadMsgs(){
   offFns.forEach(f=>f());offFns=[];
   const box=$('messages');box.innerHTML='';
@@ -600,7 +795,7 @@ function loadMsgs(){
     box.innerHTML='';lastDate='';
     Object.entries(msgs).forEach(([k,m])=>{
       if(m.time){
-        const d=new Date(m.time).toLocaleDateString('uz',{day:'numeric',month:'long'});
+        const d=fmtDateLong(m.time);
         if(d!==lastDate){
           lastDate=d;
           const dv=document.createElement('div');
@@ -621,34 +816,67 @@ function loadMsgs(){
   offFns=[()=>off(cr)];
 }
 
-// RENDER MESSAGE
+// === RENDER MESSAGE ===
 function renderMsg(key,msg,box){
   const mine=msg.sender===myUid;
   const row=document.createElement('div');
   row.className='mrow '+(mine?'out':'in');
   row.setAttribute('data-msg-id',key);
+
+  // Reply preview
+  let replyHtml='';
+  if(msg.replyTo){
+    const rn=msg.replyTo.senderName||'';
+    const rt=msg.replyTo.text||'📎';
+    replyHtml=`<div class="reply-prev" onclick="window._scrollToMsg('${msg.replyTo.key}')">
+      <div class="rp-name">${esc(rn)}</div>
+      <div class="rp-text">${esc(rt)}</div>
+    </div>`;
+  }
+
   let content='';
-  if(msg.type==='image')content=`<img src="${esc(msg.url)}" class="mimg" onclick="window._prevImg('${esc(msg.url)}')" loading="lazy">`;
-  else if(msg.type==='audio'){const src=msg.base64Audio||msg.url||'';content=`<div class="maudio"><audio controls src="${src}"></audio></div>`;}
-  else if(msg.type==='sticker')content=`<div class="msticker">${msg.text}</div>`;
-  else content=`<div>${esc(msg.text||'')}</div>`;
+  if(msg.type==='image')
+    content=`<img src="${esc(msg.url)}" class="mimg" onclick="window._prevImg('${esc(msg.url)}')" loading="lazy">`;
+  else if(msg.type==='audio'){
+    const src=msg.base64Audio||msg.url||'';
+    content=`<div class="maudio"><audio controls src="${src}"></audio></div>`;
+  }
+  else if(msg.type==='sticker')
+    content=`<div class="msticker">${msg.text}</div>`;
+  else
+    content=`<div>${esc(msg.text||'')}</div>`;
+
   let reacts='';
-  if(msg.reactions){const c={};Object.values(msg.reactions).forEach(r=>c[r]=(c[r]||0)+1);reacts=`<div class="rbar">${Object.entries(c).map(([e,n])=>`${e}${n>1?n:''}`).join(' ')}</div>`;}
-  const t=msg.time?new Date(msg.time).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}):'';
-  const ed=msg.edited?'<span class="edited-lbl"> (tahrirlangan)</span>':'';
+  if(msg.reactions){
+    const c={};Object.values(msg.reactions).forEach(r=>c[r]=(c[r]||0)+1);
+    reacts=`<div class="rbar">${Object.entries(c).map(([e,n])=>`${e}${n>1?n:''}`).join(' ')}</div>`;
+  }
+
+  const tm=fmtTime(msg.time);
+  const ed=msg.edited?'<span class="edited-lbl"> ✎</span>':'';
   const tick=mine?`<span class="tick ${msg.status==='seen'?'seen':''}">${msg.status==='seen'?'✓✓':'✓'}</span>`:'';
+  const senderHtml=(!mine&&msg.senderName)?`<div class="msender" onclick="window._openUserInfo('${msg.sender}')">${esc(msg.senderName)}</div>`:'';
+
+  // Forwarded label
+  const fwdHtml=msg.forwarded?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">↗️ ${esc(msg.forwarded)}</div>`:'';
+
   row.innerHTML=`<div class="mbub"
-    oncontextmenu="window._showMenu(event,'${key}',${mine});return false;"
-    ontouchstart="window._sTouch(event,'${key}',${mine})"
+    oncontextmenu="window._showMenu(event,'${key}',${mine},'${msg.type||'text'}');return false;"
+    ontouchstart="window._sTouch(event,'${key}',${mine},'${msg.type||'text'}')"
     ontouchend="window._eTouch()">
-    ${!mine&&msg.senderName?`<div class="msender">${esc(msg.senderName)}</div>`:''}
+    ${senderHtml}${fwdHtml}${replyHtml}
     ${content}${ed}${reacts}
-    <div class="mmeta">${t} ${tick}</div>
+    <div class="mmeta">${tm} ${tick}</div>
   </div>`;
   box.appendChild(row);
 }
 
-// SEND
+window._scrollToMsg=key=>{
+  const el=document.querySelector(`[data-msg-id="${key}"]`);
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.opacity='.5';setTimeout(()=>el.style.opacity='',800);}
+};
+
+// === SEND ===
 async function sendMsg(){
   const inp=$('msgInput'),txt=inp.value.trim();
   if(!txt||!chatId)return;
@@ -657,9 +885,69 @@ async function sendMsg(){
     await update(ref(db,`chats/${chatId}/${editKey}`),{text:txt,edited:true,editTime:serverTimestamp()});
     cancelEdit();
   } else {
-    await push(ref(db,`chats/${chatId}`),{text:txt,sender:myUid,senderName:myName,time:serverTimestamp(),type:'text',status:'sent'});
+    const msgData={text:txt,sender:myUid,senderName:myName,time:serverTimestamp(),type:'text',status:'sent'};
+    if(replyKey&&replyData){
+      msgData.replyTo={key:replyKey,text:replyData.text||'📎',senderName:replyData.senderName||''};
+    }
+    await push(ref(db,`chats/${chatId}`),msgData);
+    cancelReply();
     notifyOther();
   }
+}
+
+// === REPLY ===
+function setReply(key,msg){
+  replyKey=key;replyData=msg;
+  $('replyText').textContent=(msg.senderName||'')+': '+(msg.text||'📎');
+  $('replyBar').classList.add('show');
+  $('msgInput').focus();
+}
+window.cancelReply=function(){
+  replyKey=null;replyData=null;
+  $('replyBar').classList.remove('show');
+  $('replyText').textContent='';
+};
+
+// === FORWARD ===
+function openForward(msg){
+  fwdMsgData=msg;
+  const list=$('fwdList');list.innerHTML='';
+
+  // Users
+  Object.entries(users).forEach(([uid,u])=>{
+    if(uid===myUid||!u.name)return;
+    const d=document.createElement('div');d.className='fwd-item';
+    const avStyle=u.avatar?`style="background-image:url(${u.avatar});background-size:cover;background-position:center"`:'' ;
+    d.innerHTML=`<div class="avatar sm" ${avStyle}>${u.avatar?'':av(u.name)}</div><span>${esc(u.name)}</span>`;
+    d.onclick=async()=>{
+      const targetChatId=[myUid,uid].sort().join('_');
+      const fwdData={...fwdMsgData,sender:myUid,senderName:myName,time:serverTimestamp(),status:'sent',forwarded:myName};
+      delete fwdData.reactions;delete fwdData.replyTo;
+      await push(ref(db,`chats/${targetChatId}`),fwdData);
+      // unread
+      const ur=ref(db,`unread/${uid}/${myUid}`);get(ur).then(s=>set(ur,(s.val()||0)+1));
+      $('fwdModal').classList.remove('open');
+      toast(t('fwdSent'));
+    };
+    list.appendChild(d);
+  });
+
+  // Groups
+  Object.entries(grps).forEach(([gid,g])=>{
+    if(!g.members?.[myUid])return;
+    const d=document.createElement('div');d.className='fwd-item';
+    d.innerHTML=`<div class="avatar sm" style="background:#1d6a4a">👥</div><span>${esc(g.name)}</span>`;
+    d.onclick=async()=>{
+      const fwdData={...fwdMsgData,sender:myUid,senderName:myName,time:serverTimestamp(),status:'sent',forwarded:myName};
+      delete fwdData.reactions;delete fwdData.replyTo;
+      await push(ref(db,`chats/${gid}`),fwdData);
+      $('fwdModal').classList.remove('open');
+      toast(t('fwdSent'));
+    };
+    list.appendChild(d);
+  });
+
+  $('fwdModal').classList.add('open');
 }
 
 function notifyOther(){
@@ -673,45 +961,42 @@ function notifyOther(){
   }
 }
 
-// CLEAR CHAT
+// === CLEAR CHAT ===
 async function clearChat(){
   if(!chatId)return;
   const snap=await get(ref(db,`chats/${chatId}`));
   const msgs=snap.val()||{};
   const myMsgs=Object.entries(msgs).filter(([k,m])=>m.sender===myUid);
-  if(!myMsgs.length){toast('O\'chirish uchun xabarlar yo\'q');return;}
-  if(!confirm(`Siz yuborgan ${myMsgs.length} ta xabarni o'chirishni xohlaysizmi?`))return;
+  if(!myMsgs.length){toast(t('noMsgsToDelete'));return;}
+  if(!confirm(`${myMsgs.length} ${t('confirmClear')}`))return;
   for(const [k] of myMsgs)await remove(ref(db,`chats/${chatId}/${k}`));
-  toast(`${myMsgs.length} ta xabar o'chirildi 🗑️`);
+  toast(`${myMsgs.length} ${t('cleared')}`);
 }
 
-// STATS
+// === STATS ===
 async function showStats(){
   if(!chatId)return;
   const snap=await get(ref(db,`chats/${chatId}`));
   const msgs=Object.values(snap.val()||{});
-  const total=msgs.length;
-  const mine=msgs.filter(m=>m.sender===myUid).length;
-  const theirs=total-mine;
-  const images=msgs.filter(m=>m.type==='image').length;
-  const audios=msgs.filter(m=>m.type==='audio').length;
-  const stickers=msgs.filter(m=>m.type==='sticker').length;
+  const total=msgs.length,mine=msgs.filter(m=>m.sender===myUid).length;
+  const theirs=total-mine,images=msgs.filter(m=>m.type==='image').length;
+  const audios=msgs.filter(m=>m.type==='audio').length,stickers=msgs.filter(m=>m.type==='sticker').length;
   const texts=msgs.filter(m=>m.type==='text').length;
   const words=msgs.filter(m=>m.type==='text'&&m.text).reduce((s,m)=>s+(m.text.split(' ').length),0);
   $('statsContent').innerHTML=`
-    <div class="stat-row"><span class="stat-label">📨 Jami xabarlar</span><span class="stat-val">${total}</span></div>
-    <div class="stat-row"><span class="stat-label">🟢 Men yuborgan</span><span class="stat-val">${mine}</span></div>
-    <div class="stat-row"><span class="stat-label">🔵 ${chatName} yuborgan</span><span class="stat-val">${theirs}</span></div>
-    <div class="stat-row"><span class="stat-label">📝 Matn xabarlar</span><span class="stat-val">${texts}</span></div>
-    <div class="stat-row"><span class="stat-label">🖼️ Rasmlar</span><span class="stat-val">${images}</span></div>
-    <div class="stat-row"><span class="stat-label">🎤 Ovozli xabarlar</span><span class="stat-val">${audios}</span></div>
-    <div class="stat-row"><span class="stat-label">😊 Stikerlar</span><span class="stat-val">${stickers}</span></div>
-    <div class="stat-row"><span class="stat-label">🔤 Jami so'zlar</span><span class="stat-val">${words}</span></div>
+    <div class="stat-row"><span class="stat-label">📨 Jami</span><span class="stat-val">${total}</span></div>
+    <div class="stat-row"><span class="stat-label">🟢 Men</span><span class="stat-val">${mine}</span></div>
+    <div class="stat-row"><span class="stat-label">🔵 ${chatName}</span><span class="stat-val">${theirs}</span></div>
+    <div class="stat-row"><span class="stat-label">📝 Matn</span><span class="stat-val">${texts}</span></div>
+    <div class="stat-row"><span class="stat-label">🖼️ Rasm</span><span class="stat-val">${images}</span></div>
+    <div class="stat-row"><span class="stat-label">🎤 Ovoz</span><span class="stat-val">${audios}</span></div>
+    <div class="stat-row"><span class="stat-label">😊 Stiker</span><span class="stat-val">${stickers}</span></div>
+    <div class="stat-row"><span class="stat-label">🔤 So'z</span><span class="stat-val">${words}</span></div>
   `;
   $('statsModal').classList.add('open');
 }
 
-// STICKERS
+// === STICKERS ===
 function buildStickers(){$('stickerPanel').innerHTML=STICKERS.map(s=>`<div class="sitem" onclick="window._sendStkr('${s}')">${s}</div>`).join('');}
 function togStickers(){$('stickerPanel').classList.toggle('open');}
 window._sendStkr=async s=>{
@@ -721,12 +1006,19 @@ window._sendStkr=async s=>{
   notifyOther();
 };
 
-// REACTIONS
-function buildReacts(){$('reactPanel').innerHTML=REACTS.map(r=>`<div class="ritem" onclick="window._addReact('${r}')">${r}</div>`).join('');}
+// === REACTIONS ===
+function buildReacts(){
+  $('reactPanel').innerHTML=REACTS.map(r=>`<div class="ritem" onclick="window._addReact('${r}')">${r}</div>`).join('');
+}
 window._showReactPanel=(key,x,y)=>{
-  reactKey=key;const p=$('reactPanel');p.classList.add('open');
-  p.style.left=Math.min(x,window.innerWidth-240)+'px';
-  p.style.top=Math.max(y-70,4)+'px';
+  reactKey=key;
+  const p=$('reactPanel');
+  p.classList.add('open');
+  // Позицияни тўғри ҳисоблаш
+  const px=Math.min(parseInt(x)||0,window.innerWidth-260);
+  const py=Math.max((parseInt(y)||0)-70,4);
+  p.style.left=px+'px';
+  p.style.top=py+'px';
 };
 window._addReact=async emoji=>{
   if(!reactKey||!chatId)return;
@@ -737,60 +1029,95 @@ window._addReact=async emoji=>{
   reactKey=null;
 };
 
-// MSG MENU
-let touchT=null;
-window._sTouch=(e,k,mine)=>{touchT=setTimeout(()=>window._showMenu(e.touches[0],k,mine),600);};
+// === MSG MENU ===
+let touchT=null,touchKey=null,touchMine=null,touchType=null;
+window._sTouch=(e,k,mine,type)=>{
+  touchKey=k;touchMine=mine;touchType=type;
+  touchT=setTimeout(()=>window._showMenu(e.touches[0],k,mine,type),600);
+};
 window._eTouch=()=>clearTimeout(touchT);
-window._showMenu=(e,key,mine)=>{
+
+window._showMenu=(e,key,mine,type)=>{
   document.querySelectorAll('.mmenu').forEach(m=>m.remove());
+  const px=e.pageX||e.clientX||0;
+  const py=e.pageY||e.clientY||0;
   const m=document.createElement('div');m.className='mmenu';
+  const isImg=type==='image';
   m.innerHTML=`
-    <button onclick="window._showReactPanel('${key}',${e.pageX},${e.pageY})">😊 Reaksiya</button>
-    <button onclick="window._pinMsg('${key}')">📌 Mahkamlash</button>
-    <button onclick="window._copyMsg('${key}')">📋 Nusxa olish</button>
+    <button onclick="window._showReactPanel('${key}',${px},${py})">😊 ${t('react')}</button>
+    <button onclick="window._replyMsg('${key}')">↩️ ${t('reply')}</button>
+    <button onclick="window._fwdMsg('${key}')">↗️ ${t('forward')}</button>
+    ${!isImg?`<button onclick="window._copyMsg('${key}')">📋 ${t('copy')}</button>`:''}
+    ${isImg?`<button onclick="window._downloadMsgImg('${key}')">⬇️ ${t('download')}</button>`:''}
+    <button onclick="window._pinMsg('${key}')">📌 ${t('pin')}</button>
     ${mine?`<div class="divider"></div>
-    <button onclick="window._startEdit('${key}')">✏️ Tahrirlash</button>
-    <button class="rd" onclick="window._delMsg('${key}')">🗑️ O'chirish</button>`:''}`;
-  m.style.left=Math.min(e.pageX,window.innerWidth-180)+'px';
-  m.style.top=Math.min(e.pageY,window.innerHeight-200)+'px';
+    ${type==='text'?`<button onclick="window._startEdit('${key}')">✏️ ${t('edit')}</button>`:''}
+    <button class="rd" onclick="window._delMsg('${key}')">🗑️ ${t('del')}</button>`:''}
+  `;
+  const left=Math.min(px,window.innerWidth-190);
+  const top=Math.min(py,window.innerHeight-250);
+  m.style.left=left+'px';m.style.top=top+'px';
   document.body.appendChild(m);
+};
+
+window._replyMsg=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));
+  if(s.val())setReply(key,s.val());
+};
+window._fwdMsg=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));
+  if(s.val())openForward({...s.val()});
 };
 window._pinMsg=async key=>{
   const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
-  if(m.type!=='text')return toast('Faqat matnni mahkamlash mumkin');
-  await set(ref(db,`pinned/${chatId}`),{msgId:key,text:m.text});toast('Xabar mahkamlandi 📌');
+  if(m.type!=='text')return toast(t('onlyText'));
+  await set(ref(db,`pinned/${chatId}`),{msgId:key,text:m.text});toast(t('msgPinned'));
 };
 window._copyMsg=async key=>{
   const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
-  if(m.text)navigator.clipboard?.writeText(m.text).then(()=>toast('Nusxa olindi ✓'));
+  if(!m.text)return;
+  try{
+    await navigator.clipboard.writeText(m.text);
+    toast(t('msgCopied'));
+  }catch{
+    // Fallback
+    const ta=document.createElement('textarea');
+    ta.value=m.text;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');ta.remove();
+    toast(t('msgCopied'));
+  }
+};
+window._downloadMsgImg=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
+  if(m.url)downloadFromUrl(m.url);
 };
 window._startEdit=async key=>{
   const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
-  if(m.type!=='text')return toast('Faqat matnni tahrirlash mumkin');
+  if(m.type!=='text')return toast(t('onlyText'));
   editKey=key;$('msgInput').value=m.text;$('editBan').classList.add('show');$('msgInput').focus();
 };
 function cancelEdit(){editKey=null;$('msgInput').value='';$('editBan').classList.remove('show');}
 window._delMsg=async key=>{
-  if(!confirm('Xabarni o\'chirishga ishonchingiz komilmi?'))return;
-  await remove(ref(db,`chats/${chatId}/${key}`));toast('Xabar o\'chirildi');
+  if(!confirm(t('confirmDel')))return;
+  await remove(ref(db,`chats/${chatId}/${key}`));toast(t('msgDeleted'));
 };
 
-// PINNED
+// === PINNED ===
 function loadPinned(){
   onValue(ref(db,`pinned/${chatId}`),snap=>{
     const p=snap.val();
     if(p){$('pinnedTxt').textContent=p.text;$('pinnedBar').style.display='';
-      $('pinnedBar').onclick=()=>document.querySelector(`[data-msg-id="${p.msgId}"]`)?.scrollIntoView({behavior:'smooth',block:'center'});
+      $('pinnedBar').onclick=()=>window._scrollToMsg(p.msgId);
     } else $('pinnedBar').style.display='none';
   });
 }
 
-// TYPING
+// === TYPING ===
 function listenTyping(){
   if(isGrp||!chatUid)return;
   onValue(ref(db,`typing/${chatId}/${chatUid}`),snap=>{
     const tb=$('typingBar');
-    if(snap.val()){tb.style.display='';tb.textContent=`${chatName} yozyapti...`;}
+    if(snap.val()){tb.style.display='';tb.textContent=`${chatName}...`;}
     else tb.style.display='none';
   });
 }
@@ -801,29 +1128,27 @@ function handleTyping(){
   typTimer=setTimeout(()=>set(ref(db,`typing/${chatId}/${myUid}`),false),2000);
 }
 
-// IMAGE UPLOAD — imgbb ga yuklash
+// === IMAGE UPLOAD ===
 async function uploadImg(e){
   const f=e.target.files[0];if(!f||!chatId)return;
-  e.target.value='';toast('Rasm yuklanmoqda...');
+  e.target.value='';toast(t('imgUploading'));
   const fd=new FormData();fd.append('image',f);
   try{
     const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`,{method:'POST',body:fd});
     const d=await r.json();
     if(d.success){
-      await push(ref(db,`chats/${chatId}`),{url:d.data.url,sender:myUid,senderName:myName,time:serverTimestamp(),type:'image',status:'sent'});
-      notifyOther();
-      toast('Rasm yuborildi ✓');
+      const msgData={url:d.data.url,sender:myUid,senderName:myName,time:serverTimestamp(),type:'image',status:'sent'};
+      if(replyKey&&replyData){msgData.replyTo={key:replyKey,text:replyData.text||'📎',senderName:replyData.senderName||''};}
+      await push(ref(db,`chats/${chatId}`),msgData);
+      cancelReply();notifyOther();toast(t('imgSent'));
     }
-  }catch{toast('Rasm yuklashda xato!');}
+  }catch{toast('Xato!');}
 }
 
-// AUDIO RECORD — imgbb ga yuklash (bepul)
+// === AUDIO RECORD ===
 async function togRec(){
   if(mediaRec&&mediaRec.state==='recording'){
-    mediaRec.stop();
-    $('inputBar').classList.remove('recording');
-    $('micBtn').textContent='🎤';
-    return;
+    mediaRec.stop();$('inputBar').classList.remove('recording');$('micBtn').textContent='🎤';return;
   }
   try{
     const stream=await navigator.mediaDevices.getUserMedia({audio:true});
@@ -832,40 +1157,46 @@ async function togRec(){
     mediaRec=new MediaRecorder(stream,{mimeType});
     mediaRec.ondataavailable=e=>{if(e.data.size>0)audChunks.push(e.data);};
     mediaRec.onstop=async()=>{
-      stream.getTracks().forEach(t=>t.stop());
+      stream.getTracks().forEach(tr=>tr.stop());
       const blob=new Blob(audChunks,{type:mimeType});
-      if(blob.size>900000){toast('Ovoz juda uzun (max 30 sek)!');return;}
-      toast('Ovoz saqlanmoqda...');
+      if(blob.size>900000){toast('Max 30 sek!');return;}
+      toast(t('voiceStart'));
       try{
         const reader=new FileReader();
         reader.onloadend=async()=>{
-          const base64=reader.result;
-          await push(ref(db,`chats/${chatId}`),{
-            base64Audio:base64,
-            sender:myUid,senderName:myName,
-            time:serverTimestamp(),type:'audio',status:'sent'
-          });
-          notifyOther();
-          toast('Ovozli xabar yuborildi 🎤');
+          await push(ref(db,`chats/${chatId}`),{base64Audio:reader.result,sender:myUid,senderName:myName,time:serverTimestamp(),type:'audio',status:'sent'});
+          notifyOther();toast(t('voiceSent'));
         };
         reader.readAsDataURL(blob);
-      }catch(err){console.error(err);toast('Ovoz saqlashda xato!');}
+      }catch(err){toast('Xato!');}
     };
     mediaRec.start();
-    $('inputBar').classList.add('recording');
-    $('micBtn').textContent='⏹️';
-    toast('Yozish boshlandi 🔴 — to\'xtatish uchun yana bosing');
+    $('inputBar').classList.add('recording');$('micBtn').textContent='⏹️';
+    toast(t('voiceStart'));
     setTimeout(()=>{
       if(mediaRec&&mediaRec.state==='recording'){
-        mediaRec.stop();
-        $('inputBar').classList.remove('recording');
-        $('micBtn').textContent='🎤';
+        mediaRec.stop();$('inputBar').classList.remove('recording');$('micBtn').textContent='🎤';
       }
     },30000);
-  }catch{toast('Mikrofon ruxsati berilmagan!');}
+  }catch{toast(t('micError'));}
 }
 
-// GROUPS
+// === IMAGE PREVIEW & DOWNLOAD ===
+function previewImg(url){$('prevImg').src=url;$('imgPrev').classList.add('open');}
+window._prevImg=previewImg;
+function closePrev(){$('imgPrev').classList.remove('open');$('prevImg').src='';}
+
+function downloadFromUrl(url){
+  const a=document.createElement('a');
+  a.href=url;a.download='image.jpg';a.target='_blank';
+  document.body.appendChild(a);a.click();a.remove();
+}
+function downloadImg(){
+  const src=$('prevImg').src;
+  if(src)downloadFromUrl(src);
+}
+
+// === GROUPS ===
 function openGrpModal(){
   const list=$('grpUsersList');list.innerHTML='';
   Object.entries(users).forEach(([uid,u])=>{
@@ -880,75 +1211,93 @@ function openGrpModal(){
 function closeGrpModal(){$('grpModal').classList.remove('open');$('grpNameInput').value='';}
 async function createGrp(){
   const name=$('grpNameInput').value.trim();
-  if(!name)return toast('Guruh nomini kiriting');
+  if(!name)return toast(t('enterGroup'));
   const cbs=document.querySelectorAll('.gcb-item input:checked');
-  if(!cbs.length)return toast('Kamida 1 kishi tanlang');
+  if(!cbs.length)return toast(t('selectOne'));
   const members={[myUid]:true};
   cbs.forEach(cb=>members[cb.value]=true);
   await push(ref(db,'groups'),{name,creator:myUid,members,created:serverTimestamp()});
-  closeGrpModal();toast('Guruh yaratildi ✓');
+  closeGrpModal();toast(t('grpCreated'));
 }
+
 function openGrpInfo(){
   if(!chatId||!isGrp)return;
   const g=grps[chatId];if(!g)return;
   $('grpInfoName').textContent=g.name;
+  $('leaveGrpBtn').textContent=t('leave');
   const ml=$('grpMembersList');ml.innerHTML='';
   Object.keys(g.members||{}).forEach(uid=>{
     const u=users[uid];if(!u)return;
+    const isAdmin=uid===g.creator;
+    const isMe=uid===myUid;
+    const avStyle=u.avatar?`style="background-image:url(${u.avatar});background-size:cover;background-position:center"`:'' ;
     const d=document.createElement('div');d.className='member-item';
-    d.innerHTML=`<div class="odot ${u.online?'on':''}"></div><div class="avatar sm">${av(u.name)}</div><span style="font-size:14px;font-weight:600">${esc(u.name)}</span>${uid===g.creator?'<span class="tag pro" style="margin-left:auto">Admin</span>':''}`;
+    d.innerHTML=`
+      <div class="odot ${u.online?'on':''}"></div>
+      <div class="avatar sm" ${avStyle}>${u.avatar?'':av(u.name)}</div>
+      <span style="font-size:14px;font-weight:600;flex:1">${esc(u.name)}${isMe?' (Men)':''}</span>
+      ${isAdmin?'<span class="tag pro">Admin</span>':''}
+      <div class="m-acts">
+        ${!isMe?`<button onclick="event.stopPropagation();window._grpMemberChat('${uid}','${esc(u.name)}')">💬</button>`:''}
+        ${g.creator===myUid&&!isMe?`<button class="rd" onclick="window._removeGrpMember('${uid}')">✕</button>`:''}
+      </div>`;
     ml.appendChild(d);
   });
   $('grpInfoModal').classList.add('open');
 }
 
-// WEBRTC
+// Гуруҳдаги аъзо билан 1-1 чат
+window._grpMemberChat=(uid,name)=>{
+  $('grpInfoModal').classList.remove('open');
+  openChat(uid,name,false);
+  if(window.innerWidth<768)togSidebar();
+};
+
+// Гуруҳдан аъзо ўчириш (фақат admin)
+window._removeGrpMember=async uid=>{
+  if(!confirm(t('memberRemoved')+'?'))return;
+  await remove(ref(db,`groups/${chatId}/members/${uid}`));
+  toast(t('memberRemoved'));
+  openGrpInfo();
+};
+
+// Гуруҳдан чиқиш
+async function leaveGroup(){
+  if(!chatId||!isGrp)return;
+  if(!confirm(t('confirmLeave')))return;
+  await remove(ref(db,`groups/${chatId}/members/${myUid}`));
+  $('grpInfoModal').classList.remove('open');
+  $('chatTitle').textContent='DoiraChat';
+  $('chatSub').textContent='';
+  $('messages').innerHTML=`<div id="empty"><div class="empty-icon">💬</div><div style="font-size:14px;text-align:center;line-height:1.6">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div></div>`;
+  chatId=null;chatUid=null;isGrp=false;
+  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn'].forEach(b=>$(''+b).classList.remove('show'));
+  toast(t('groupLeft'));
+}
+
+// === WEBRTC ===
 function makePeer(targetUid){
   const pc=new RTCPeerConnection(ICE);
-
-  // Ovoz va video qabul qilish
   pc.ontrack=e=>{
-    console.log('ontrack:',e.track.kind);
-    if(e.track.kind==='video'){
-      $('remoteVideo').srcObject=e.streams[0];
-      $('remoteVideo').style.display='block';
-    } else {
-      // Ovoz uchun yangi audio element yaratish
-      let ra=$('remoteAudio');
-      ra.srcObject=e.streams[0];
-      ra.volume=1.0;
-      ra.play().catch(err=>console.error('Audio play error:',err));
-    }
+    if(e.track.kind==='video'){$('remoteVideo').srcObject=e.streams[0];$('remoteVideo').style.display='block';}
+    else{const ra=$('remoteAudio');ra.srcObject=e.streams[0];ra.volume=1.0;ra.play().catch(()=>{});}
   };
-
-  // ICE candidate yuborish
   pc.onicecandidate=e=>{
-    if(e.candidate&&targetUid){
-      push(ref(db,`calls/${targetUid}/iceCandidates`),e.candidate.toJSON());
-    }
+    if(e.candidate&&targetUid)push(ref(db,`calls/${targetUid}/iceCandidates`),e.candidate.toJSON());
   };
-
   pc.onconnectionstatechange=()=>{
-    console.log('Connection state:',pc.connectionState);
-    if(pc.connectionState==='connected') $('callStat').textContent='✓ Ulandi';
-    if(pc.connectionState==='failed') toast("Ulanish uzildi");
+    if(pc.connectionState==='connected')$('callStat').textContent=t('callConnected');
+    if(pc.connectionState==='failed')toast(t('callFailed'));
   };
-
-  // Raqibning ICE candidatelarini qabul qilish
   const candRef=ref(db,`calls/${myUid}/iceCandidates`);
   const unsubCand=onValue(candRef,snap=>{
     snap.forEach(child=>{
       const c=child.val();
-      if(c&&pc.remoteDescription){
-        pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{});
-      }
+      if(c&&pc.remoteDescription)pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{});
     });
   });
-
-  // Peer yopilganda unsubscribe
   const origClose=pc.close.bind(pc);
   pc.close=()=>{unsubCand();origClose();};
-
   return pc;
 }
 
@@ -959,13 +1308,13 @@ async function startCall(withVideo){
     locStream=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo});
     if(withVideo){$('localVideo').srcObject=locStream;$('localVideo').style.display='block';}
     peerConn=makePeer(chatUid);
-    locStream.getTracks().forEach(t=>peerConn.addTrack(t,locStream));
+    locStream.getTracks().forEach(tr=>peerConn.addTrack(tr,locStream));
     const offer=await peerConn.createOffer();
     await peerConn.setLocalDescription(offer);
     await set(ref(db,`calls/${chatUid}/incoming`),{callId,callerName:myName,callerUid:myUid,offer:JSON.stringify(offer),video:withVideo});
     $('callName').textContent=users[chatUid]?.name||chatName;
     $('callAv').textContent=av(users[chatUid]?.name||chatName);
-    $('callStat').textContent=withVideo?"📹 Video qo'ng'iroq...":"📞 Qo'ng'iroq qilinmoqda...";
+    $('callStat').textContent=withVideo?t('callVideo'):t('callAudio');
     $('acceptBtn').style.display='none';
     $('callModal').classList.add('open');
     $('ringSnd').play().catch(()=>{});
@@ -973,10 +1322,10 @@ async function startCall(withVideo){
       const d=snap.val();if(!d||!peerConn)return;
       if(peerConn.signalingState==='have-local-offer'){
         await peerConn.setRemoteDescription(JSON.parse(d.answer));
-        $('callStat').textContent='✓ Ulandi';$('ringSnd').pause();
+        $('callStat').textContent=t('callConnected');$('ringSnd').pause();
       }
     });
-  }catch(e){console.error(e);toast('Mikrofon/kamera ruxsati kerak!');endCall();}
+  }catch(e){console.error(e);toast(t('callPerm'));endCall();}
 }
 
 async function acceptCall(){
@@ -988,33 +1337,30 @@ async function acceptCall(){
     locStream=await navigator.mediaDevices.getUserMedia({audio:true,video:data.video});
     if(data.video){$('localVideo').srcObject=locStream;$('localVideo').style.display='block';}
     peerConn=makePeer(data.callerUid);
-    locStream.getTracks().forEach(t=>peerConn.addTrack(t,locStream));
+    locStream.getTracks().forEach(tr=>peerConn.addTrack(tr,locStream));
     await peerConn.setRemoteDescription(JSON.parse(data.offer));
     const answer=await peerConn.createAnswer();
     await peerConn.setLocalDescription(answer);
     await set(ref(db,`calls/${data.callerUid}/answer`),{answer:JSON.stringify(answer)});
-    $('callStat').textContent='✓ Ulandi';
-    $('acceptBtn').style.display='none';
-  }catch(e){console.error(e);toast('Mikrofon/kamera ruxsati kerak!');endCall();}
+    $('callStat').textContent=t('callConnected');$('acceptBtn').style.display='none';
+  }catch(e){console.error(e);toast(t('callPerm'));endCall();}
 }
 
 function toggleMute(){
   isMuted=!isMuted;
-  if(locStream)locStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
+  if(locStream)locStream.getAudioTracks().forEach(tr=>tr.enabled=!isMuted);
   $('muteBtn').textContent=isMuted?'🔇':'🎤';
-  toast(isMuted?'Mikrofon o\'chirildi':'Mikrofon yoqildi');
+  toast(isMuted?t('mutedMic'):t('unmutedMic'));
 }
 
 function endCall(){
-  $('ringSnd').pause();
-  $('callModal').classList.remove('open');
-  if(locStream){locStream.getTracks().forEach(t=>t.stop());locStream=null;}
+  $('ringSnd').pause();$('callModal').classList.remove('open');
+  if(locStream){locStream.getTracks().forEach(tr=>tr.stop());locStream=null;}
   if(peerConn){peerConn.close();peerConn=null;}
   $('localVideo').style.display='none';$('localVideo').srcObject=null;
   $('remoteVideo').style.display='none';$('remoteVideo').srcObject=null;
   $('remoteAudio').srcObject=null;
-  callId=null;isMuted=false;
-  $('muteBtn').textContent='🎤';
+  callId=null;isMuted=false;$('muteBtn').textContent='🎤';
   if(myUid)remove(ref(db,`calls/${myUid}`));
   if(chatUid)remove(ref(db,`calls/${chatUid}`));
 }
@@ -1024,17 +1370,13 @@ function listenCalls(){
     const d=snap.val();if(!d)return;
     if(callId&&callId!==d.callId){remove(ref(db,`calls/${myUid}/incoming`));return;}
     callId=d.callId;
-    $('callName').textContent=d.callerName||'Noma\'lum';
+    $('callName').textContent=d.callerName||'?';
     $('callAv').textContent=av(d.callerName||'?');
-    $('callStat').textContent=d.video?"📹 Video qo'ng'iroq kelmoqda...":"📞 Qo'ng'iroq kelmoqda...";
-    $('acceptBtn').style.display='';
-    $('callModal').classList.add('open');
+    $('callStat').textContent=d.video?t('callVideo'):t('callAudio');
+    $('acceptBtn').style.display='';$('callModal').classList.add('open');
     $('ringSnd').play().catch(()=>{});
   });
 }
-
-window._prevImg=url=>{$('prevImg').src=url;$('imgPrev').classList.add('open');};
-function closePrev(){$('imgPrev').classList.remove('open');$('prevImg').src='';}
 </script>
 </body>
 </html>
