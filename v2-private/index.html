@@ -1,1124 +1,1073 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DoiraChat v2</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-main: #0e1621;
-            --bg-sidebar: #17212b;
-            --bg-chat: #0e1621;
-            --bg-msg-in: #182533;
-            --bg-msg-out: #2b5278;
-            --text-main: #ffffff;
-            --text-muted: #7f91a4;
-            --accent: #5288c1;
-            --border-color: #101924;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DoiraChat</title>
+<meta name="theme-color" content="#00c6a2">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--bg:#0b141a;--bg2:#111b21;--bg3:#1f2c34;--bg4:#2a3942;--accent:#00a884;--accent2:#00cf9d;--text:#e9edef;--text2:#8696a0;--border:#2a3942;--msg-out:#005c4b;--msg-in:#202c33;--danger:#f15c6d;--gold:#f7c948;--radius:12px}
+body.light{--bg:#dfe5e7;--bg2:#ffffff;--bg3:#f0f2f5;--bg4:#e2e8ea;--text:#111b21;--text2:#667781;--border:#d1dde3;--msg-out:#d9fdd3;--msg-in:#ffffff;--danger:#e53935}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);display:flex;justify-content:center;align-items:center;height:100vh;overflow:hidden}
 
-        .light-theme {
-            --bg-main: #e7ebf0;
-            --bg-sidebar: #ffffff;
-            --bg-chat: #e7ebf0;
-            --bg-msg-in: #ffffff;
-            --bg-msg-out: #eeffde;
-            --text-main: #000000;
-            --text-muted: #707579;
-            --accent: #3390ec;
-            --border-color: #dae1e8;
-        }
+.app{display:flex;width:100%;height:100%;max-width:1600px;background:var(--bg2);position:relative}
+.side{width:350px;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg2);transition:transform 0.3s ease;z-index:5}
+.main{flex:1;display:flex;flex-direction:column;background:var(--bg);position:relative}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+/* Тил ўзгартиргич стили */
+.lang-bar { display: flex; gap: 4px; background: var(--bg3); padding: 4px; border-radius: 8px; margin-right: 8px; }
+.lang-bar button { background: transparent; border: none; color: var(--text2); padding: 2px 6px; font-size: 11px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+.lang-bar button.active { background: var(--accent); color: #fff; }
 
-        body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
+.head{height:60px;background:var(--bg3);display:flex;align-items:center;padding:0 16px;justify-content:between;border-bottom:1px solid var(--border);position:relative}
+.head-left{display:flex;align-items:center;gap:12px;flex:1}
+.head-actions{display:flex;align-items:center;gap:16px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent2);position:relative;cursor:pointer;background-size:cover;background-position:center}
+.status-dot{width:12px;height:12px;border-radius:50%;position:absolute;bottom:0;right:0;border:2px solid var(--bg3)}
+.status-dot.online{background:#40c351}
+.status-dot.offline{background:#8696a0}
 
-        /* Илова тузилиши */
-        .app-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
+.search-wrap{padding:8px 12px;background:var(--bg2)}
+.search-box{width:100%;padding:8px 12px;border-radius:8px;background:var(--bg3);border:none;color:var(--text);outline:none;font-size:14px}
+.list-section-title { padding: 6px 16px; font-size: 12px; font-weight: bold; color: var(--accent2); background: rgba(0,0,0,0.1); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .sidebar {
-            width: 320px;
-            background-color: var(--bg-sidebar);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            z-index: 10;
-        }
+.items{flex:1;overflow-y:auto}
+.item{display:flex;align-items:center;padding:12px 16px;gap:12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.02);transition:background 0.2s}
+.item:hover,.item.active{background:var(--bg3)}
+.item-info{flex:1;display:flex;flex-direction:column;gap:4px}
+.item-top{display:flex;justify-content:between;align-items:center}
+.item-name{font-weight:500;font-size:15px}
+.item-time{font-size:12px;color:var(--text2)}
+.item-msg{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
 
-        .chat-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-chat);
-            position: relative;
-        }
+.chat-blank{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text2);gap:12px}
+.msgs{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:8px;background-size:cover}
 
-        /* Юқори панел ва Тил танлаш */
-        .sidebar-header {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-        }
+/* Хабарлар контекст менюси ва қўшимчалар */
+.msg-row { display: flex; align-items: center; width: 100%; position: relative; }
+.msg-row.out { justify-content: flex-end; }
+.msg-row.in { justify-content: flex-start; }
+.msg-checkbox { margin: 0 10px; transform: scale(1.2); display: none; cursor: pointer; }
+.selection-active .msg-checkbox { display: inline-block; }
 
-        .top-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+.msg{position:relative;max-width:65%;padding:8px 12px;border-radius:var(--radius);font-size:14px;line-height:1.4;word-break:break-word;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.msg.in{background:var(--msg-in);border-top-left-radius:2px}
+.msg.out{background:var(--msg-out);border-top-right-radius:2px}
+.msg-sender{font-size:11px;font-weight:600;color:var(--accent2)}
+.msg-time{font-size:10px;color:var(--text2);align-self:flex-end;margin-top:2px;display:flex;align-items:center;gap:3px}
 
-        .lang-switcher button {
-            background: transparent;
-            border: 1px solid var(--text-muted);
-            color: var(--text-main);
-            padding: 3px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-left: 2px;
-        }
+/* Реакциялар стили */
+.reply-preview-msg { background: rgba(0,0,0,0.15); border-left: 3px solid var(--accent); padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 4px; }
+.msg-reactions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+.react-badge { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 10px; font-size: 11px; display: flex; align-items: center; gap: 2px; font-weight: bold; }
 
-        .lang-switcher button.active {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
-        }
+/* Контекст Меню */
+.ctx-menu { position: absolute; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: none; flex-direction: column; z-index: 1000; overflow: hidden; width: 160px; }
+.ctx-reactions { display: flex; padding: 6px; gap: 6px; border-bottom: 1px solid var(--border); background: var(--bg4); justify-content: space-around; }
+.ctx-reactions span { cursor: pointer; font-size: 18px; transition: transform 0.1s; }
+.ctx-reactions span:hover { transform: scale(1.3); }
+.ctx-menu button { background: transparent; border: none; color: var(--text); padding: 10px 14px; text-align: left; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.ctx-menu button:hover { background: var(--bg4); }
 
-        .search-box {
-            width: 100%;
-            padding: 8px 12px;
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-main);
-            outline: none;
-        }
+/* Пастки киритиш ва Мульти-ўчириш панеллари */
+.input-area{padding:10px 16px;background:var(--bg3);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border)}
+.reply-bar { display: none; justify-content: space-between; background: var(--bg4); padding: 6px 12px; border-left: 3px solid var(--accent); border-radius: 4px; font-size: 13px; align-items: center; }
+.input-row{display:flex;align-items:center;gap:12px}
+.inp{flex:1;padding:10px 16px;border-radius:20px;background:var(--bg4);border:none;color:var(--text);outline:none;font-size:14px}
+.btn-icon{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;transition:background 0.2s}
+.btn-icon:hover{background:var(--bg4);color:var(--accent2)}
+.btn-send{color:var(--accent)}
 
-        /* Чат рўйхати */
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-        }
+.multi-delete-bar { display: none; position: absolute; bottom: 0; left: 0; width: 100%; background: var(--bg3); border-top: 2px solid var(--danger); padding: 15px 20px; justify-content: space-between; align-items: center; z-index: 100; }
 
-        .list-section-title {
-            padding: 8px 15px;
-            font-size: 12px;
-            color: var(--accent);
-            background: rgba(0,0,0,0.05);
-            font-weight: bold;
-            text-transform: uppercase;
-        }
+/* Модал ойналар */
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;z-index:2000}
+.modal.open{opacity:1;pointer-events:auto}
+.modal-box{background:var(--bg3);padding:24px;border-radius:var(--radius);width:90%;max-width:400px;display:flex;flex-direction:column;gap:16px;border:1px solid var(--border)}
+.modal-head{display:flex;justify-content:between;align-items:center;font-weight:600;font-size:18px}
+.modal-body{max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 
-        .chat-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
-            transition: background 0.2s;
-        }
-
-        .chat-item:hover, .chat-item.active {
-            background-color: rgba(82, 136, 193, 0.15);
-        }
-
-        .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background-color: var(--accent);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            margin-right: 12px;
-            position: relative;
-            object-fit: cover;
-        }
-
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            background-color: #4caf50;
-            border: 2px solid var(--bg-sidebar);
-            border-radius: 50%;
-            position: absolute;
-            bottom: 0;
-            right: 0;
-        }
-
-        .status-dot.offline {
-            background-color: #9e9e9e;
-        }
-
-        .chat-info {
-            flex: 1;
-        }
-
-        .chat-name-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .chat-name {
-            font-weight: bold;
-            font-size: 15px;
-        }
-
-        /* Чат ойнаси */
-        .chat-header {
-            padding: 10px 20px;
-            background-color: var(--bg-sidebar);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .messages-container {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* Хабарлар дизайни */
-        .message {
-            max-width: 65%;
-            padding: 8px 12px;
-            border-radius: 12px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 0.2s ease-in-out;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .message.incoming {
-            background-color: var(--bg-msg-in);
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-        }
-
-        .message.outgoing {
-            background-color: var(--bg-msg-out);
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-        }
-
-        .msg-sender {
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 4px;
-        }
-
-        .msg-text {
-            word-break: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .msg-media img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 5px;
-            cursor: pointer;
-        }
-
-        .msg-footer {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 5px;
-            margin-top: 4px;
-            font-size: 10px;
-            color: var(--text-muted);
-        }
-
-        /* Жавоб берилган хабар (Reply UI) */
-        .reply-wrapper {
-            background: rgba(0,0,0,0.1);
-            border-left: 3px solid var(--accent);
-            padding: 4px 8px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        /* Реакциялар */
-        .reactions-container {
-            display: flex;
-            gap: 3px;
-            margin-top: 4px;
-            flex-wrap: wrap;
-        }
-
-        .reaction-badge {
-            background: rgba(255,255,255,0.15);
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-
-        /* Хабар устига босганда чиқадиган меню */
-        .msg-menu {
-            position: absolute;
-            background: var(--bg-sidebar);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: none;
-            flex-direction: column;
-            z-index: 100;
-            overflow: hidden;
-        }
-
-        .msg-menu button {
-            background: transparent;
-            border: none;
-            color: var(--text-main);
-            padding: 10px 15px;
-            text-align: left;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        .msg-menu button:hover {
-            background: rgba(82, 136, 193, 0.2);
-        }
-
-        /* Киритиш панели */
-        .input-panel {
-            padding: 15px;
-            background-color: var(--bg-sidebar);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .reply-preview-bar {
-            display: none;
-            justify-content: space-between;
-            background: rgba(0,0,0,0.05);
-            padding: 5px 10px;
-            border-left: 3px solid var(--accent);
-            font-size: 12px;
-        }
-
-        .input-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 10px 15px;
-            background-color: var(--bg-main);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--text-main);
-            outline: none;
-        }
-
-        .icon-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 20px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-
-        .icon-btn:hover {
-            color: var(--accent);
-        }
-
-        /* Хабарларни белгилаб ўчириш панели */
-        .selection-mode-bar {
-            display: none;
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: var(--bg-sidebar);
-            padding: 15px;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 2px solid red;
-            z-index: 110;
-        }
-
-        .msg-checkbox {
-            margin-right: 10px;
-            transform: scale(1.2);
-            display: none;
-        }
-
-        .selection-active .msg-checkbox {
-            display: inline-block;
-        }
-
-        /* Модал ойналар */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-        }
-
-        .modal-content {
-            background: var(--bg-sidebar);
-            padding: 20px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 400px;
-            color: var(--text-main);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-
-        .modal-list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .danger-btn {
-            background: #e53935;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .hidden { display: none !important; }
-    </style>
+/* Бошқа элементлар */
+.call-video-container{position:relative;flex:1;width:100%;background:#000;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.local-v{position:absolute;top:12px;right:12px;width:100px;height:130px;background:#222;border-radius:6px;object-fit:cover;z-index:2;border:1px solid var(--border)}
+.remote-v{width:100%;height:100%;object-fit:cover}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:8px 16px;border-radius:20px;font-size:14px;z-index:9999;display:none}
+.hidden{display:none !important}
+</style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="sidebar">
-        <div class="sidebar-header">
-            <div class="top-actions">
-                <h3 id="ui-title">DoiraChat</h3>
-                <div class="lang-switcher">
-                    <button onclick="switchLanguage('uz')" id="btn-lang-uz">UZ</button>
-                    <button onclick="switchLanguage('ru')" id="btn-lang-ru">RU</button>
-                    <button onclick="switchLanguage('en')" id="btn-lang-en">EN</button>
-                </div>
-                <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-            </div>
-            <input type="text" class="search-box" id="searchBar" placeholder="Қидириш...">
+<div class="app">
+  <div class="side" id="sidePanel">
+    <div class="head">
+      <div class="avatar" id="myAv" onclick="openProfileModal()">D</div>
+      <div style="display:flex; align-items:center;">
+        <div class="lang-bar">
+          <button id="lang-uz" onclick="changeLanguage('uz')">UZ</button>
+          <button id="lang-ru" onclick="changeLanguage('ru')">RU</button>
+          <button id="lang-en" onclick="changeLanguage('en')">EN</button>
         </div>
-        <div class="chat-list" id="chatListContainer">
-            </div>
+        <button class="btn-icon" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+        <button class="btn-icon" onclick="$('createGrpModal').classList.add('open')"><i class="fas fa-users"></i></button>
+      </div>
     </div>
-    <div class="chat-area" id="chatArea">
-        <div class="chat-header">
-            <div>
-                <h4 id="activeChatName">Чат танланг</h4>
-                <span id="activeChatStatus" style="font-size: 12px; color: var(--text-muted);"></span>
-            </div>
-            <div id="headerActions" class="hidden">
-                <button class="icon-btn" onclick="openGroupInfoModal()" id="btnGroupInfo" style="margin-right: 10px;"><i class="fas fa-users"></i></button>
-                <button class="icon-btn" onclick="toggleSelectionMode()" id="btnSelectMsg" style="margin-right: 10px;"><i class="fas fa-check-square"></i></button>
-                <button class="icon-btn" onclick="clearCurrentChat()" style="color: #e53935;"><i class="fas fa-trash"></i></button>
-            </div>
-        </div>
-
-        <div class="messages-container" id="messagesContainer">
-            </div>
-
-        <div class="msg-menu" id="msgContextMenu">
-            <div style="padding: 5px; display: flex; gap: 5px; border-bottom: 1px solid var(--border-color);" id="reactionPicker">
-                <span style="cursor:pointer; font-size: 18px;">👍</span>
-                <span style="cursor:pointer; font-size: 18px;">❤️</span>
-                <span style="cursor:pointer; font-size: 18px;">😂</span>
-                <span style="cursor:pointer; font-size: 18px;">😮</span>
-                <span style="cursor:pointer; font-size: 18px;">😢</span>
-                <span style="cursor:pointer; font-size: 18px;">🙏</span>
-            </div>
-            <button onclick="handleReplyAction()" id="menu-reply">Жавоб бериш</button>
-            <button onclick="openForwardModal()" id="menu-forward">Бошқага юбориш</button>
-            <button onclick="handleDeleteAction()" id="menu-delete" style="color: #e53935;">Ўчириш</button>
-        </div>
-
-        <div class="input-panel">
-            <div class="reply-preview-bar" id="replyPreviewBar">
-                <span id="replyPreviewText">Жавоб...</span>
-                <button class="icon-btn" onclick="cancelReply()"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="input-row">
-                <button class="icon-btn" onclick="triggerImageUpload()"><i class="fas fa-paperclip"></i></button>
-                <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="uploadImageOnly(this)">
-                <input type="text" class="chat-input" id="messageInput" placeholder="Хабар ёзинг...">
-                <button class="icon-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-
-        <div class="selection-mode-bar" id="selectionModeBar">
-            <span id="selectionCountText">0 та хабар танланди</span>
-            <div>
-                <button class="danger-btn" onclick="deleteSelectedMessages()" id="btnDeleteSelected">Ўчириш</button>
-                <button class="icon-btn" onclick="toggleSelectionMode()" style="margin-left: 10px; font-size: 14px;">Бекор қилиш</button>
-            </div>
-        </div>
+    <div class="search-wrap">
+      <input type="text" class="search-box" id="searchInp" placeholder="Қидириш...">
     </div>
+    <div class="items" id="chatsContainer"></div>
+  </div>
+
+  <div class="main">
+    <div class="head hidden" id="chatHead">
+      <div class="head-left">
+        <button class="btn-icon" id="backBtn" onclick="backToList()"><i class="fas fa-arrow-left"></i></button>
+        <div class="avatar" id="chatAv">C</div>
+        <div>
+          <h4 id="chatTitle">...</h4>
+          <p id="chatSub" style="font-size:12px;color:var(--text2)"></p>
+        </div>
+      </div>
+      <div class="head-actions">
+        <button class="btn-icon" id="btnBlockUser" onclick="toggleBlockUser()" style="color:var(--danger);" title="Блок қилиш"><i class="fas fa-ban"></i></button>
+        <button class="btn-icon" id="btnGroupInfo" onclick="openGroupInfo()"><i class="fas fa-info-circle"></i></button>
+        <button class="btn-icon" onclick="startCall('audio')"><i class="fas fa-phone"></i></button>
+        <button class="btn-icon" onclick="startCall('video')"><i class="fas fa-video"></i></button>
+        <button class="btn-icon" onclick="toggleSelectionMode()"><i class="fas fa-tasks"></i></button>
+      </div>
     </div>
+
+    <div class="chat-blank" id="blankScreen">
+      <i class="fas fa-comments" style="font-size:48px;color:var(--bg4)"></i>
+      <p id="txt-select-chat">Суҳбатни бошлаш учун чат танланг</p>
+    </div>
+
+    <div class="msgs hidden" id="msgsContainer"></div>
+
+    <div class="multi-delete-bar" id="multiDeleteBar">
+      <span id="multiSelectCount">0 та хабар танланди</span>
+      <div style="display:flex; gap:10px;">
+        <button onclick="deleteSelectedMessages()" style="background:var(--danger); border:none; color:white; padding:6px 12px; border-radius:6px; cursor:pointer;" id="txt-del-btn">Ўчириш</button>
+        <button onclick="toggleSelectionMode()" style="background:var(--bg4); border:none; color:var(--text); padding:6px 12px; border-radius:6px; cursor:pointer;" id="txt-cancel-btn">Бекор қилиш</button>
+      </div>
+    </div>
+
+    <div class="input-area hidden" id="inputArea">
+      <div class="reply-bar" id="replyBar">
+        <div class="reply-preview-content">
+          <i class="fas fa-reply" style="font-size:11px; margin-right:5px;"></i>
+          <span id="replyBarText" style="font-size:12px; font-weight:500;"></span>
+        </div>
+        <button class="btn-icon" onclick="cancelReply()" style="width:24px; height:24px; font-size:12px;"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="input-row">
+        <button class="btn-icon" onclick="$('fileInp').click()"><i class="fas fa-paperclip"></i></button>
+        <input type="file" id="fileInp" class="hidden" onchange="sendFile(this)">
+        <button class="btn-icon" onclick="toggleStickers()"><i class="fas fa-smile"></i></button>
+        <input type="text" class="inp" id="msgInp" placeholder="Хабар...">
+        <button class="btn-icon btn-send" onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+      </div>
+      <div id="stkPanel" class="hidden" style="padding:8px;background:var(--bg4);border-radius:8px;margin-top:6px;display:flex;gap:12px;font-size:24px;overflow-x:auto">
+        <span style="cursor:pointer" onclick="sendStk('👍')">👍</span>
+        <span style="cursor:pointer" onclick="sendStk('❤️')">❤️</span>
+        <span style="cursor:pointer" onclick="sendStk('😂')">😂</span>
+        <span style="cursor:pointer" onclick="sendStk('😮')">😮</span>
+        <span style="cursor:pointer" onclick="sendStk('🔥')">🔥</span>
+        <span style="cursor:pointer" onclick="sendStk('👏')">👏</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="ctx-menu" id="contextMenu">
+  <div class="ctx-reactions">
+    <span onclick="sendReaction('👍')">👍</span>
+    <span onclick="sendReaction('❤️')">❤️</span>
+    <span onclick="sendReaction('😂')">😂</span>
+    <span onclick="sendReaction('😮')">😮</span>
+    <span onclick="sendReaction('😢')">😢</span>
+    <span onclick="sendReaction('🔥')">🔥</span>
+  </div>
+  <button onclick="copyMessageText()"><i class="fas fa-copy"></i> <span id="ctx-copy">Нусха олиш</span></button>
+  <button onclick="initiateReply()"><i class="fas fa-reply"></i> <span id="ctx-reply">Жавоб бериш</span></button>
+  <button onclick="openForwardModal()"><i class="fas fa-share"></i> <span id="ctx-forward">Бошқага юбориш</span></button>
+  <button onclick="deleteSingleMessage()" style="color:var(--danger);"><i class="fas fa-trash"></i> <span id="ctx-delete">Ўчириш</span></button>
+</div>
+
+<div class="modal" id="callModal">
+  <div class="modal-box" style="max-width:500px;text-align:center;background:var(--bg2)">
+    <h3 id="callName">...</h3>
+    <div class="avatar" id="callAv" style="width:70px;height:70px;margin:12px auto;font-size:24px">?</div>
+    <p id="callStatus" style="color:var(--text2);margin-bottom:16px">Чақириляпти...</p>
+    <div class="call-video-container">
+      <video class="local-v" id="localVideo" autoplay muted playsinline style="display:none"></video>
+      <video class="remote-v" id="remoteVideo" autoplay playsinline style="display:none"></video>
+    </div>
+    <div style="display:flex;justify-content:center;gap:20px;margin-top:16px">
+      <button class="btn-icon" id="pickBtn" onclick="pickUp()" style="background:#40c351;color:#fff;display:none"><i class="fas fa-phone"></i></button>
+      <button class="btn-icon" id="muteBtn" onclick="toggleMute()" style="background:var(--bg4)"><i class="fas fa-microphone"></i></button>
+      <button class="btn-icon" onclick="endCall()" style="background:var(--danger);color:#fff"><i class="fas fa-phone-slash"></i></button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="profModal">
+  <div class="modal-box">
+    <div class="modal-head"><span id="md-profile-title">Профиль</span><button class="btn-icon" onclick="closeM('profModal')"><i class="fas fa-times"></i></button></div>
+    <input type="text" class="search-box" id="profName" placeholder="Исмингиз">
+    <input type="text" class="search-box" id="profPic" placeholder="Расм URL (Ихтиёрий)">
+    <button onclick="saveProfile()" style="background:var(--accent);border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer" id="md-save-btn">Сақлаш</button>
+  </div>
+</div>
+
+<div class="modal" id="createGrpModal">
+  <div class="modal-box">
+    <div class="modal-head"><span id="md-newgroup-title">Янги гуруҳ</span><button class="btn-icon" onclick="closeM('createGrpModal')"><i class="fas fa-times"></i></button></div>
+    <input type="text" class="search-box" id="grpNameInp" placeholder="Гуруҳ номи">
+    <button onclick="createGroup()" style="background:var(--accent);border:none;color:#fff;padding:10px;border-radius:8px;cursor:pointer" id="md-create-btn">Яратиш</button>
+  </div>
+</div>
 
 <div class="modal" id="forwardModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span id="md-forward-title">Хабарни бошқага юбориш</span>
-            <button class="icon-btn" onclick="closeModal('forwardModal')"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="forwardList" style="max-height: 300px; overflow-y: auto;">
-            </div>
-    </div>
+  <div class="modal-box">
+    <div class="modal-head"><span id="md-forward-title">Юбориш</span><button class="btn-icon" onclick="closeM('forwardModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" id="forwardList"></div>
+  </div>
 </div>
 
 <div class="modal" id="groupInfoModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <span id="md-group-title">Гуруҳ аъзолари</span>
-            <button class="icon-btn" onclick="closeModal('groupInfoModal')"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="groupMembersList" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">
-            </div>
-        <button class="danger-btn" style="width: 100%; padding: 10px;" onclick="leaveCurrentGroup()" id="btnLeaveGroup">Гуруҳдан чиқиш</button>
-    </div>
+  <div class="modal-box">
+    <div class="modal-head"><span id="md-group-title">Гуруҳ маълумоти</span><button class="btn-icon" onclick="closeM('groupInfoModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" id="groupMembersList"></div>
+    <button onclick="leaveGroup()" style="background:var(--danger); border:none; color:white; padding:10px; border-radius:8px; cursor:pointer; font-weight:bold;" id="md-leave-btn">Гуруҳдан чиқиш</button>
+  </div>
 </div>
 
+<audio id="ringSnd" src="https://assets.mixkit.co/active_storage/sfx/1357/1357-84.wav" loop></audio>
+<audio id="remoteAudio" autoplay></audio>
+<div class="toast" id="toast"></div>
+
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getDatabase, ref, set, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getDatabase, ref, set, push, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-    // Сизнинг тайёр Firebase калитларингиз жойлаштирилди
-    const firebaseConfig = {
-        apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
-        authDomain: "doira-chat-v2.firebaseapp.com",
-        databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
-        projectId: "doira-chat-v2",
-        storageBucket: "doira-chat-v2.firebasestorage.app",
-        messagingSenderId: "885552294238",
-        appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
-    };
+// Сизнинг Firebase созламаларингиз (Оригинал калитлар)
+const firebaseConfig = {
+  apiKey: "AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",
+  authDomain: "doira-chat-v2.firebaseapp.com",
+  databaseURL: "https://doira-chat-v2-default-rtdb.firebaseio.com",
+  projectId: "doira-chat-v2",
+  storageBucket: "doira-chat-v2.firebasestorage.app",
+  messagingSenderId: "885552294238",
+  appId: "1:885552294238:web:8a5d288d1eb57e11b687cf"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+const imgbbApiKey = "e4cecebb229f451e3322c126e3d09399"; // Тайёр ImgBB калитингиз
 
-    // Сизнинг тайёр ImgBB API калитингиз жойлаштирилди
-    const imgbbApiKey = "e4cecebb229f451e3322c126e3d09399"; 
+// ТИЛ ТИЗИМИ ЛУҒАТИ
+const dictionary = {
+  uz: {
+    selectChat: "Суҳбатни бошлаш учун чат танланг", search: "Қидириш...", chatPlace: "Хабар...",
+    copy: "Нусха олиш", reply: "Жавоб бериш", forward: "Бошқага юбориш", delete: "Ўчириш",
+    groups: "Гуруҳлар", online: "Онлайн", offline: "Офлайн", fwdTitle: "Юбориш",
+    grpTitle: "Гуруҳ маълумоти", leave: "Гуруҳдан чиқиш", kick: "Ҳайдаш", 
+    selText: "та хабар танланди", cancel: "Бекор қилиш", pTitle: "Профиль", 
+    save: "Сақлаш", newGrp: "Янги гуруҳ", create: "Яратиш", blocked: "Блок қилинган"
+  },
+  ru: {
+    selectChat: "Выберите чат для начала общения", search: "Поиск...", chatPlace: "Сообщение...",
+    copy: "Копировать", reply: "Ответить", forward: "Переслать", delete: "Удалить",
+    groups: "Группы", online: "Онлайн", offline: "Офлайн", fwdTitle: "Переслать",
+    grpTitle: "Информация о группе", leave: "Выйти из группы", kick: "Исключить", 
+    selText: "сообщений выбрано", cancel: "Отмена", pTitle: "Профиль", 
+    save: "Сохранить", newGrp: "Новая группа", create: "Создать", blocked: "Заблокирован"
+  },
+  en: {
+    selectChat: "Select a chat to start messaging", search: "Search...", chatPlace: "Message...",
+    copy: "Copy Text", reply: "Reply", forward: "Forward", delete: "Delete",
+    groups: "Groups", online: "Online", offline: "Offline", fwdTitle: "Forward To",
+    grpTitle: "Group Info", leave: "Leave Group", kick: "Kick", 
+    selText: "messages selected", cancel: "Cancel", pTitle: "Profile", 
+    save: "Save", newGrp: "New Group", create: "Create", blocked: "Blocked"
+  }
+};
 
-    // Ички тил луғати
-    const languages = {
-        uz: {
-            title: "DoiraChat", search: "Қидириш...", chatPlace: "Хабар ёзинг...", 
-            reply: "Жавоб бериш", forward: "Бошқага юбориш", delete: "Ўчириш", 
-            select: "Хабарларни танлаш", groups: "Гуруҳлар", online: "Онлайн", 
-            offline: "Офлайн", forwardTitle: "Хабарни бошқага юбориш", groupTitle: "Гуруҳ аъзолари", 
-            leave: "Гуруҳдан чиқиш", kick: "Ҳайдаш", selectText: "та хабар танланди", delSel: "Ўчириш"
-        },
-        ru: {
-            title: "DoiraChat", search: "Поиск...", chatPlace: "Напишите сообщение...", 
-            reply: "Ответить", forward: "Переслать", delete: "Удалить", 
-            select: "Выбрать сообщения", groups: "Группы", online: "Онлайн", 
-            offline: "Офлайн", forwardTitle: "Переслать сообщение", groupTitle: "Участники группы", 
-            leave: "Выйти из группы", kick: "Исключить", selectText: "сообщений выбрано", delSel: "Удалить"
-        },
-        en: {
-            title: "DoiraChat", search: "Search...", chatPlace: "Type a message...", 
-            reply: "Reply", forward: "Forward", delete: "Delete", 
-            select: "Select Messages", groups: "Groups", online: "Online", 
-            offline: "Offline", forwardTitle: "Forward message", groupTitle: "Group Members", 
-            leave: "Leave Group", kick: "Kick", selectText: "messages selected", delSel: "Delete"
-        }
-    };
+let currentLang = localStorage.getItem("doira_lang") || "uz";
 
-    // Глобал ҳолатлар
-    let currentLanguage = localStorage.getItem('lang') || 'uz';
-    let currentUser = { id: "user_test_1", name: "Сиз (Тест)", originalId: "user_test_1" }; 
-    let activeChatId = null;
-    let activeChatType = null; 
-    let selectedMessageId = null; 
-    let replyToMessageId = null;
-    let isSelectionMode = false;
-    let selectedMessagesList = [];
+// Глобал ўзгарувчилар
+let myUid="", myName="Noma'lum", myPic="";
+let chatUid="", isGroup=false, chatName="";
+let usersData={}, groupsData={}, blocksData={};
+let selectedCtxMsgId = null, selectedCtxMsgText = "";
+let replyMsgId = null, replyMsgText = "";
+let isSelectionMode = false, selectedMessagesList = [];
 
-    let allUsers = {};
-    let allGroups = {};
+// DOM ёрдамчилари
+window.$ = id => document.getElementById(id);
+window.toast = txt => { const t=$('toast'); t.textContent=txt; t.style.display='block'; setTimeout(()=>t.style.display='none',2500); };
+window.closeM = id => $(id).classList.remove('open');
 
-    window.addEventListener('DOMContentLoaded', () => {
-        switchLanguage(currentLanguage);
-        initAppLogic();
+// Тилни ўзгартириш функцияси
+window.changeLanguage = function(lang) {
+  currentLang = lang;
+  localStorage.setItem("doira_lang", lang);
+  document.querySelectorAll(".lang-bar button").forEach(b => b.classList.remove("active"));
+  if($(`lang-${lang}`)) $(`lang-${lang}`).classList.add("active");
+
+  const d = dictionary[lang];
+  $('txt-select-chat').innerText = d.selectChat;
+  $('searchInp').placeholder = d.search;
+  $('msgInp').placeholder = d.chatPlace;
+  $('ctx-copy').innerText = d.copy;
+  $('ctx-reply').innerText = d.reply;
+  $('ctx-forward').innerText = d.forward;
+  $('ctx-delete').innerText = d.delete;
+  $('md-forward-title').innerText = d.fwdTitle;
+  $('md-group-title').innerText = d.grpTitle;
+  $('md-leave-btn').innerText = d.leave;
+  $('txt-del-btn').innerText = d.delete;
+  $('txt-cancel-btn').innerText = d.cancel;
+  $('md-profile-title').innerText = d.pTitle;
+  $('md-save-btn').innerText = d.save;
+  $('md-newgroup-title').innerText = d.newGrp;
+  $('md-create-btn').innerText = d.create;
+
+  drawList();
+};
+
+// Сана формати: DD.MM.YYYY
+function formatTimestamp(ts) {
+  if(!ts) return "";
+  const d = new Date(ts);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hrs = String(d.getHours()).padStart(2, '0');
+  const mins = String(d.getMinutes()).padStart(2, '0');
+  return `${day}.${month}.${year} ${hrs}:${mins}`;
+}
+
+// Аутентификация
+signInAnonymously(auth).catch(e => toast("Auth error: " + e.message));
+onAuthStateChanged(auth, user => {
+  if(user){
+    myUid = user.uid;
+    onValue(ref(db, `users/${myUid}`), snap => {
+      const d = snap.val();
+      if(d){ myName=d.name||"Ismsiz"; myPic=d.pic||""; }
+      else { myName="User_" + myUid.substring(0,4); saveUserDb(); }
+      $('myAv').textContent = myName.substring(0,2).toUpperCase();
+      if(myPic) $('myAv').style.backgroundImage = `url(${myPic})`;
+    });
+    set(ref(db, `users/${myUid}/status`), "online");
+    set(ref(db, `users/${myUid}/lastSeen`), Date.now());
+    
+    // Блок рўйхатни кузатиш
+    onValue(ref(db, `blocks/${myUid}`), snap => {
+      blocksData = snap.val() || {};
+      updateBlockButtonUI();
     });
 
-    // Тилни ўзгартириш функцияси (Тугмалар энди интерфейсни тўлиқ ўзгартиради)
-    window.switchLanguage = function(lang) {
-        currentLanguage = lang;
-        localStorage.setItem('lang', lang);
-        
-        document.querySelectorAll('.lang-switcher button').forEach(b => b.classList.remove('active'));
-        const btn = document.getElementById(`btn-lang-${lang}`);
-        if(btn) btn.classList.add('active');
+    initData();
+    listenCalls();
+  }
+});
 
-        const l = languages[lang];
-        document.getElementById('ui-title').innerText = l.title;
-        document.getElementById('searchBar').placeholder = l.search;
-        document.getElementById('messageInput').placeholder = l.chatPlace;
-        document.getElementById('menu-reply').innerText = l.reply;
-        document.getElementById('menu-forward').innerText = l.forward;
-        document.getElementById('menu-delete').innerText = l.delete;
-        document.getElementById('md-forward-title').innerText = l.forwardTitle;
-        document.getElementById('md-group-title').innerText = l.groupTitle;
-        document.getElementById('btnLeaveGroup').innerText = l.leave;
-        document.getElementById('btnDeleteSelected').innerText = l.delSel;
-        
-        renderSidebar();
-    };
+function saveUserDb(){
+  set(ref(db, `users/${myUid}`), { id: myUid, name: myName, pic: myPic, status: "online", lastSeen: Date.now() });
+}
 
-    window.toggleTheme = function() {
-        document.body.classList.toggle('light-theme');
-    };
+window.addEventListener("beforeunload", () => {
+  if(myUid) set(ref(db, `users/${myUid}/status`), Date.now());
+});
 
-    // Сана формати: 12.01.2026
-    function formatTimestamp(ts) {
-        if (!ts) return "";
-        const date = new Date(ts);
-        const day = String(date.getDate()).padStart(2, '0');
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const year = date.getFullYear();
-        return `${day}.${month}.${year}`;
+// Маълумотларни юклаш ва САРАЛАШ (Гуруҳлар -> Онлайн -> Офлайн)
+function initData(){
+  onValue(ref(db, 'users'), snap => { usersData = snap.val() || {}; drawList(); });
+  onValue(ref(db, 'groups'), snap => { groupsData = snap.val() || {}; drawList(); if(isGroup) loadMsgs(); });
+}
+
+function drawList(){
+  const s = $('searchInp').value.toLowerCase();
+  const c = $('chatsContainer');
+  c.innerHTML = "";
+  const d = dictionary[currentLang];
+
+  // 1. ГУРУҲЛAР
+  const grpTitle = document.createElement('div');
+  grpTitle.className = "list-section-title";
+  grpTitle.innerText = d.groups;
+  c.appendChild(grpTitle);
+
+  Object.values(groupsData).forEach(g => {
+    if(g.name.toLowerCase().includes(s) && g.members && g.members[myUid]){
+      appendItemHtml(g, true, false);
     }
+  });
 
-    function initAppLogic() {
-        onValue(ref(db, 'users'), (snapshot) => {
-            allUsers = snapshot.val() || {
-                "user_test_1": { id: "user_test_1", name: "Алишер", status: "online" },
-                "user_test_2": { id: "user_test_2", name: "Сардор", status: "offline" },
-                "user_test_3": { id: "user_test_3", name: "Мадина", status: "online" }
-            };
-            renderSidebar();
-        });
+  // 2. ОНЛAЙН ФОЙДАЛАНУВЧИЛАР
+  const onlineTitle = document.createElement('div');
+  onlineTitle.className = "list-section-title";
+  onlineTitle.innerText = d.online;
+  c.appendChild(onlineTitle);
 
-        onValue(ref(db, 'groups'), (snapshot) => {
-            allGroups = snapshot.val() || {
-                "group_test_1": { id: "group_test_1", name: "Дастурчилар гуруҳи", type: "group", admin: "user_test_1", members: { "user_test_1": true, "user_test_2": true, "user_test_3": true } }
-            };
-            renderSidebar();
-            if(activeChatId && activeChatType === 'group') {
-                loadMessages(activeChatId);
-            }
-        });
+  Object.values(usersData).forEach(u => {
+    if(u.id !== myUid && u.name.toLowerCase().includes(s) && u.status === 'online'){
+      appendItemHtml(u, false, true);
     }
+  });
 
-    // Сортировка: Гуруҳлар юқорида -> Онлайн -> Офлайн
-    function renderSidebar() {
-        const container = document.getElementById('chatListContainer');
-        container.innerHTML = "";
-        const l = languages[currentLanguage];
+  // 3. OФЛAЙН ФОЙДАЛАНУВЧИЛАР
+  const offlineTitle = document.createElement('div');
+  offlineTitle.className = "list-section-title";
+  offlineTitle.innerText = d.offline;
+  c.appendChild(offlineTitle);
 
-        // 1. ГУРУҲЛAР
-        const groupHeader = document.createElement('div');
-        groupHeader.className = "list-section-title";
-        groupHeader.innerText = l.groups;
-        container.appendChild(groupHeader);
-
-        Object.values(allGroups).forEach(group => {
-            if(group.members && group.members[currentUser.id]) {
-                createChatItem(group, 'group', container);
-            }
-        });
-
-        // 2. ОНЛAЙНЛAР
-        const onlineHeader = document.createElement('div');
-        onlineHeader.className = "list-section-title";
-        onlineHeader.innerText = l.online;
-        container.appendChild(onlineHeader);
-
-        Object.values(allUsers).forEach(user => {
-            if(user.id !== currentUser.id && user.status === 'online') {
-                createChatItem(user, 'user', container);
-            }
-        });
-
-        // 3. OФЛAЙНЛAР
-        const offlineHeader = document.createElement('div');
-        offlineHeader.className = "list-section-title";
-        offlineHeader.innerText = l.offline;
-        container.appendChild(offlineHeader);
-
-        Object.values(allUsers).forEach(user => {
-            if(user.id !== currentUser.id && user.status !== 'online') {
-                createChatItem(user, 'user', container);
-            }
-        });
+  Object.values(usersData).forEach(u => {
+    if(u.id !== myUid && u.name.toLowerCase().includes(s) && u.status !== 'online'){
+      appendItemHtml(u, false, false);
     }
+  });
+}
 
-    function createChatItem(item, type, container) {
-        const div = document.createElement('div');
-        div.className = `chat-item ${activeChatId === item.id ? 'active' : ''}`;
-        div.onclick = () => selectChat(item.id, type);
+function appendItemHtml(item, isGrp, isOnline){
+  const el = document.createElement('div');
+  el.className = `item ${(item.id===chatUid && isGroup===isGrp)?'active':''}`;
+  el.onclick = () => selectChat(item.id, isGrp);
 
-        const shortName = item.name.substring(0, 2).toUpperCase();
-        const isOnline = type === 'user' && item.status === 'online';
+  const init = (item.name || "G").substring(0,2).toUpperCase();
+  const bg = item.pic ? `style="background-image:url(${item.pic})"` : "";
+  
+  let dotHtml = "";
+  if(!isGrp) {
+    dotHtml = `<div class="status-dot ${isOnline ? 'online' : 'offline'}"></div>`;
+  }
 
-        div.innerHTML = `
-            <div class="avatar">
-                ${shortName}
-                ${type === 'user' ? `<div class="status-dot ${isOnline ? '' : 'offline'}"></div>` : ''}
-            </div>
-            <div class="chat-info">
-                <div class="chat-name-row">
-                    <span class="chat-name">${item.name}</span>
-                </div>
-            </div>
-        `;
-        container.appendChild(div);
-    }
+  el.innerHTML = `
+    <div class="avatar" ${bg}>${item.pic?'':init}${dotHtml}</div>
+    <div class="item-info">
+      <div class="item-top">
+        <span class="item-name">${item.name}</span>
+      </div>
+      <span class="item-msg">${isGrp ? 'гуруҳ суҳбати' : (isOnline ? 'онлайн' : 'офлайн')}</span>
+    </div>
+  `;
+  $('chatsContainer').appendChild(el);
+}
 
-    window.selectChat = function(id, type) {
-        activeChatId = id;
-        activeChatType = type;
-        isSelectionMode = false;
-        document.getElementById('selectionModeBar').style.display = 'none';
+// Чатни танлаш
+window.selectChat = function(id, isGrp){
+  chatUid = id; isGroup = isGrp;
+  isSelectionMode = false;
+  $('multiDeleteBar').style.display = 'none';
 
-        const item = type === 'group' ? allGroups[id] : allUsers[id];
-        document.getElementById('activeChatName').innerText = item.name;
-        document.getElementById('activeChatStatus').innerText = type === 'group' ? 'гуруҳ' : (item.status || 'offline');
-        
-        document.getElementById('headerActions').classList.remove('hidden');
-        if(type === 'group') {
-            document.getElementById('btnGroupInfo').classList.remove('hidden');
+  $('blankScreen').classList.add('hidden');
+  $('chatHead').classList.remove('hidden');
+  $('msgsContainer').classList.remove('hidden');
+  $('inputArea').classList.remove('hidden');
+
+  if(isGroup){
+    const g = groupsData[id];
+    chatName = g ? g.name : "Гуруҳ";
+    $('chatTitle').textContent = chatName;
+    $('chatSub').textContent = Object.keys(g?.members || {}).length + " аъзо";
+    $('btnGroupInfo').classList.remove('hidden');
+    $('btnBlockUser').classList.add('hidden');
+  } else {
+    const u = usersData[id];
+    chatName = u ? u.name : "Фойдаланувчи";
+    $('chatTitle').textContent = chatName;
+    $('chatSub').textContent = u?.status === "online" ? "онлайн" : "офлайн";
+    $('btnGroupInfo').classList.add('hidden');
+    $('btnBlockUser').classList.remove('hidden');
+    updateBlockButtonUI();
+  }
+
+  const av = isGroup ? groupsData[id] : usersData[id];
+  $('chatAv').textContent = chatName.substring(0,2).toUpperCase();
+  if(av?.pic) $('chatAv').style.backgroundImage = `url(${av.pic})`;
+  else $('chatAv').style.backgroundImage = "";
+
+  if(window.innerWidth <= 768) $('sidePanel').style.transform = "translateX(-100%)";
+  
+  cancelReply();
+  drawList();
+  loadMsgs();
+};
+
+window.backToList = function() {
+  $('sidePanel').style.transform = "translateX(0)";
+};
+
+// ХАБАРЛАРНИ ЮКЛАШ (БЛОК ВА РЕАКЦИЯЛАР БИЛАН)
+let msgsListener = null;
+function loadMsgs(){
+  const mc = $('msgsContainer');
+  mc.innerHTML = "";
+  if(msgsListener) msgsListener();
+
+  const pth = isGroup ? `groupMessages/${chatUid}` : `messages/${[myUid,chatUid].sort().join('_')}`;
+  msgsListener = onValue(ref(db, pth), snap => {
+    mc.innerHTML = "";
+    const data = snap.val();
+    if(!data) return;
+
+    Object.entries(data).forEach(([mId, m]) => {
+      // Агар фойдаланувчи биз томондан блок қилинган бўлса, унинг хабарини кўрсатмаймиз
+      if(!isGroup && blocksData[m.senderId]) return;
+      // Агар қарши томон бизни блок қилган бўлса ва бу шахсий чат бўлса ҳам филтрлаш мумкин
+
+      const isMe = m.senderId === myUid;
+      const row = document.createElement('div');
+      row.className = `msg-row ${isMe ? 'out' : 'in'} ${isSelectionMode ? 'selection-active' : ''}`;
+      row.dataset.id = mId;
+
+      // Мульти-ўчириш чекбокси
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.className = 'msg-checkbox';
+      chk.checked = selectedMessagesList.includes(mId);
+      chk.onchange = (e) => handleMessageSelect(mId, e.target.checked);
+      row.appendChild(chk);
+
+      const box = document.createElement('div');
+      box.className = `msg ${isMe ? 'out' : 'in'}`;
+
+      // Жавоб берилган хабар визуал қисми
+      if(m.replyTo) {
+        const rDiv = document.createElement('div');
+        rDiv.className = 'reply-preview-msg';
+        rDiv.innerHTML = `<strong>${m.replyTo.sender}</strong>: ${m.replyTo.text}`;
+        box.appendChild(rDiv);
+      }
+
+      if(m.isForwarded) {
+        const fTag = document.createElement('div');
+        fTag.style.fontSize = '11px';
+        fTag.style.color = 'var(--text2)';
+        fTag.style.fontStyle = 'italic';
+        fTag.innerHTML = `<i class="fas fa-share"></i> Переслано`;
+        box.appendChild(fTag);
+      }
+
+      if(isGroup && !isMe) {
+        const snd = document.createElement('span');
+        snd.className = 'msg-sender';
+        snd.textContent = m.senderName;
+        box.appendChild(snd);
+      }
+
+      if(m.text) {
+        const txt = document.createElement('span');
+        txt.textContent = m.text;
+        box.appendChild(txt);
+      }
+
+      if(m.file) {
+        if(m.file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = m.file.url;
+          img.style.maxWidth = '100%';
+          img.style.borderRadius = '8px';
+          box.appendChild(img);
         } else {
-            document.getElementById('btnGroupInfo').classList.add('hidden');
+          const lnk = document.createElement('a');
+          lnk.href = m.file.url;
+          lnk.target = '_blank';
+          lnk.style.color = 'var(--accent2)';
+          lnk.textContent = m.file.name || "Файл";
+          box.appendChild(lnk);
         }
+      }
 
-        document.querySelectorAll('.chat-item').forEach(el => el.classList.remove('active'));
-        renderSidebar();
-        loadMessages(id);
-    };
-
-    let messagesListenerRef = null;
-    function loadMessages(chatId) {
-        const container = document.getElementById('messagesContainer');
-        container.innerHTML = "";
-
-        if(messagesListenerRef) messagesListenerRef();
-
-        const msgRef = ref(db, `messages/${chatId}`);
-        onValue(msgRef, (snapshot) => {
-            container.innerHTML = "";
-            const data = snapshot.val();
-            if(!data) return;
-
-            Object.entries(data).forEach(([msgId, msg]) => {
-                const isMe = msg.senderId === currentUser.id;
-                const msgDiv = document.createElement('div');
-                msgDiv.className = `message ${isMe ? 'outgoing' : 'incoming'}`;
-                msgDiv.dataset.id = msgId;
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'msg-checkbox';
-                checkbox.checked = selectedMessagesList.includes(msgId);
-                checkbox.onchange = (e) => handleSelectMessage(msgId, e.target.checked);
-                msgDiv.appendChild(checkbox);
-
-                if(msg.replyTo) {
-                    const replyDiv = document.createElement('div');
-                    replyDiv.className = 'reply-wrapper';
-                    replyDiv.innerText = `${msg.replyTo.sender}: ${msg.replyTo.text}`;
-                    msgDiv.appendChild(replyDiv);
-                }
-
-                if(msg.isForwarded) {
-                    const fwd = document.createElement('div');
-                    fwd.style.fontSize = '11px';
-                    fwd.style.fontStyle = 'italic';
-                    fwd.style.color = 'var(--text-muted)';
-                    fwd.innerText = '➡️ Переслано';
-                    msgDiv.appendChild(fwd);
-                }
-
-                if(activeChatType === 'group' && !isMe) {
-                    const senderName = document.createElement('div');
-                    senderName.className = 'msg-sender';
-                    senderName.innerText = msg.senderName;
-                    msgDiv.appendChild(senderName);
-                }
-
-                if(msg.text) {
-                    const textDiv = document.createElement('div');
-                    textDiv.className = 'msg-text';
-                    textDiv.innerText = msg.text;
-                    msgDiv.appendChild(textDiv);
-                }
-
-                if(msg.mediaUrl) {
-                    const mediaDiv = document.createElement('div');
-                    mediaDiv.className = 'msg-media';
-                    mediaDiv.innerHTML = `
-                        <img src="${msg.mediaUrl}" alt="Media">
-                        <div style="margin-top:5px;">
-                            <button class="icon-btn" onclick="downloadImage('${msg.mediaUrl}')" style="font-size:12px; color:var(--accent);">
-                                <i class="fas fa-download"></i> Сақлаб олиш
-                            </button>
-                        </div>
-                    `;
-                    msgDiv.appendChild(mediaDiv);
-                }
-
-                if(msg.reactions) {
-                    const reactContainer = document.createElement('div');
-                    reactContainer.className = 'reactions-container';
-                    const counts = {};
-                    Object.values(msg.reactions).forEach(emoji => {
-                        counts[emoji] = (counts[emoji] || 0) + 1;
-                    });
-                    Object.entries(counts).forEach(([emoji, count]) => {
-                        const badge = document.createElement('span');
-                        badge.className = 'reaction-badge';
-                        badge.innerHTML = `${emoji} <span>${count}</span>`;
-                        badge.onclick = () => addReactionToMessage(msgId, emoji);
-                        reactContainer.appendChild(badge);
-                    });
-                    msgDiv.appendChild(reactContainer);
-                }
-
-                const footer = document.createElement('div');
-                footer.className = 'msg-footer';
-                footer.innerText = formatTimestamp(msg.timestamp);
-                msgDiv.appendChild(footer);
-
-                msgDiv.oncontextmenu = (e) => {
-                    e.preventDefault();
-                    showContextMenu(e, msgId, msg.text);
-                };
-
-                container.appendChild(msgDiv);
-            });
-            container.scrollTop = container.scrollHeight;
+      // Реакцияларни кўрсатиш
+      if(m.reactions) {
+        const rContainer = document.createElement('div');
+        rContainer.className = 'msg-reactions';
+        const rCounts = {};
+        Object.values(m.reactions).forEach(emoji => { rCounts[emoji] = (rCounts[emoji] || 0) + 1; });
+        Object.entries(rCounts).forEach(([emoji, count]) => {
+          const badge = document.createElement('span');
+          badge.className = 'react-badge';
+          badge.innerHTML = `${emoji} <span>${count}</span>`;
+          badge.onclick = () => sendReaction(emoji, mId);
+          rContainer.appendChild(badge);
         });
+        box.appendChild(rContainer);
+      }
+
+      const tm = document.createElement('span');
+      tm.className = 'msg-time';
+      tm.innerHTML = `${formatTimestamp(m.timestamp)} ${isMe ? '<i class="fas fa-check-double"></i>' : ''}`;
+      box.appendChild(tm);
+
+      // Контекст меню чақириш (Ўнг тугма ёки узоқ босиш)
+      box.oncontextmenu = (e) => {
+        e.preventDefault();
+        openContextMenu(e, mId, m.text || "Файл");
+      };
+
+      row.appendChild(box);
+      mc.appendChild(row);
+    });
+    mc.scrollTop = mc.scrollHeight;
+  });
+}
+
+// КОНТЕКСТ МЕНЮ ЛОГИКАСИ
+function openContextMenu(e, mId, text) {
+  selectedCtxMsgId = mId;
+  selectedCtxMsgText = text;
+  const menu = $('contextMenu');
+  menu.style.display = 'flex';
+  menu.style.top = `${e.pageY}px`;
+  menu.style.left = `${e.pageX > window.innerWidth - 180 ? e.pageX - 170 : e.pageX}px`;
+}
+
+document.addEventListener('click', (e) => {
+  const menu = $('contextMenu');
+  if(!menu.contains(e.target)) menu.style.display = 'none';
+});
+
+// НУСХА ОЛИШ
+window.copyMessageText = function() {
+  navigator.clipboard.writeText(selectedCtxMsgText);
+  toast("Нусха олинди!");
+  $('contextMenu').style.display = 'none';
+};
+
+// РЕАКЦИЯ БИЛДИРИШ
+window.sendReaction = function(emoji, targetedId = null) {
+  const mId = targetedId || selectedCtxMsgId;
+  if(!mId) return;
+  const pth = isGroup ? `groupMessages/${chatUid}/${mId}/reactions/${myUid}` : `messages/${[myUid,chatUid].sort().join('_')}/${mId}/reactions/${myUid}`;
+  set(ref(db, pth), emoji);
+  $('contextMenu').style.display = 'none';
+};
+
+// ЖАВОБ ЁЗИШ (REPLY) ТИЗИМИ
+window.initiateReply = function() {
+  replyMsgId = selectedCtxMsgId;
+  replyMsgText = selectedCtxMsgText;
+  $('replyBar').style.display = 'flex';
+  $('replyBarText').innerText = replyMsgText;
+  $('contextMenu').style.display = 'none';
+};
+
+window.cancelReply = function() {
+  replyMsgId = null; replyMsgText = "";
+  $('replyBar').style.display = 'none';
+};
+
+// БОШҚАГА ЮБОРИШ (FORWARD)
+window.openForwardModal = function() {
+  $('contextMenu').style.display = 'none';
+  $('forwardModal').classList.add('open');
+  const fl = $('forwardList');
+  fl.innerHTML = "";
+
+  Object.values(groupsData).forEach(g => {
+    if(g.members && g.members[myUid]) renderForwardItem(g, true, fl);
+  });
+  Object.values(usersData).forEach(u => {
+    if(u.id !== myUid) renderForwardItem(u, false, fl);
+  });
+};
+
+function renderForwardItem(item, isGrp, container) {
+  const div = document.createElement('div');
+  div.style.padding = "10px";
+  div.style.borderBottom = "1px solid var(--border)";
+  div.style.cursor = "pointer";
+  div.style.display = "flex";
+  div.style.justifyContent = "space-between";
+  div.innerHTML = `<span>${item.name} ${isGrp ? '(Гуруҳ)' : ''}</span> <i class="fas fa-paper-plane" style="color:var(--accent)"></i>`;
+  div.onclick = () => {
+    const srcPth = isGroup ? `groupMessages/${chatUid}/${selectedCtxMsgId}` : `messages/${[myUid,chatUid].sort().join('_')}/${selectedCtxMsgId}`;
+    onValue(ref(db, srcPth), snap => {
+      const srcData = snap.val();
+      if(srcData) {
+        const destPth = isGrp ? `groupMessages/${item.id}` : `messages/${[myUid,item.id].sort().join('_')}`;
+        const nRef = push(ref(db, destPth));
+        set(nRef, {
+          senderId: myUid,
+          senderName: myName,
+          text: srcData.text || "",
+          file: srcData.file || null,
+          timestamp: Date.now(),
+          isForwarded: true
+        });
+        toast("Юборилди!");
+      }
+    }, { onlyOnce: true });
+    closeM('forwardModal');
+  };
+  container.appendChild(div);
+}
+
+// ХАБАРНИ БИТТАЛАБ ЎЧИРИШ
+window.deleteSingleMessage = function() {
+  if(!selectedCtxMsgId) return;
+  const pth = isGroup ? `groupMessages/${chatUid}/${selectedCtxMsgId}` : `messages/${[myUid,chatUid].sort().join('_')}/${selectedCtxMsgId}`;
+  remove(ref(db, pth));
+  $('contextMenu').style.display = 'none';
+  toast("Хабар ўчирилди");
+};
+
+// МУЛЬТИ-ЎЧИРИШ (БЕЛГИЛАБ ЎЧИРИШ)
+window.toggleSelectionMode = function() {
+  isSelectionMode = !isSelectionMode;
+  selectedMessagesList = [];
+  if(isSelectionMode) {
+    $('multiDeleteBar').style.display = 'flex';
+    document.querySelectorAll('.msg-row').forEach(r => r.classList.add('selection-active'));
+    $('multiSelectCount').innerText = `0 ${dictionary[currentLang].selText}`;
+  } else {
+    $('multiDeleteBar').style.display = 'none';
+    document.querySelectorAll('.msg-row').forEach(r => {
+      r.classList.remove('selection-active');
+      const chk = r.querySelector('.msg-checkbox');
+      if(chk) chk.checked = false;
+    });
+  }
+};
+
+function handleMessageSelect(mId, isChecked) {
+  if(isChecked) {
+    if(!selectedMessagesList.includes(mId)) selectedMessagesList.push(mId);
+  } else {
+    selectedMessagesList = selectedMessagesList.filter(id => id !== mId);
+  }
+  $('multiSelectCount').innerText = `${selectedMessagesList.length} ${dictionary[currentLang].selText}`;
+}
+
+window.deleteSelectedMessages = function() {
+  if(selectedMessagesList.length === 0) return;
+  if(confirm("Танланган хабарларни ўчиришни тасдиқлайсизми?")) {
+    selectedMessagesList.forEach(mId => {
+      const pth = isGroup ? `groupMessages/${chatUid}/${mId}` : `messages/${[myUid,chatUid].sort().join('_')}/${mId}`;
+      remove(ref(db, pth));
+    });
+    toggleSelectionMode();
+    toast("Ўчирилди");
+  }
+};
+
+// БЛОК ҚИЛИШ (BLACKLIST) ТИЗИМИ
+window.toggleBlockUser = function() {
+  if(isGroup) return;
+  const isBlocked = blocksData[chatUid] ? true : false;
+  if(isBlocked) {
+    remove(ref(db, `blocks/${myUid}/${chatUid}`));
+    toast("Блокдан чиқарилди");
+  } else {
+    if(confirm(`${chatName}ни блок қилишни хоҳлайсизми? Ундан бошқа хабар ололмайсиз.`)) {
+      set(ref(db, `blocks/${myUid}/${chatUid}`), true);
+      toast("Блок қилинди");
+    }
+  }
+};
+
+function updateBlockButtonUI() {
+  const btn = $('btnBlockUser');
+  if(!btn || isGroup) return;
+  if(blocksData[chatUid]) {
+    btn.style.color = "var(--gold)";
+    btn.innerHTML = `<i class="fas fa-unlock"></i>`;
+    btn.title = "Блокдан чиқариш";
+  } else {
+    btn.style.color = "var(--danger)";
+    btn.innerHTML = `<i class="fas fa-ban"></i>`;
+    btn.title = "Блок қилиш";
+  }
+}
+
+// ХАБАР ЮБОРИШ
+window.sendMsg = function(){
+  const t = $('msgInp').value.trim();
+  if(!t) return;
+
+  // Агар биз қарши томонни блок қилган бўлсак ёзишни тақиқлаш
+  if(!isGroup && blocksData[chatUid]) {
+    toast("Хабар юбориш учун аввал блокдан чиқаринг!");
+    return;
+  }
+
+  const pth = isGroup ? `groupMessages/${chatUid}` : `messages/${[myUid,chatUid].sort().join('_')}`;
+  const nRef = push(ref(db, pth));
+  
+  const mData = {
+    senderId: myUid,
+    senderName: myName,
+    text: t,
+    timestamp: Date.now()
+  };
+
+  if(replyMsgId) {
+    mData.replyTo = {
+      id: replyMsgId,
+      text: replyMsgText,
+      sender: isGroup ? "Хабар" : chatName
+    };
+  }
+
+  set(nRef, mData);
+  $('msgInp').value = "";
+  cancelReply();
+};
+
+window.sendStk = function(em){
+  if(!isGroup && blocksData[chatUid]) return;
+  const pth = isGroup ? `groupMessages/${chatUid}` : `messages/${[myUid,chatUid].sort().join('_')}`;
+  set(push(ref(db, pth)), { senderId: myUid, senderName: myName, text: em, timestamp: Date.now() });
+  $('stkPanel').classList.add('hidden');
+};
+
+window.sendFile = function(input){
+  const f = input.files[0]; if(!f) return;
+  toast("Файл юкланмоқда...");
+  const fd = new FormData(); fd.append("image", f);
+  
+  fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, { method:"POST", body:fd })
+  .then(r => r.json())
+  .then(res => {
+    if(res.success){
+      const pth = isGroup ? `groupMessages/${chatUid}` : `messages/${[myUid,chatUid].sort().join('_')}`;
+      set(push(ref(db, pth)), {
+        senderId: myUid,
+        senderName: myName,
+        file: { url: res.data.url, name: f.name, type: f.type },
+        timestamp: Date.now()
+      });
+    } else { toast("Юклашда хатолик"); }
+  }).catch(() => toast("Сервер хатоси"));
+};
+
+// ГУРУҲ ИНФОСИ ВА АЪЗО БОШҚАРУВИ (KICK, 1-1 CHAT, LEAVE)
+window.openGroupInfo = function() {
+  if(!isGroup) return;
+  $('groupInfoModal').classList.add('open');
+  const g = groupsData[chatUid];
+  const list = $('groupMembersList');
+  list.innerHTML = "";
+
+  if(!g || !g.members) return;
+  const isAdmin = g.admin === myUid;
+  const d = dictionary[currentLang];
+
+  Object.keys(g.members).forEach(mId => {
+    const uInfo = usersData[mId] || { name: mId };
+    const div = document.createElement('div');
+    div.style.display = "flex";
+    div.style.justifyContent = "between";
+    div.style.alignItems = "center";
+    div.style.padding = "6px 0";
+    div.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
+
+    // Исм устига босганда 1-1 шахсий чатга ўтиш
+    const nameSpan = document.createElement('span');
+    nameSpan.style.cursor = "pointer";
+    nameSpan.style.fontWeight = "500";
+    nameSpan.style.color = "var(--accent2)";
+    nameSpan.innerText = `${uInfo.name} ${g.admin === mId ? '👑' : ''}`;
+    nameSpan.onclick = () => {
+      closeM('groupInfoModal');
+      if(mId !== myUid) selectChat(mId, false);
+    };
+    div.appendChild(nameSpan);
+
+    // Админ учун аъзони чиқариб ташлаш (Kick)
+    if(isAdmin && mId !== myUid) {
+      const kBtn = document.createElement('button');
+      kBtn.className = "danger-btn";
+      kBtn.style.background = "var(--danger)";
+      kBtn.style.color = "white";
+      kBtn.style.border = "none";
+      kBtn.style.padding = "2px 8px";
+      kBtn.style.borderRadius = "4px";
+      kBtn.style.cursor = "pointer";
+      kBtn.innerText = d.kick;
+      kBtn.onclick = () => {
+        if(confirm(`${uInfo.name}ни гуруҳдан чиқаришни хоҳлайсизми?`)) {
+          remove(ref(db, `groups/${chatUid}/members/${mId}`));
+          openGroupInfo();
+        }
+      };
+      div.appendChild(kBtn);
     }
 
-    window.downloadImage = async function(url) {
-        try {
-            const res = await fetch(url);
-            const blob = await res.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = blobUrl;
-            a.download = `DoiraChat_${Date.now()}.jpg`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(blobUrl);
-        } catch(e) {
-            window.open(url, '_blank');
-        }
+    list.appendChild(div);
+  });
+};
+
+// ГУРУҲДАН ЧИҚИШ (LEAVE)
+window.leaveGroup = function() {
+  if(!isGroup) return;
+  if(confirm("Ҳақиқатдан ҳам ушбу гуруҳни тарк этмоқчимисiz?")) {
+    remove(ref(db, `groups/${chatUid}/members/${myUid}`)).then(() => {
+      closeM('groupInfoModal');
+      chatUid = ""; isGroup = false;
+      $('chatHead').classList.add('hidden');
+      $('msgsContainer').classList.add('hidden');
+      $('inputArea').classList.add('hidden');
+      $('blankScreen').classList.remove('hidden');
+      drawList();
+    });
+  }
+};
+
+window.createGroup = function(){
+  const n = $('grpNameInp').value.trim(); if(!n) return;
+  const gRef = push(ref(db, 'groups'));
+  const mem = {}; mem[myUid] = true;
+  set(gRef, { id: gRef.key, name: n, admin: myUid, members: mem }).then(() => {
+    $('grpNameInp').value = ""; closeM('createGrpModal'); toast("Гуруҳ яратилди");
+  });
+};
+
+window.openProfileModal = function(){ $('profModal').classList.add('open'); $('profName').value=myName; $('profPic').value=myPic; };
+window.saveProfile = function(){
+  const n=$('profName').value.trim(); const p=$('profPic').value.trim(); if(!n) return;
+  update(ref(db, `users/${myUid}`), { name:n, pic:p }).then(()=>{ closeM('profModal'); toast("Сақланди"); });
+};
+
+window.toggleTheme = function(){ document.body.classList.toggle('light'); };
+window.toggleStickers = function(){ $('stkPanel').classList.toggle('hidden'); };
+
+// ==========================================
+// ОРИГИНАЛ ВЕБРТC ҚЎНҒИРОҚЛАР ТИЗИМИ (БУЗИЛМАГАН)
+// ==========================================
+let peerConn, locStream, callId=null, isMuted=false;
+const rtcConfig = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+
+window.startCall = async function(type){
+  if(isGroup) return toast("Гуруҳли қўнғироқ тез кунда...");
+  callId = myUid + "_" + Date.now();
+  $('callModal').classList.add('open');
+  $('callName').textContent = chatName;
+  $('callStatus').textContent = "Чақириляпти...";
+  $('pickBtn').style.display = 'none';
+
+  try {
+    locStream = await navigator.mediaDevices.getUserMedia({ video: type==='video', audio: true });
+    $('localVideo').srcObject = locStream;
+    $('localVideo').style.display = type==='video'?'block':'none';
+  } catch(e) { toast("Камера/микрофонга рухсат берилмади"); endCall(); return; }
+
+  set(ref(db, `calls/${chatUid}/incoming`), { callId, callerId: myUid, callerName: myName, type });
+  set(ref(db, `calls/${myUid}/active`), { callId, targetId: chatUid, type });
+
+  initPeerConnection(type);
+  locStream.getTracks().forEach(tr => peerConn.addTrack(tr, locStream));
+
+  const offer = await peerConn.createOffer();
+  await peerConn.setLocalDescription(offer);
+  set(ref(db, `calls/${chatUid}/signals/offer`), { sdp: offer.sdp, type: offer.type });
+
+  onValue(ref(db, `calls/${myUid}/signals/answer`), async snap => {
+    const ans = snap.val(); if(ans && peerConn) await peerConn.setRemoteDescription(ans);
+  });
+
+  onValue(ref(db, `calls/${myUid}/signals/candidates`), snap => {
+    const c = snap.val(); if(c && peerConn) peerConn.addIceCandidate(new RTCIceCandidate(c));
+  });
+};
+
+function initPeerConnection(type){
+  peerConn = new RTCPeerConnection(rtcConfig);
+  peerConn.onicecandidate = e => {
+    if(e.candidate) set(push(ref(db, `calls/${chatUid}/signals/candidates`)), e.candidate.toJSON());
+  };
+  peerConn.ontrack = e => {
+    if(type==='video'){
+      $('remoteVideo').srcObject = e.streams[0]; $('remoteVideo').style.display = 'block';
+    } else {
+      $('remoteAudio').srcObject = e.streams[0];
+    }
+    $('callStatus').textContent = "Алоқа ўрнатилди";
+  };
+}
+
+window.pickUp = async function(){
+  $('ringSnd').pause(); $('pickBtn').style.display = 'none';
+  $('callStatus').textContent = "Уланилмоқда...";
+  
+  onValue(ref(db, `calls/${myUid}/incoming`), async snap => {
+    const d = snap.val(); if(!d) return;
+    const type = d.type;
+    try {
+      locStream = await navigator.mediaDevices.getUserMedia({ video: type==='video', audio: true });
+      $('localVideo').srcObject = locStream;
+      $('localVideo').style.display = type==='video'?'block':'none';
+    } catch(e){ endCall(); return; }
+
+    peerConn = new RTCPeerConnection(rtcConfig);
+    peerConn.onicecandidate = e => {
+      if(e.candidate) set(push(ref(db, `calls/${d.callerId}/signals/candidates`)), e.candidate.toJSON());
+    };
+    peerConn.ontrack = e => {
+      if(type==='video'){ $('remoteVideo').srcObject = e.streams[0]; $('remoteVideo').style.display='block'; }
+      else { $('remoteAudio').srcObject = e.streams[0]; }
+      $('callStatus').textContent = "Алоқа ўрнатилди";
     };
 
-    function showContextMenu(e, msgId, text) {
-        selectedMessageId = msgId;
-        const menu = document.getElementById('msgContextMenu');
-        menu.style.display = 'flex';
-        menu.style.top = `${e.pageY}px`;
-        menu.style.left = `${e.pageX}px`;
+    locStream.getTracks().forEach(tr => peerConn.addTrack(tr, locStream));
 
-        const emojis = document.querySelectorAll('#reactionPicker span');
-        emojis.forEach(em => {
-            em.onclick = () => {
-                addReactionToMessage(msgId, em.innerText);
-                menu.style.display = 'none';
-            };
-        });
-    }
-
-    document.addEventListener('click', (e) => {
-        const menu = document.getElementById('msgContextMenu');
-        if(!menu.contains(e.target)) menu.style.display = 'none';
+    onValue(ref(db, `calls/${myUid}/signals/offer`), async s => {
+      const off = s.val(); if(!off) return;
+      await peerConn.setRemoteDescription(off);
+      const ans = await peerConn.createAnswer();
+      await peerConn.setLocalDescription(ans);
+      set(ref(db, `calls/${d.callerId}/signals/answer`), { sdp: ans.sdp, type: ans.type });
     });
 
-    function addReactionToMessage(msgId, emoji) {
-        set(ref(db, `messages/${activeChatId}/${msgId}/reactions/${currentUser.id}`), emoji);
-    }
+    onValue(ref(db, `calls/${myUid}/signals/candidates`), s => {
+      const c = s.val(); if(c) Object.values(c).forEach(cand => peerConn.addIceCandidate(new RTCIceCandidate(cand)));
+    });
+  }, { onlyOnce: true });
+};
 
-    window.handleReplyAction = function() {
-        replyToMessageId = selectedMessageId;
-        onValue(ref(db, `messages/${activeChatId}/${replyToMessageId}`), (snapshot) => {
-            const data = snapshot.val();
-            if(data) {
-                document.getElementById('replyPreviewBar').style.display = 'flex';
-                document.getElementById('replyPreviewText').innerText = `${data.senderName}: ${data.text || 'Расм'}`;
-            }
-        }, { onlyOnce: true });
-    };
+window.toggleMute = function(){
+  isMuted = !isMuted;
+  if(locStream) locStream.getAudioTracks().forEach(t => t.enabled = !isMuted);
+  $('muteBtn').textContent = isMuted ? '🔇' : '🎤';
+};
 
-    window.cancelReply = function() {
-        replyToMessageId = null;
-        document.getElementById('replyPreviewBar').style.display = 'none';
-    };
+window.endCall = function(){
+  $('ringSnd').pause(); $('callModal').classList.remove('open');
+  if(locStream){ locStream.getTracks().forEach(t => t.stop()); locStream=null; }
+  if(peerConn){ peerConn.close(); peerConn=null; }
+  $('localVideo').style.display='none'; $('localVideo').srcObject=null;
+  $('remoteVideo').style.display='none'; $('remoteVideo').srcObject=null;
+  $('remoteAudio').srcObject=null;
+  callId=null; isMuted=false; $('muteBtn').textContent='🎤';
+  if(myUid) remove(ref(db,`calls/${myUid}`));
+  if(chatUid) remove(ref(db,`calls/${chatUid}`));
+};
 
-    window.openForwardModal = function() {
-        document.getElementById('forwardModal').style.display = 'flex';
-        const listContainer = document.getElementById('forwardList');
-        listContainer.innerHTML = "";
+function listenCalls(){
+  onValue(ref(db, `calls/${myUid}/incoming`), snap => {
+    const d = snap.val(); if(!d) { $('ringSnd').pause(); return; }
+    callId = d.callId;
+    $('callModal').classList.add('open');
+    $('callName').textContent = d.callerName || "Номаълум";
+    $('callStatus').textContent = "Кирувчи қўнғироқ...";
+    $('pickBtn').style.display = 'block';
+    $('ringSnd').play().catch(()=>{});
+  });
+  onValue(ref(db, `calls/${chatUid}/incoming`), snap => {
+    if(!snap.val() && callId) endCall();
+  });
+}
 
-        Object.values(allGroups).forEach(g => {
-            if(g.members && g.members[currentUser.id]) createForwardItem(g, 'group', listContainer);
-        });
-
-        Object.values(allUsers).forEach(u => {
-            if(u.id !== currentUser.id) createForwardItem(u, 'user', listContainer);
-        });
-    };
-
-    function createForwardItem(item, type, container) {
-        const div = document.createElement('div');
-        div.className = 'modal-list-item';
-        div.style.cursor = 'pointer';
-        div.innerHTML = `<span>${item.name} (${type === 'group' ? 'Гуруҳ' : 'Шахсий'})</span> <i class="fas fa-paper-plane" style="color:var(--accent);"></i>`;
-        div.onclick = () => {
-            forwardMessageTo(item.id, type);
-            closeModal('forwardModal');
-        };
-        container.appendChild(div);
-    }
-
-    function forwardMessageTo(targetId, type) {
-        onValue(ref(db, `messages/${activeChatId}/${selectedMessageId}`), (snapshot) => {
-            const data = snapshot.val();
-            if(data) {
-                const newMsgRef = push(ref(db, `messages/${targetId}`));
-                set(newMsgRef, {
-                    senderId: currentUser.id,
-                    senderName: currentUser.name,
-                    text: data.text || "",
-                    mediaUrl: data.mediaUrl || null,
-                    timestamp: Date.now(),
-                    isForwarded: true
-                });
-            }
-        }, { onlyOnce: true });
-    }
-
-    window.toggleSelectionMode = function() {
-        isSelectionMode = !isSelectionMode;
-        selectedMessagesList = [];
-        const chatArea = document.getElementById('chatArea');
-        const bar = document.getElementById('selectionModeBar');
-
-        if(isSelectionMode) {
-            chatArea.classList.add('selection-active');
-            bar.style.display = 'flex';
-            document.getElementById('selectionCountText').innerText = `0 ${languages[currentLanguage].selectText}`;
-            document.querySelectorAll('.msg-checkbox').forEach(c => c.style.display = 'inline-block');
-        } else {
-            chatArea.classList.remove('selection-active');
-            bar.style.display = 'none';
-            document.querySelectorAll('.msg-checkbox').forEach(c => { c.style.display = 'none'; c.checked = false; });
-        }
-    };
-
-    function handleSelectMessage(msgId, isChecked) {
-        if(isChecked) {
-            if(!selectedMessagesList.includes(msgId)) selectedMessagesList.push(msgId);
-        } else {
-            selectedMessagesList = selectedMessagesList.filter(id => id !== msgId);
-        }
-        document.getElementById('selectionCountText').innerText = `${selectedMessagesList.length} ${languages[currentLanguage].selectText}`;
-    }
-
-    window.deleteSelectedMessages = function() {
-        if(selectedMessagesList.length === 0) return;
-        selectedMessagesList.forEach(id => {
-            remove(ref(db, `messages/${activeChatId}/${id}`));
-        });
-        toggleSelectionMode();
-    };
-
-    window.handleDeleteAction = function() {
-        if(selectedMessageId) remove(ref(db, `messages/${activeChatId}/${selectedMessageId}`));
-    };
-
-    window.clearCurrentChat = function() {
-        if(confirm("Бу чатдаги барча хабарларни ўчиришни хоҳлайсизми?")) {
-            remove(ref(db, `messages/${activeChatId}`));
-        }
-    };
-
-    window.sendMessage = function() {
-        const input = document.getElementById('messageInput');
-        const text = input.value.trim();
-        if(!text && !replyToMessageId) return;
-
-        const newMsgRef = push(ref(db, `messages/${activeChatId}`));
-        const msgData = {
-            senderId: currentUser.id,
-            senderName: currentUser.name,
-            text: text,
-            timestamp: Date.now()
-        };
-
-        if(replyToMessageId) {
-            onValue(ref(db, `messages/${activeChatId}/${replyToMessageId}`), (snapshot) => {
-                const data = snapshot.val();
-                if(data) {
-                    msgData.replyTo = {
-                        id: replyToMessageId,
-                        text: data.text || "Расм",
-                        sender: data.senderName
-                    };
-                    set(newMsgRef, msgData);
-                    cancelReply();
-                }
-            }, { onlyOnce: true });
-        } else {
-            set(newMsgRef, msgData);
-        }
-        input.value = "";
-    };
-
-    window.triggerImageUpload = function() {
-        document.getElementById('imageInput').click();
-    };
-
-    window.uploadImageOnly = function(input) {
-        const file = input.files[0];
-        if(!file) return;
-
-        document.getElementById('messageInput').placeholder = "Расм юкланмоқда...";
-        const formData = new FormData();
-        formData.append("image", file);
-
-        fetch(`https://api.imgbb.com/1/upload?key=${imgbbApiKey}`, {
-            method: "POST",
-            body: formData
-        })
-        .then(res => res.json())
-        .then(resData => {
-            if(resData.success) {
-                const url = resData.data.url;
-                set(push(ref(db, `messages/${activeChatId}`)), {
-                    senderId: currentUser.id,
-                    senderName: currentUser.name,
-                    mediaUrl: url,
-                    timestamp: Date.now()
-                });
-            }
-            document.getElementById('messageInput').placeholder = languages[currentLanguage].chatPlace;
-        })
-        .catch(() => {
-            alert("Хатолик юз берди.");
-            document.getElementById('messageInput').placeholder = languages[currentLanguage].chatPlace;
-        });
-    };
-
-    window.openGroupInfoModal = function() {
-        document.getElementById('groupInfoModal').style.display = 'flex';
-        const group = allGroups[activeChatId];
-        const listContainer = document.getElementById('groupMembersList');
-        listContainer.innerHTML = "";
-
-        if(!group || !group.members) return;
-        const isAdmin = group.admin === currentUser.id;
-
-        Object.keys(group.members).forEach(memberId => {
-            const memberInfo = allUsers[memberId] || { name: memberId };
-            const div = document.createElement('div');
-            div.className = 'modal-list-item';
-            
-            div.innerHTML = `
-                <span style="cursor:pointer; font-weight:bold; color:var(--accent);" onclick="openDirectChatFromGroup('${memberId}')">
-                    ${memberInfo.name} ${group.admin === memberId ? '👑 (Admin)' : ''}
-                </span>
-            `;
-
-            if(isAdmin && memberId !== currentUser.id) {
-                const kickBtn = document.createElement('button');
-                kickBtn.className = 'danger-btn';
-                kickBtn.innerText = languages[currentLanguage].kick;
-                kickBtn.onclick = () => kickMemberFromGroup(memberId);
-                div.appendChild(kickBtn);
-            }
-            listContainer.appendChild(div);
-        });
-    };
-
-    window.openDirectChatFromGroup = function(userId) {
-        closeModal('groupInfoModal');
-        if(userId === currentUser.id) return; 
-        selectChat(userId, 'user');
-    };
-
-    function kickMemberFromGroup(memberId) {
-        if(confirm("Аъзони гуруҳдан чиқаришни тасдиқлайсизми?")) {
-            remove(ref(db, `groups/${activeChatId}/members/${memberId}`));
-            openGroupInfoModal(); 
-        }
-    }
-
-    window.leaveCurrentGroup = function() {
-        if(confirm("Гуруҳдан чиқишни хоҳлайсизми?")) {
-            remove(ref(db, `groups/${activeChatId}/members/${currentUser.id}`)).then(() => {
-                closeModal('groupInfoModal');
-                activeChatId = null;
-                activeChatType = null;
-                document.getElementById('headerActions').classList.add('hidden');
-                document.getElementById('activeChatName').innerText = "Чат танланг";
-                document.getElementById('activeChatStatus').innerText = "";
-                document.getElementById('messagesContainer').innerHTML = "";
-                renderSidebar();
-            });
-        }
-    };
-
-    window.closeModal = function(id) {
-        document.getElementById(id).style.display = 'none';
-    };
+// Илова ишга тушганда тилни созлаш
+changeLanguage(currentLang);
 </script>
-
 </body>
 </html>
