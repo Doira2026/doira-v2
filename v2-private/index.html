@@ -176,7 +176,7 @@ body:not(.light) .msg-container{background-blend-mode:overlay;background-color:r
         <div class="my-info"><div class="my-name" id="myName">Yuklanmoqda...</div><div class="my-status">Profilni sozlash</div></div>
       </div>
       <div class="side-actions">
-        <button class="btn-icon" id="newGrpBtn" title="Yangi guruh"><i class="fas fa-users-class"></i>➕</button>
+        <button class="btn-icon" id="newGrpBtn" title="Yangi guruh">➕</button>
         <button class="btn-icon" id="themeBtn" title="Mavzuni o'zgartirish">🌓</button>
         <button class="btn-icon" id="logoutBtn" title="Chiqish">🚪</button>
       </div>
@@ -309,7 +309,7 @@ function setupUser(){
   bindAll();buildStickers();buildReacts();listenCalls();applyTheme();hideLoader();showApp();
 }
 function showApp(){if(window.innerWidth<768){$('menuBtn').style.display='flex';}}
-function updateMyCard(){$('myName').textContent=myName;$('myAvatar').textContent=myAvatarUrl?'':av(myName);$('myAvatar').style.backgroundImage=myAvatarUrl?`url(${myAvatarUrl})` dance:'';}
+function updateMyCard(){$('myName').textContent=myName;$('myAvatar').textContent=myAvatarUrl?'':av(myName);$('myAvatar').style.backgroundImage=myAvatarUrl?`url(${myAvatarUrl})`:'';}
 function applyTheme(){const t=localStorage.getItem('dc_theme')||'dark';dark=t==='dark';if(dark)document.body.classList.remove('light');else document.body.classList.add('light');}
 function togTheme(){dark=!dark;localStorage.setItem('dc_theme',dark?'dark':'light');applyTheme();}
 function bindAll(){
