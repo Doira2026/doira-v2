@@ -27,7 +27,7 @@ img{display:block;max-width:100%}
 #sidebar{width:360px;min-width:360px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.4,0,.2,1);z-index:100}
 .sb-head{background:var(--bg3);padding:12px 16px;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
 .sb-top{display:flex;align-items:center;justify-content:space-between}
-.sb-logo{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:-.3px}
+.sb-logo{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:-.3px;display:flex;align-items:center;gap:8px}
 .sb-logo span{color:var(--text)}
 .sb-actions{display:flex;gap:6px}
 .sb-btn{padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;background:var(--bg4);color:var(--text);transition:.15s}
@@ -37,6 +37,7 @@ img{display:block;max-width:100%}
 .my-card:hover{background:var(--border)}
 .avatar{border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;font-size:16px;width:38px;height:38px;background-size:cover;background-position:center}
 .avatar.sm{width:32px;height:32px;font-size:13px}
+.avatar.lg{width:64px;height:64px;font-size:26px}
 .search-row{display:flex;align-items:center;gap:8px;background:var(--bg4);border-radius:10px;padding:8px 12px}
 .search-row input{flex:1;font-size:14px}
 .search-row input::placeholder{color:var(--text2)}
@@ -81,6 +82,11 @@ img{display:block;max-width:100%}
 .edited-lbl{font-size:10px;color:var(--text2);font-style:italic}
 .mimg{border-radius:10px;max-width:240px;cursor:pointer;display:block}
 .msticker{font-size:54px;line-height:1}
+.mfile{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.12);border-radius:10px;padding:8px 10px;min-width:180px;cursor:pointer}
+.mfile-icon{font-size:28px;flex-shrink:0}
+.mfile-info{flex:1;min-width:0}
+.mfile-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mfile-size{font-size:11px;color:var(--text2)}
 .rbar{position:absolute;bottom:-13px;right:6px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:2px 7px;font-size:12px;z-index:1}
 .maudio audio{width:180px;max-width:100%;display:block;border-radius:8px}
 .date-divider{align-self:center;background:var(--bg3);border-radius:8px;padding:3px 10px;font-size:11px;color:var(--text2);margin:6px 0}
@@ -154,6 +160,21 @@ img{display:block;max-width:100%}
 /* FORWARD MODAL */
 .fwd-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:.12s}
 .fwd-item:hover{background:var(--bg3)}
+/* MAIN MENU (Telegram-like) */
+.menu-section{margin-bottom:4px}
+.menu-item{display:flex;align-items:center;gap:14px;padding:11px 16px;cursor:pointer;transition:.12s;font-size:14px;font-weight:500}
+.menu-item:hover{background:var(--bg3)}
+.menu-item .mi-icon{font-size:19px;width:22px;text-align:center;flex-shrink:0}
+.menu-item .mi-arrow{margin-left:auto;color:var(--text2);font-size:12px}
+.menu-divider{height:1px;background:var(--border);margin:6px 0}
+.menu-header{display:flex;align-items:center;gap:12px;padding:18px 16px;background:var(--bg3)}
+.menu-header .info{flex:1;min-width:0}
+.menu-header .name{font-size:16px;font-weight:700}
+.menu-header .sub{font-size:12px;color:var(--text2);margin-top:2px}
+#mainMenuPanel{position:fixed;top:0;left:0;bottom:0;width:300px;background:var(--bg2);z-index:950;transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:4px 0 20px rgba(0,0,0,.3)}
+#mainMenuPanel.open{transform:translateX(0)}
+#menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:940;display:none}
+#menuOverlay.open{display:block}
 /* Call */
 #callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #callModal.open{display:flex}
@@ -191,6 +212,7 @@ img{display:block;max-width:100%}
   .mrow{max-width:90%}
   .mimg{max-width:200px}
   #stickerPanel{grid-template-columns:repeat(6,1fr)}
+  #mainMenuPanel{width:85%}
 }
 </style>
 </head>
@@ -206,12 +228,10 @@ img{display:block;max-width:100%}
   <div id="sidebar">
     <div class="sb-head">
       <div class="sb-top">
-        <div class="sb-logo">Doira<span>Chat</span></div>
+        <div class="sb-logo"><button id="mainMenuBtn" style="font-size:20px;color:var(--text)">☰</button>Doira<span>Chat</span></div>
         <div class="sb-actions">
           <button class="sb-btn" id="themeBtn">☀️</button>
-          <button class="sb-btn" id="langBtn">🌐</button>
           <button class="sb-btn" id="newGrpBtn">＋</button>
-          <button class="sb-btn danger" id="logoutBtn">⏻</button>
         </div>
       </div>
       <div class="my-card" id="myCard">
@@ -274,11 +294,44 @@ img{display:block;max-width:100%}
         <button id="sendBtn">➤</button>
       </div>
       <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <input type="file" id="docInput" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt" style="display:none">
     </div>
   </div>
 </div>
 
+<!-- MAIN MENU PANEL (Telegram-like) -->
+<div id="menuOverlay"></div>
+<div id="mainMenuPanel">
+  <div class="menu-header">
+    <div class="avatar lg" id="menuMyAv">?</div>
+    <div class="info">
+      <div class="name" id="menuMyName">—</div>
+      <div class="sub" id="menuMyStatus">online</div>
+    </div>
+  </div>
+  <div class="menu-section" style="padding-top:8px">
+    <div class="menu-item" id="menuProfileBtn"><span class="mi-icon">👤</span><span>Mening profilim</span><span class="mi-arrow">›</span></div>
+    <div class="menu-item" id="menuNewGrpBtn"><span class="mi-icon">👥</span><span>Yangi guruh</span><span class="mi-arrow">›</span></div>
+    <div class="menu-item" id="menuThemeBtn"><span class="mi-icon">🌙</span><span id="menuThemeLbl">Tungi rejim</span></div>
+    <div class="menu-item" id="menuLangBtn"><span class="mi-icon">🌐</span><span>Til / Язык / Language</span><span class="mi-arrow">›</span></div>
+  </div>
+  <div class="menu-divider"></div>
+  <div class="menu-section">
+    <div class="menu-item" id="menuAboutBtn"><span class="mi-icon">ℹ️</span><span>DoiraChat haqida</span></div>
+  </div>
+  <div class="menu-divider"></div>
+  <div class="menu-section">
+    <div class="menu-item" id="menuLogoutBtn" style="color:var(--danger)"><span class="mi-icon">⏻</span><span>Chiqish</span></div>
+  </div>
+</div>
+
 <div id="reactPanel"></div>
+
+<!-- ATTACH MENU -->
+<div id="attachMenuPanel" class="mmenu" style="display:none;position:fixed;z-index:701">
+  <button id="attachImgBtn">🖼️ Rasm</button>
+  <button id="attachDocBtn">📄 Fayl / PDF</button>
+</div>
 
 <!-- GROUP MODAL -->
 <div class="modal-bg" id="grpModal">
@@ -378,6 +431,23 @@ img{display:block;max-width:100%}
   </div>
 </div>
 
+<!-- ABOUT MODAL -->
+<div class="modal-bg" id="aboutModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:8px">💬</div>
+    <div class="modal-title" style="margin-bottom:4px">DoiraChat</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Versiya 2.0</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.6;text-align:left;background:var(--bg3);border-radius:10px;padding:14px">
+      Tezkor, qulay va bepul messenger.<br><br>
+      ✓ Matn, rasm, ovoz, fayl yuborish<br>
+      ✓ Audio va video qo'ng'iroq<br>
+      ✓ Guruh suhbatlar<br>
+      ✓ Reaksiya, javob, forward
+    </div>
+    <button class="mbtn gray" style="margin-top:16px;width:100%" onclick="document.getElementById('aboutModal').classList.remove('open')">Yopish</button>
+  </div>
+</div>
+
 <!-- CALL MODAL -->
 <div id="callModal">
   <video id="remoteVideo" autoplay playsinline></video>
@@ -425,6 +495,7 @@ const LANGS={
     groupLeft:'Guruhdan chiqdingiz',memberRemoved:'A\'zo chiqarildi',
     fwdSent:'Xabar yuborildi ✓',onlyText:'Faqat matn',
     imgUploading:'Rasm yuklanmoqda...',imgSent:'Rasm yuborildi ✓',
+    fileUploading:'Fayl yuklanmoqda...',fileSent:'Fayl yuborildi ✓',fileError:'Fayl yuklashda xato!',fileTooBig:'Fayl juda katta (max 30MB)!',
     voiceStart:'Yozish boshlandi 🔴',voiceSent:'Ovozli xabar yuborildi 🎤',
     micError:'Mikrofon ruxsati berilmagan!',profileSaved:'Profil yangilandi ✓',
     grpCreated:'Guruh yaratildi ✓',enterName:'Ism kiriting',enterGroup:'Guruh nomini kiriting',
@@ -433,7 +504,7 @@ const LANGS={
     callAudio:"📞 Qo'ng'iroq...",callVideo:"📹 Video...",callConnected:'✓ Ulandi',
     callFailed:'Ulanish uzildi',callPerm:'Mikrofon/kamera ruxsati kerak!',
     mutedMic:"Mikrofon o'chirildi",unmutedMic:'Mikrofon yoqildi',
-    directChat:'💬 Chat boshlash',callBtn:'📞 Qo\'ng\'iroq'},
+    directChat:'💬 Chat boshlash',callBtn:'📞 Qo\'ng\'iroq',nightMode:'Tungi rejim',dayMode:'Kunduzgi rejim',myProfile:'Mening profilim'},
   ru:{search:'Поиск...',typeMsg:'Написать...',online:'🟢 онлайн',offline:'⚫ офлайн',
     lastSeen:'Был: ',members:'участник',noOne:'Никого не найдено',
     reply:'↩️ Ответить',forward:'↗️ Переслать',download:'⬇️ Скачать',
@@ -444,6 +515,7 @@ const LANGS={
     groupLeft:'Вы покинули группу',memberRemoved:'Участник удалён',
     fwdSent:'Сообщение отправлено ✓',onlyText:'Только текст',
     imgUploading:'Загрузка...',imgSent:'Фото отправлено ✓',
+    fileUploading:'Загрузка файла...',fileSent:'Файл отправлен ✓',fileError:'Ошибка загрузки!',fileTooBig:'Файл слишком большой (max 30MB)!',
     voiceStart:'Запись 🔴',voiceSent:'Голосовое отправлено 🎤',
     micError:'Нет доступа к микрофону!',profileSaved:'Профиль обновлён ✓',
     grpCreated:'Группа создана ✓',enterName:'Введите имя',enterGroup:'Введите название',
@@ -452,7 +524,7 @@ const LANGS={
     callAudio:'📞 Звонок...',callVideo:'📹 Видеозвонок...',callConnected:'✓ Подключено',
     callFailed:'Соединение разорвано',callPerm:'Нужен доступ к микрофону/камере!',
     mutedMic:'Микрофон выключен',unmutedMic:'Микрофон включён',
-    directChat:'💬 Написать',callBtn:'📞 Позвонить'},
+    directChat:'💬 Написать',callBtn:'📞 Позвонить',nightMode:'Ночной режим',dayMode:'Дневной режим',myProfile:'Мой профиль'},
   en:{search:'Search...',typeMsg:'Type a message...',online:'🟢 online',offline:'⚫ offline',
     lastSeen:'Last seen: ',members:'member',noOne:'Nobody found',
     reply:'↩️ Reply',forward:'↗️ Forward',download:'⬇️ Download',
@@ -463,6 +535,7 @@ const LANGS={
     groupLeft:'You left the group',memberRemoved:'Member removed',
     fwdSent:'Message forwarded ✓',onlyText:'Text only',
     imgUploading:'Uploading...',imgSent:'Image sent ✓',
+    fileUploading:'Uploading file...',fileSent:'File sent ✓',fileError:'Upload error!',fileTooBig:'File too large (max 30MB)!',
     voiceStart:'Recording 🔴',voiceSent:'Voice sent 🎤',
     micError:'Microphone permission denied!',profileSaved:'Profile updated ✓',
     grpCreated:'Group created ✓',enterName:'Enter name',enterGroup:'Enter group name',
@@ -471,7 +544,7 @@ const LANGS={
     callAudio:'📞 Calling...',callVideo:'📹 Video call...',callConnected:'✓ Connected',
     callFailed:'Connection failed',callPerm:'Microphone/camera permission needed!',
     mutedMic:'Mic off',unmutedMic:'Mic on',
-    directChat:'💬 Message',callBtn:'📞 Call'}
+    directChat:'💬 Message',callBtn:'📞 Call',nightMode:'Night mode',dayMode:'Day mode',myProfile:'My profile'}
 };
 let lang=localStorage.getItem('dc_lang')||'uz';
 const t=k=>LANGS[lang][k]||LANGS.uz[k]||k;
@@ -479,6 +552,7 @@ window.setLang=l=>{lang=l;localStorage.setItem('dc_lang',l);applyLang();document
 function applyLang(){
   const s=document.getElementById('searchInput');if(s)s.placeholder=t('search');
   const m=document.getElementById('msgInput');if(m)m.placeholder=t('typeMsg');
+  const tl=document.getElementById('menuThemeLbl');if(tl)tl.textContent=dark?t('nightMode'):t('dayMode');
 }
 
 const fbApp=initializeApp(FB);
@@ -490,7 +564,7 @@ const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function toast(msg,dur=2500){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),dur);}
 
-// Sana formati: 12.01.2026
+// Sana + vaqt formati: 12.01.2026, 14:30
 function fmtDate(ts){
   if(!ts)return '—';
   const d=new Date(ts);
@@ -503,10 +577,29 @@ function fmtTime(ts){
   if(!ts)return '';
   return new Date(ts).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'});
 }
+function fmtDateTime(ts){
+  if(!ts)return '—';
+  return fmtDate(ts)+', '+fmtTime(ts);
+}
 function fmtDateLong(ts){
   if(!ts)return '';
   const d=new Date(ts);
   return d.toLocaleDateString(lang==='ru'?'ru-RU':lang==='en'?'en-US':'uz-UZ',{day:'numeric',month:'long'});
+}
+function fmtFileSize(bytes){
+  if(!bytes)return '';
+  if(bytes<1024)return bytes+' B';
+  if(bytes<1024*1024)return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/1024/1024).toFixed(1)+' MB';
+}
+function fileIcon(name){
+  const ext=(name||'').split('.').pop().toLowerCase();
+  if(ext==='pdf')return '📕';
+  if(['doc','docx'].includes(ext))return '📘';
+  if(['xls','xlsx'].includes(ext))return '📗';
+  if(['ppt','pptx'].includes(ext))return '📙';
+  if(['zip','rar','7z'].includes(ext))return '🗜️';
+  return '📄';
 }
 
 let myUid,myName,myAvatar='';
@@ -558,26 +651,46 @@ function showApp(){
 
 function updateMyCard(){
   $('myName').textContent=myName;
-  if(myAvatar){$('myAv').style.backgroundImage=`url(${myAvatar})`;$('myAv').textContent='';}
-  else{$('myAv').style.backgroundImage='';$('myAv').textContent=av(myName);}
+  $('menuMyName').textContent=myName;
+  $('menuMyStatus').textContent=t('online');
+  if(myAvatar){
+    $('myAv').style.backgroundImage=`url(${myAvatar})`;$('myAv').textContent='';
+    $('menuMyAv').style.backgroundImage=`url(${myAvatar})`;$('menuMyAv').textContent='';
+  } else {
+    $('myAv').style.backgroundImage='';$('myAv').textContent=av(myName);
+    $('menuMyAv').style.backgroundImage='';$('menuMyAv').textContent=av(myName);
+  }
 }
 
-function applyTheme(){document.body.className=dark?'':'light';$('themeBtn').textContent=dark?'☀️':'🌙';}
+function applyTheme(){
+  document.body.className=dark?'':'light';
+  $('themeBtn').textContent=dark?'☀️':'🌙';
+  const tl=$('menuThemeLbl');if(tl)tl.textContent=dark?t('nightMode'):t('dayMode');
+}
 function togTheme(){dark=!dark;localStorage.setItem('dc_theme',dark?'dark':'light');applyTheme();}
 
 function bindAll(){
   $('themeBtn').onclick=togTheme;
-  $('langBtn').onclick=()=>$('langModal').classList.add('open');
-  $('logoutBtn').onclick=doLogout;
+  $('newGrpBtn').onclick=openGrpModal;
+  $('mainMenuBtn').onclick=openMainMenu;
+  $('menuOverlay').onclick=closeMainMenu;
+  $('menuProfileBtn').onclick=()=>{closeMainMenu();openProfile();};
+  $('menuNewGrpBtn').onclick=()=>{closeMainMenu();openGrpModal();};
+  $('menuThemeBtn').onclick=()=>{togTheme();};
+  $('menuLangBtn').onclick=()=>{closeMainMenu();$('langModal').classList.add('open');};
+  $('menuAboutBtn').onclick=()=>{closeMainMenu();$('aboutModal').classList.add('open');};
+  $('menuLogoutBtn').onclick=()=>{closeMainMenu();doLogout();};
   $('menuBtn').onclick=togSidebar;
   $('overlay').onclick=togSidebar;
   $('myCard').onclick=openProfile;
   $('searchInput').oninput=renderList;
-  $('newGrpBtn').onclick=openGrpModal;
   $('cancelGrpBtn').onclick=closeGrpModal;
   $('createGrpBtn').onclick=createGrp;
-  $('attachBtn').onclick=()=>$('fileInput').click();
+  $('attachBtn').onclick=openAttachMenu;
+  $('attachImgBtn').onclick=()=>{closeAttachMenu();$('fileInput').click();};
+  $('attachDocBtn').onclick=()=>{closeAttachMenu();$('docInput').click();};
   $('fileInput').onchange=uploadImg;
+  $('docInput').onchange=uploadDoc;
   $('stickerBtn').onclick=togStickers;
   $('micBtn').onclick=togRec;
   $('sendBtn').onclick=sendMsg;
@@ -615,12 +728,27 @@ function bindAll(){
   $('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
   document.addEventListener('click',e=>{
     if(!e.target.closest('#reactPanel'))$('reactPanel').classList.remove('open');
-    if(!e.target.closest('.mmenu'))document.querySelectorAll('.mmenu').forEach(m=>m.remove());
+    if(!e.target.closest('.mmenu'))document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel')m.remove();});
+    if(!e.target.closest('#attachMenuPanel')&&!e.target.closest('#attachBtn'))closeAttachMenu();
   });
 }
 
 function autoH(){const el=$('msgInput');el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px';}
 function togSidebar(){$('sidebar').classList.toggle('open');$('overlay').classList.toggle('open');}
+
+// === MAIN MENU (Telegram-like) ===
+function openMainMenu(){$('mainMenuPanel').classList.add('open');$('menuOverlay').classList.add('open');}
+function closeMainMenu(){$('mainMenuPanel').classList.remove('open');$('menuOverlay').classList.remove('open');}
+
+// === ATTACH MENU ===
+function openAttachMenu(e){
+  const m=$('attachMenuPanel');
+  const rect=$('attachBtn').getBoundingClientRect();
+  m.style.display='block';
+  m.style.left=rect.left+'px';
+  m.style.bottom=(window.innerHeight-rect.top+8)+'px';
+}
+function closeAttachMenu(){$('attachMenuPanel').style.display='none';}
 
 // === PROFILE ===
 function openProfile(){
@@ -673,7 +801,7 @@ function openUserInfo(uid){
   $('uinfoStatus').textContent=u.online?t('online'):t('offline');
   $('uinfoRows').innerHTML=`
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${t('lastSeen')}</div>
-    <div style="font-size:14px;font-weight:600">${u.online?'—':fmtDate(u.lastSeen)+' '+fmtTime(u.lastSeen)}</div>
+    <div style="font-size:14px;font-weight:600">${u.online?'—':fmtDateTime(u.lastSeen)}</div>
   `;
   $('uinfoChatBtn').textContent=t('directChat');
   $('uinfoCallBtn').textContent=t('callBtn');
@@ -689,13 +817,11 @@ async function doLogout(){
 }
 
 // === RENDER LIST ===
-// Tartib: 1) Guruhlar (yangi yuqorida) → 2) Online foydalanuvchilar → 3) Offline
 function renderList(){
   const q=($('searchInput')?.value||'').toLowerCase().trim();
   const list=$('usersList');if(!list)return;
   list.innerHTML='';
 
-  // 1. Guruhlar (yuqorida)
   const grpItems=[];
   Object.entries(grps).forEach(([gid,g])=>{
     if(!g.members?.[myUid])return;
@@ -704,7 +830,6 @@ function renderList(){
   });
   grpItems.sort((a,b)=>b.created-a.created);
 
-  // 2. Foydalanuvchilar: avval online, keyin offline
   const userItems=[];
   Object.entries(users).forEach(([uid,u])=>{
     if(uid===myUid||!u.name)return;
@@ -731,8 +856,7 @@ function renderList(){
           <div class="usub">${item.members} ${t('members')}</div>
         </div>${item.unread?`<div class="badge">${item.unread}</div>`:''}`;
     } else {
-      // Sana formati: 12.01.2026
-      const lastStr=item.lastSeen?fmtDate(item.lastSeen):'';
+      const lastStr=item.lastSeen?fmtDateTime(item.lastSeen):'';
       const avStyle=item.avatar?`style="background-image:url(${item.avatar});background-size:cover;background-position:center"`:'' ;
       d.innerHTML=`<div class="odot ${item.online?'on':''}"></div>
         <div class="avatar" ${avStyle} onclick="event.stopPropagation();window._openUserInfo('${item.id}')">${item.avatar?'':av(item.name)}</div>
@@ -823,7 +947,6 @@ function renderMsg(key,msg,box){
   row.className='mrow '+(mine?'out':'in');
   row.setAttribute('data-msg-id',key);
 
-  // Reply preview
   let replyHtml='';
   if(msg.replyTo){
     const rn=msg.replyTo.senderName||'';
@@ -841,6 +964,16 @@ function renderMsg(key,msg,box){
     const src=msg.base64Audio||msg.url||'';
     content=`<div class="maudio"><audio controls src="${src}"></audio></div>`;
   }
+  else if(msg.type==='file'){
+    content=`<div class="mfile" onclick="window._downloadFile('${esc(msg.url)}','${esc(msg.fileName)}')">
+      <div class="mfile-icon">${fileIcon(msg.fileName)}</div>
+      <div class="mfile-info">
+        <div class="mfile-name">${esc(msg.fileName||'Fayl')}</div>
+        <div class="mfile-size">${fmtFileSize(msg.fileSize)}</div>
+      </div>
+      <div style="font-size:18px">⬇️</div>
+    </div>`;
+  }
   else if(msg.type==='sticker')
     content=`<div class="msticker">${msg.text}</div>`;
   else
@@ -857,7 +990,6 @@ function renderMsg(key,msg,box){
   const tick=mine?`<span class="tick ${msg.status==='seen'?'seen':''}">${msg.status==='seen'?'✓✓':'✓'}</span>`:'';
   const senderHtml=(!mine&&msg.senderName)?`<div class="msender" onclick="window._openUserInfo('${msg.sender}')">${esc(msg.senderName)}</div>`:'';
 
-  // Forwarded label
   const fwdHtml=msg.forwarded?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">↗️ ${esc(msg.forwarded)}</div>`:'';
 
   row.innerHTML=`<div class="mbub"
@@ -913,7 +1045,6 @@ function openForward(msg){
   fwdMsgData=msg;
   const list=$('fwdList');list.innerHTML='';
 
-  // Users
   Object.entries(users).forEach(([uid,u])=>{
     if(uid===myUid||!u.name)return;
     const d=document.createElement('div');d.className='fwd-item';
@@ -924,7 +1055,6 @@ function openForward(msg){
       const fwdData={...fwdMsgData,sender:myUid,senderName:myName,time:serverTimestamp(),status:'sent',forwarded:myName};
       delete fwdData.reactions;delete fwdData.replyTo;
       await push(ref(db,`chats/${targetChatId}`),fwdData);
-      // unread
       const ur=ref(db,`unread/${uid}/${myUid}`);get(ur).then(s=>set(ur,(s.val()||0)+1));
       $('fwdModal').classList.remove('open');
       toast(t('fwdSent'));
@@ -932,7 +1062,6 @@ function openForward(msg){
     list.appendChild(d);
   });
 
-  // Groups
   Object.entries(grps).forEach(([gid,g])=>{
     if(!g.members?.[myUid])return;
     const d=document.createElement('div');d.className='fwd-item';
@@ -961,16 +1090,16 @@ function notifyOther(){
   }
 }
 
-// === CLEAR CHAT ===
+// === CLEAR CHAT === (BARCHA xabarlarni o'chiradi, ikki tomon ham)
 async function clearChat(){
   if(!chatId)return;
   const snap=await get(ref(db,`chats/${chatId}`));
   const msgs=snap.val()||{};
-  const myMsgs=Object.entries(msgs).filter(([k,m])=>m.sender===myUid);
-  if(!myMsgs.length){toast(t('noMsgsToDelete'));return;}
-  if(!confirm(`${myMsgs.length} ${t('confirmClear')}`))return;
-  for(const [k] of myMsgs)await remove(ref(db,`chats/${chatId}/${k}`));
-  toast(`${myMsgs.length} ${t('cleared')}`);
+  const allKeys=Object.keys(msgs);
+  if(!allKeys.length){toast(t('noMsgsToDelete'));return;}
+  if(!confirm(`${allKeys.length} ${t('confirmClear')}`))return;
+  await remove(ref(db,`chats/${chatId}`));
+  toast(`${allKeys.length} ${t('cleared')}`);
 }
 
 // === STATS ===
@@ -981,6 +1110,7 @@ async function showStats(){
   const total=msgs.length,mine=msgs.filter(m=>m.sender===myUid).length;
   const theirs=total-mine,images=msgs.filter(m=>m.type==='image').length;
   const audios=msgs.filter(m=>m.type==='audio').length,stickers=msgs.filter(m=>m.type==='sticker').length;
+  const files=msgs.filter(m=>m.type==='file').length;
   const texts=msgs.filter(m=>m.type==='text').length;
   const words=msgs.filter(m=>m.type==='text'&&m.text).reduce((s,m)=>s+(m.text.split(' ').length),0);
   $('statsContent').innerHTML=`
@@ -989,6 +1119,7 @@ async function showStats(){
     <div class="stat-row"><span class="stat-label">🔵 ${chatName}</span><span class="stat-val">${theirs}</span></div>
     <div class="stat-row"><span class="stat-label">📝 Matn</span><span class="stat-val">${texts}</span></div>
     <div class="stat-row"><span class="stat-label">🖼️ Rasm</span><span class="stat-val">${images}</span></div>
+    <div class="stat-row"><span class="stat-label">📄 Fayl</span><span class="stat-val">${files}</span></div>
     <div class="stat-row"><span class="stat-label">🎤 Ovoz</span><span class="stat-val">${audios}</span></div>
     <div class="stat-row"><span class="stat-label">😊 Stiker</span><span class="stat-val">${stickers}</span></div>
     <div class="stat-row"><span class="stat-label">🔤 So'z</span><span class="stat-val">${words}</span></div>
@@ -1014,7 +1145,6 @@ window._showReactPanel=(key,x,y)=>{
   reactKey=key;
   const p=$('reactPanel');
   p.classList.add('open');
-  // Позицияни тўғри ҳисоблаш
   const px=Math.min(parseInt(x)||0,window.innerWidth-260);
   const py=Math.max((parseInt(y)||0)-70,4);
   p.style.left=px+'px';
@@ -1038,24 +1168,26 @@ window._sTouch=(e,k,mine,type)=>{
 window._eTouch=()=>clearTimeout(touchT);
 
 window._showMenu=(e,key,mine,type)=>{
-  document.querySelectorAll('.mmenu').forEach(m=>m.remove());
+  document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel')m.remove();});
   const px=e.pageX||e.clientX||0;
   const py=e.pageY||e.clientY||0;
   const m=document.createElement('div');m.className='mmenu';
   const isImg=type==='image';
+  const isFile=type==='file';
   m.innerHTML=`
     <button onclick="window._showReactPanel('${key}',${px},${py})">😊 ${t('react')}</button>
     <button onclick="window._replyMsg('${key}')">↩️ ${t('reply')}</button>
     <button onclick="window._fwdMsg('${key}')">↗️ ${t('forward')}</button>
-    ${!isImg?`<button onclick="window._copyMsg('${key}')">📋 ${t('copy')}</button>`:''}
+    ${(!isImg&&!isFile)?`<button onclick="window._copyMsg('${key}')">📋 ${t('copy')}</button>`:''}
     ${isImg?`<button onclick="window._downloadMsgImg('${key}')">⬇️ ${t('download')}</button>`:''}
+    ${isFile?`<button onclick="window._downloadMsgFile('${key}')">⬇️ ${t('download')}</button>`:''}
     <button onclick="window._pinMsg('${key}')">📌 ${t('pin')}</button>
-    ${mine?`<div class="divider"></div>
-    ${type==='text'?`<button onclick="window._startEdit('${key}')">✏️ ${t('edit')}</button>`:''}
-    <button class="rd" onclick="window._delMsg('${key}')">🗑️ ${t('del')}</button>`:''}
+    <div class="divider"></div>
+    ${(type==='text'&&mine)?`<button onclick="window._startEdit('${key}')">✏️ ${t('edit')}</button>`:''}
+    <button class="rd" onclick="window._delMsg('${key}')">🗑️ ${t('del')}</button>
   `;
   const left=Math.min(px,window.innerWidth-190);
-  const top=Math.min(py,window.innerHeight-250);
+  const top=Math.min(py,window.innerHeight-280);
   m.style.left=left+'px';m.style.top=top+'px';
   document.body.appendChild(m);
 };
@@ -1080,7 +1212,6 @@ window._copyMsg=async key=>{
     await navigator.clipboard.writeText(m.text);
     toast(t('msgCopied'));
   }catch{
-    // Fallback
     const ta=document.createElement('textarea');
     ta.value=m.text;document.body.appendChild(ta);ta.select();
     document.execCommand('copy');ta.remove();
@@ -1089,14 +1220,21 @@ window._copyMsg=async key=>{
 };
 window._downloadMsgImg=async key=>{
   const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
-  if(m.url)downloadFromUrl(m.url);
+  if(m.url)downloadFromUrl(m.url,'image.jpg');
 };
+window._downloadMsgFile=async key=>{
+  const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
+  if(m.url)downloadFromUrl(m.url,m.fileName||'file');
+};
+window._downloadFile=(url,name)=>downloadFromUrl(url,name);
 window._startEdit=async key=>{
   const s=await get(ref(db,`chats/${chatId}/${key}`));const m=s.val();
   if(m.type!=='text')return toast(t('onlyText'));
   editKey=key;$('msgInput').value=m.text;$('editBan').classList.add('show');$('msgInput').focus();
 };
 function cancelEdit(){editKey=null;$('msgInput').value='';$('editBan').classList.remove('show');}
+
+// БАРЧА ФОЙДАЛАНУВЧИЛАР ХАБАРНИ О'ЧИРА ОЛАДИ (ўзиники ва бошқасиники)
 window._delMsg=async key=>{
   if(!confirm(t('confirmDel')))return;
   await remove(ref(db,`chats/${chatId}/${key}`));toast(t('msgDeleted'));
@@ -1145,6 +1283,31 @@ async function uploadImg(e){
   }catch{toast('Xato!');}
 }
 
+// === FILE/PDF UPLOAD (base64 orqali Firebase ga, 30MB gacha) ===
+async function uploadDoc(e){
+  const f=e.target.files[0];if(!f||!chatId)return;
+  e.target.value='';
+  if(f.size>30*1024*1024){toast(t('fileTooBig'));return;}
+  toast(t('fileUploading'));
+  try{
+    const reader=new FileReader();
+    reader.onloadend=async()=>{
+      const msgData={
+        url:reader.result,
+        fileName:f.name,
+        fileSize:f.size,
+        sender:myUid,senderName:myName,
+        time:serverTimestamp(),type:'file',status:'sent'
+      };
+      if(replyKey&&replyData){msgData.replyTo={key:replyKey,text:replyData.text||'📎',senderName:replyData.senderName||''};}
+      await push(ref(db,`chats/${chatId}`),msgData);
+      cancelReply();notifyOther();toast(t('fileSent'));
+    };
+    reader.onerror=()=>toast(t('fileError'));
+    reader.readAsDataURL(f);
+  }catch{toast(t('fileError'));}
+}
+
 // === AUDIO RECORD ===
 async function togRec(){
   if(mediaRec&&mediaRec.state==='recording'){
@@ -1186,14 +1349,14 @@ function previewImg(url){$('prevImg').src=url;$('imgPrev').classList.add('open')
 window._prevImg=previewImg;
 function closePrev(){$('imgPrev').classList.remove('open');$('prevImg').src='';}
 
-function downloadFromUrl(url){
+function downloadFromUrl(url,filename){
   const a=document.createElement('a');
-  a.href=url;a.download='image.jpg';a.target='_blank';
+  a.href=url;a.download=filename||'file';a.target='_blank';
   document.body.appendChild(a);a.click();a.remove();
 }
 function downloadImg(){
   const src=$('prevImg').src;
-  if(src)downloadFromUrl(src);
+  if(src)downloadFromUrl(src,'image.jpg');
 }
 
 // === GROUPS ===
@@ -1246,14 +1409,12 @@ function openGrpInfo(){
   $('grpInfoModal').classList.add('open');
 }
 
-// Гуруҳдаги аъзо билан 1-1 чат
 window._grpMemberChat=(uid,name)=>{
   $('grpInfoModal').classList.remove('open');
   openChat(uid,name,false);
   if(window.innerWidth<768)togSidebar();
 };
 
-// Гуруҳдан аъзо ўчириш (фақат admin)
 window._removeGrpMember=async uid=>{
   if(!confirm(t('memberRemoved')+'?'))return;
   await remove(ref(db,`groups/${chatId}/members/${uid}`));
@@ -1261,7 +1422,6 @@ window._removeGrpMember=async uid=>{
   openGrpInfo();
 };
 
-// Гуруҳдан чиқиш
 async function leaveGroup(){
   if(!chatId||!isGrp)return;
   if(!confirm(t('confirmLeave')))return;
