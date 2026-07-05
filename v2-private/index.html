@@ -113,7 +113,7 @@ img{display:block;max-width:100%}
 #sendBtn:hover{background:var(--accent2);transform:scale(1.06)}
 .recording #micBtn{animation:pulse 1s infinite;color:var(--danger)!important}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-#stickerPanel{background:var(--bg2);border-top:1px solid var(--border);padding:8px;display:none;grid-template-columns:repeat(8,1fr);gap:4px;max-height:130px;overflow-y:auto}
+#stickerPanel{background:var(--bg2);border-top:1px solid var(--border);padding:8px;display:none;grid-template-columns:repeat(8,1fr);gap:4px;max-height:220px;overflow-y:auto}
 #stickerPanel.open{display:grid}
 .sitem{font-size:26px;text-align:center;padding:5px;border-radius:9px;cursor:pointer;transition:.12s}
 .sitem:hover{background:var(--bg4);transform:scale(1.18)}
@@ -375,6 +375,13 @@ img{display:block;max-width:100%}
       <button class="mbtn primary" id="saveProfileBtn">✓ Saqlash</button>
       <button class="mbtn gray" id="closeProfileBtn">Bekor</button>
     </div>
+    <!-- Profil rasmlari galereya -->
+    <div style="margin-top:16px;text-align:left">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">🖼️ Mening rasmlarim</div>
+      <div id="profileGallery" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px"></div>
+      <button onclick="document.getElementById('galleryInput').click()" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer">+ Rasm qo'shish</button>
+      <input type="file" id="galleryInput" accept="image/*" style="display:none">
+    </div>
     <!-- Kim profil ko'rganlar -->
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">👁️ Profilni ko'rganlar</div>
@@ -481,13 +488,32 @@ img{display:block;max-width:100%}
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, onAuthStateChanged, signOut, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signOut, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getDatabase, ref, set, get, push, update, remove, onValue, onChildAdded, onDisconnect, serverTimestamp, off }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-chat-v2.firebaseapp.com",databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",projectId:"doira-chat-v2",storageBucket:"doira-chat-v2.firebasestorage.app",messagingSenderId:"885552294238",appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"};
 const IMGBB='e4cecebb229f451e3322c126e3d09399';
-const STICKERS=['😀','😂','😍','😘','😎','😭','😡','👍','🔥','❤️','💯','🎉','🤔','🙏','👏','😴','💀','🥳','😇','😈','🤪','🥺','😱','🫡','🤝','🥹','🫶','💪','🎵','🎮','🚀','🌟','🌈','🎯','🏆','💎','🤩','🦋','🌺'];
+const STICKERS=[
+  // Yuzlar
+  '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','🙂','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','😵','🤯','😎','🤓','🥸','😲','😳','🥺','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩',
+  // Жесты
+  '👍','👎','👌','✌️','🤞','🖖','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👋','🤚','🖐️','✋','🖕','💪','🦾','🙏','🤲','👐','🫶','🫂','🤝','🙌','👏',
+  // Сердечки
+  '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🔥',
+  // Животные
+  '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦗','🕷️',
+  // Еда
+  '🍎','🍊','🍋','🍇','🍓','🍒','🍑','🥝','🍕','🍔','🌮','🌯','🍜','🍣','🍩','🎂','🍰','🧁','☕','🍵','🧃','🥤','🍺','🍻','🥂','🍾',
+  // Природа
+  '🌸','🌺','🌻','🌹','🌷','🌿','🍀','🌈','⭐','🌟','💫','✨','🌙','☀️','🌤️','⛅','🌧️','⛈️','🌨️','❄️','🌊','🔥','💥',
+  // Активность
+  '⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🏆','🥇','🎮','🎲','🎭','🎨','🎬','🎤','🎵','🎶','🎼','🎹','🎸','🎺','🥁',
+  // Путешествия
+  '🚗','🚕','🚙','🚌','🏎️','🚓','🚑','✈️','🚀','🛸','🚂','⛵','🏠','🏢','🗽','🗼','🏰','🌍','🌎','🌏',
+  // Символы
+  '💯','✅','❌','❓','❕','💢','💬','💭','💤','🔔','🔕','🎵','🔑','💡','🔍','📱','💻','⌨️','🖥️','📷','📸','🎥','📹','📺','📻','🧲','💊','🩺','🩹'
+];
 const REACTS=['❤️','😂','👍','😮','😢','🙏','🔥','😎'];
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]};
 
@@ -566,6 +592,8 @@ function applyLang(){
 const fbApp=initializeApp(FB);
 const auth=getAuth(fbApp);
 const db=getDatabase(fbApp);
+// Auto-login - sahifa yangilanganda qayta login so'ramas in
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
 const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
@@ -765,9 +793,49 @@ function openProfile(){
   if(myAvatar){pa.style.backgroundImage=`url(${myAvatar})`;pa.textContent='';}
   else{pa.style.backgroundImage='';pa.textContent=av(myName);}
   $('profileModal').classList.add('open');
-  // Kim profilimni ko'rganini yuklash
   loadProfileViews();
+  loadProfileGallery();
+  $('galleryInput').onchange=uploadGalleryImg;
 }
+
+async function loadProfileGallery(){
+  const gl=$('profileGallery');gl.innerHTML='';
+  const snap=await get(ref(db,`profileGallery/${myUid}`));
+  const imgs=snap.val()||{};
+  Object.entries(imgs).reverse().forEach(([k,v])=>{
+    const div=document.createElement('div');
+    div.style.cssText='position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer';
+    div.innerHTML=`<img src="${v.url}" style="width:100%;height:100%;object-fit:cover" onclick="window._prevImg('${v.url}')">
+      <button onclick="event.stopPropagation();window._delGalleryImg('${k}')" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</button>`;
+    gl.appendChild(div);
+  });
+  if(!Object.keys(imgs).length){
+    gl.innerHTML='<div style="font-size:12px;color:var(--text2);grid-column:span 3">Hali rasm qo'shilmagan</div>';
+  }
+}
+
+async function uploadGalleryImg(e){
+  const f=e.target.files[0];if(!f)return;
+  e.target.value='';
+  toast('Rasm yuklanmoqda...');
+  const fd=new FormData();fd.append('image',f);
+  try{
+    const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.success){
+      await push(ref(db,`profileGallery/${myUid}`),{url:d.data.url,time:Date.now()});
+      loadProfileGallery();
+      toast('Rasm qo'shildi ✓');
+    }
+  }catch{toast('Xato!');}
+}
+
+window._delGalleryImg=async key=>{
+  if(!confirm('Rasmni o'chirishga ishonchingiz komilmi?'))return;
+  await remove(ref(db,`profileGallery/${myUid}/${key}`));
+  loadProfileGallery();
+  toast('Rasm o'chirildi');
+};
 
 function loadProfileViews(){
   const list=$('profileViewsList');
@@ -792,6 +860,12 @@ function loadProfileViews(){
     }).join('');
   });
 }
+// Profilga kirgan odamning profiliga o'tish
+window._openViewerProfile=function(uid){
+  $('profileModal').classList.remove('open');
+  setTimeout(()=>openUserInfo(uid), 150);
+};
+
 async function saveProfile(){
   const newName=$('newNameInput').value.trim();
   if(!newName){toast(t('enterName'));return;}
