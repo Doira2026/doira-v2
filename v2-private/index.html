@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DoiraChat</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DoiraChat">
 <meta name="theme-color" content="#00c6a2">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -176,21 +182,20 @@ img{display:block;max-width:100%}
 #menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:940;display:none}
 #menuOverlay.open{display:block}
 /* Call */
-#callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:60px 20px 50px}
+#callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px}
 #callModal.open{display:flex}
-.call-top{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;justify-content:center}
-.call-av{width:96px;height:96px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:700;color:#fff;animation:callPulse 2s ease infinite}
+.call-av{width:96px;height:96px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:700;color:#fff;margin-bottom:16px;animation:callPulse 2s ease infinite}
 @keyframes callPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,168,132,.4)}50%{box-shadow:0 0 0 20px rgba(0,168,132,0)}}
 .call-name{font-size:24px;font-weight:700;color:#fff}
-.call-stat{font-size:14px;color:rgba(255,255,255,.55)}
-.call-btns{display:flex;gap:24px;align-items:center;justify-content:center;padding:16px 0;background:rgba(0,0,0,.3);border-radius:40px;padding:16px 32px;width:100%;max-width:300px}
-.cbtn{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;transition:.15s;flex-shrink:0}
+.call-stat{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:24px}
+.call-btns{display:flex;gap:24px}
+.cbtn{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;transition:.15s}
 .cbtn:hover{transform:scale(1.1)}
 .cbtn.acc{background:#44c767}
 .cbtn.end{background:var(--danger)}
-.cbtn.mute{background:rgba(255,255,255,.2)}
+.cbtn.mute{background:var(--bg4)}
 #remoteVideo{display:none;position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1}
-#localVideo{display:none;position:fixed;top:20px;right:20px;width:110px;height:150px;border-radius:16px;border:2px solid rgba(255,255,255,.6);z-index:801;object-fit:cover}
+#localVideo{display:none;position:fixed;bottom:20px;right:20px;width:100px;border-radius:12px;border:2px solid white;z-index:801}
 #overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:none}
 #overlay.open{display:block}
 #adBar{background:linear-gradient(90deg,#005c4b,#00a884);padding:7px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:space-between;cursor:pointer;flex-shrink:0}
@@ -375,11 +380,6 @@ img{display:block;max-width:100%}
       <button class="mbtn primary" id="saveProfileBtn">✓ Saqlash</button>
       <button class="mbtn gray" id="closeProfileBtn">Bekor</button>
     </div>
-    <!-- Kim profil ko'rganlar -->
-    <div style="margin-top:16px;text-align:left">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">👁️ Profilni ko'rganlar</div>
-      <div id="profileViewsList" style="max-height:160px;overflow-y:auto"></div>
-    </div>
   </div>
 </div>
 
@@ -458,11 +458,9 @@ img{display:block;max-width:100%}
 <div id="callModal">
   <video id="remoteVideo" autoplay playsinline></video>
   <video id="localVideo" autoplay playsinline muted></video>
-  <div class="call-top">
-    <div class="call-av" id="callAv">?</div>
-    <div class="call-name" id="callName"></div>
-    <div class="call-stat" id="callStat"></div>
-  </div>
+  <div class="call-av" id="callAv">?</div>
+  <div class="call-name" id="callName"></div>
+  <div class="call-stat" id="callStat"></div>
   <div class="call-btns">
     <button class="cbtn acc" id="acceptBtn" style="display:none">📞</button>
     <button class="cbtn mute" id="muteBtn">🎤</button>
@@ -765,32 +763,6 @@ function openProfile(){
   if(myAvatar){pa.style.backgroundImage=`url(${myAvatar})`;pa.textContent='';}
   else{pa.style.backgroundImage='';pa.textContent=av(myName);}
   $('profileModal').classList.add('open');
-  // Kim profilimni ko'rganini yuklash
-  loadProfileViews();
-}
-
-function loadProfileViews(){
-  const list=$('profileViewsList');
-  list.innerHTML='<div style="font-size:12px;color:var(--text2)">Yuklanmoqda...</div>';
-  get(ref(db,`profileViews/${myUid}`)).then(snap=>{
-    const views=snap.val()||{};
-    const entries=Object.entries(views).sort((a,b)=>b[1].time-a[1].time);
-    if(!entries.length){
-      list.innerHTML='<div style="font-size:12px;color:var(--text2)">Hali hech kim ko'rmagan</div>';
-      return;
-    }
-    list.innerHTML=entries.map(([uid,v])=>{
-      const time=v.time?new Date(v.time).toLocaleDateString('uz',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date(v.time).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}):'';
-      const avStyle=v.avatar?`background-image:url(${v.avatar});background-size:cover;background-position:center`:'';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-        <div class="avatar sm" style="${avStyle}">${v.avatar?'':av(v.name||'?')}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600">${esc(v.name||'?')}</div>
-          <div style="font-size:11px;color:var(--text2)">${time}</div>
-        </div>
-      </div>`;
-    }).join('');
-  });
 }
 async function saveProfile(){
   const newName=$('newNameInput').value.trim();
@@ -827,8 +799,6 @@ async function uploadAvatar(e){
 function openUserInfo(uid){
   const u=users[uid];if(!u)return;
   uinfoUid=uid;
-  // Профилга кирдим — Firebase'га ёзамиз
-  set(ref(db,`profileViews/${uid}/${myUid}`),{name:myName,avatar:myAvatar||'',time:Date.now()});
   const av_el=$('uinfoAv');
   if(u.avatar){av_el.style.backgroundImage=`url(${u.avatar})`;av_el.textContent='';}
   else{av_el.style.backgroundImage='';av_el.textContent=av(u.name);}
@@ -1556,17 +1526,12 @@ function endCall(){
   $('localVideo').style.display='none';$('localVideo').srcObject=null;
   $('remoteVideo').style.display='none';$('remoteVideo').srcObject=null;
   $('remoteAudio').srcObject=null;
-  // Raqibga "qo'ng'iroq tugadi" signali yuborish
-  if(chatUid){
-    set(ref(db,`calls/${chatUid}/ended`),{by:myUid,time:Date.now()});
-    setTimeout(()=>remove(ref(db,`calls/${chatUid}/ended`)),3000);
-  }
-  if(myUid)remove(ref(db,`calls/${myUid}`));
   callId=null;isMuted=false;$('muteBtn').textContent='🎤';
+  if(myUid)remove(ref(db,`calls/${myUid}`));
+  if(chatUid)remove(ref(db,`calls/${chatUid}`));
 }
 
 function listenCalls(){
-  // Kiruvchi qo'ng'iroqni tinglash
   onValue(ref(db,`calls/${myUid}/incoming`),snap=>{
     const d=snap.val();if(!d)return;
     if(callId&&callId!==d.callId){remove(ref(db,`calls/${myUid}/incoming`));return;}
@@ -1577,14 +1542,12 @@ function listenCalls(){
     $('acceptBtn').style.display='';$('callModal').classList.add('open');
     $('ringSnd').play().catch(()=>{});
   });
-
-  // Raqib qo'ng'iroqni tugatsа — menda ham tugaydi
-  onValue(ref(db,`calls/${myUid}/ended`),snap=>{
-    if(snap.val()&&callId){
-      remove(ref(db,`calls/${myUid}/ended`));
-      endCall();
-      toast("📵 Qo'ng'iroq tugadi");
-    }
+}
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
 </script>
