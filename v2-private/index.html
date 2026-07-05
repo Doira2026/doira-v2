@@ -776,7 +776,7 @@ function loadProfileViews(){
     const views=snap.val()||{};
     const entries=Object.entries(views).sort((a,b)=>b[1].time-a[1].time);
     if(!entries.length){
-      list.innerHTML='<div style="font-size:12px;color:var(--text2)">Hali hech kim ko'rmagan</div>';
+      list.innerHTML='<div style="font-size:12px;color:var(--text2)">Hali hech kim korмagan</div>';
       return;
     }
     list.innerHTML=entries.map(([uid,v])=>{
