@@ -695,6 +695,44 @@ function showApp(){
   onValue(ref(db,'groups'),s=>{grps=s.val()||{};renderList();});
   onValue(ref(db,`unread/${myUid}`),s=>{unreads=s.val()||{};renderList();});
   listenCalls();
+  // Notification ruxsati so'rash
+  requestNotifPermission();
+}
+
+async function requestNotifPermission(){
+  if(!('Notification' in window))return;
+  if(Notification.permission==='default'){
+    const perm=await Notification.requestPermission();
+    if(perm==='granted'){
+      toast('Bildirishnomalar yoqildi 🔔');
+      saveNotifToken();
+    }
+  } else if(Notification.permission==='granted'){
+    saveNotifToken();
+  }
+}
+
+async function saveNotifToken(){
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    // FCM VAPID key (keyinroq qo'shiladi)
+    // Hozircha local notification ishlatamiz
+    await update(ref(db,'users/'+myUid),{notifEnabled:true});
+  }catch(e){console.log('Notif token error:',e);}
+}
+
+// Xabar kelganida local notification ko'rsatish
+function showLocalNotif(title, body, chatId){
+  if(Notification.permission!=='granted')return;
+  if(document.hasFocus())return; // Foydalanuvchi sahifada bo'lsa ko'rsatma
+  const n=new Notification(title,{
+    body: body,
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-96.png',
+    tag: chatId
+  });
+  n.onclick=()=>{window.focus();n.close();};
+  setTimeout(()=>n.close(), 5000);
 }
 
 function updateMyCard(){
@@ -862,23 +900,33 @@ function loadProfileViews(){
     list.innerHTML=entries.map(([uid,v])=>{
       const time=v.time?new Date(v.time).toLocaleDateString('uz',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+new Date(v.time).toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'}):'';
       const avStyle=v.avatar?`background-image:url(${v.avatar});background-size:cover;background-position:center`:'';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+      return `<div onclick="window._openViewerProfile('${uid}')" style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer;border-radius:8px;padding:8px">
         <div class="avatar sm" style="${avStyle}">${v.avatar?'':av(v.name||'?')}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600">${esc(v.name||'?')}</div>
           <div style="font-size:11px;color:var(--text2)">${time}</div>
         </div>
+        <span style="color:var(--accent);font-size:16px">›</span>
       </div>`;
     }).join('');
   });
 }
 // Profilga kirgan odamning profiliga o'tish
 window._openViewerProfile=function(uid){
-  if(!users[uid]){toast('Foydalanuvchi topilmadi');return;}
   $('profileModal').classList.remove('open');
   setTimeout(()=>{
-    openUserInfo(uid);
-  }, 200);
+    if(users[uid]){
+      openUserInfo(uid);
+    } else {
+      // Firebase dan yuklab olish
+      get(ref(db,'users/'+uid)).then(snap=>{
+        if(snap.val()){
+          users[uid]=snap.val();
+          openUserInfo(uid);
+        }
+      });
+    }
+  }, 250);
 };
 
 async function saveProfile(){
@@ -1037,7 +1085,13 @@ function loadMsgs(){
   onChildAdded(cr,snap=>{
     if(first)return;
     const msg=snap.val();
-    if(msg.sender!==myUid)$('notifSnd').play().catch(()=>{});
+    if(msg.sender!==myUid){
+      $('notifSnd').play().catch(()=>{});
+      // Notification ko'rsatish
+      const senderName=msg.senderName||'Kimdir';
+      const body=msg.type==='text'?(msg.text||''):(msg.type==='image'?'🖼️ Rasm':(msg.type==='audio'?'🎤 Ovozli xabar':(msg.type==='file'?'📄 Fayl':'😊 Stiker')));
+      showLocalNotif(senderName, body, chatId);
+    }
   });
   onValue(cr,snap=>{
     const msgs=snap.val()||{};
