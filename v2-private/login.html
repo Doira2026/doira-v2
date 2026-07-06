@@ -59,7 +59,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, setPersistence, browserLocalPersistence, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getDatabase, ref, set, update, serverTimestamp, onDisconnect } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const app = initializeApp({
@@ -74,8 +74,13 @@ const app = initializeApp({
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// MUHIM: onAuthStateChanged YO'Q — sahifa refresh bo'lmaydi!
-// Faqat tugma bosilganda kirish tekshiriladi
+// Persistence - brauzер sessionni eslab qoladi
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+// Agar allaqachon kirgan bo'lsa - to'g'ridan chatga o'tish
+onAuthStateChanged(auth, user => {
+  if(user) window.location.replace('index.html');
+});
 
 let currentTab = 'login';
 
