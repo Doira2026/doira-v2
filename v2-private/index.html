@@ -592,9 +592,6 @@ function applyLang(){
 const fbApp=initializeApp(FB);
 const auth=getAuth(fbApp);
 const db=getDatabase(fbApp);
-// Auto-login - sahifa yangilanganda qayta login so'ramas in
-setPersistence(auth, browserLocalPersistence).catch(()=>{});
-
 const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -650,15 +647,30 @@ let dark=localStorage.getItem('dc_theme')!=='light';
 let uinfoUid=null;
 
 // BOOT
-onAuthStateChanged(auth,user=>{
-  if(user){
-    myUid=user.uid;
-    myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'User';
-    myAvatar=user.photoURL||'';
-    setupUser().then(()=>showApp());
-  } else {
-    window.location.replace('login.html');
-  }
+// Auto-login: persistence LOCAL qilib, keyin auth tekshirish
+setPersistence(auth, browserLocalPersistence).then(()=>{
+  onAuthStateChanged(auth,user=>{
+    if(user){
+      myUid=user.uid;
+      myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'User';
+      myAvatar=user.photoURL||'';
+      setupUser().then(()=>showApp());
+    } else {
+      window.location.replace('login.html');
+    }
+  });
+}).catch(()=>{
+  // Fallback - persistence ishlamasa ham davom etsin
+  onAuthStateChanged(auth,user=>{
+    if(user){
+      myUid=user.uid;
+      myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'User';
+      myAvatar=user.photoURL||'';
+      setupUser().then(()=>showApp());
+    } else {
+      window.location.replace('login.html');
+    }
+  });
 });
 
 function hideLoader(){const l=$('loadingScreen');l.style.opacity='0';setTimeout(()=>l.style.display='none',400);}
@@ -862,8 +874,11 @@ function loadProfileViews(){
 }
 // Profilga kirgan odamning profiliga o'tish
 window._openViewerProfile=function(uid){
+  if(!users[uid]){toast('Foydalanuvchi topilmadi');return;}
   $('profileModal').classList.remove('open');
-  setTimeout(()=>openUserInfo(uid), 150);
+  setTimeout(()=>{
+    openUserInfo(uid);
+  }, 200);
 };
 
 async function saveProfile(){
