@@ -810,7 +810,7 @@ async function loadProfileGallery(){
     gl.appendChild(div);
   });
   if(!Object.keys(imgs).length){
-    gl.innerHTML='<div style="font-size:12px;color:var(--text2);grid-column:span 3">Hali rasm qo'shilmagan</div>';
+    gl.innerHTML='<div style="font-size:12px;color:var(--text2);grid-column:span 3">Hali rasm qoshilmagan</div>';
   }
 }
 
@@ -825,16 +825,16 @@ async function uploadGalleryImg(e){
     if(d.success){
       await push(ref(db,`profileGallery/${myUid}`),{url:d.data.url,time:Date.now()});
       loadProfileGallery();
-      toast('Rasm qo'shildi ✓');
+      toast('Rasm qoshildi ✓');
     }
   }catch{toast('Xato!');}
 }
 
 window._delGalleryImg=async key=>{
-  if(!confirm('Rasmni o'chirishga ishonchingiz komilmi?'))return;
+  if(!confirm('Rasmni ochirishga ishonchingiz komilmi?'))return;
   await remove(ref(db,`profileGallery/${myUid}/${key}`));
   loadProfileGallery();
-  toast('Rasm o'chirildi');
+  toast('Rasm ochirildi');
 };
 
 function loadProfileViews(){
