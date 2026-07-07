@@ -995,6 +995,17 @@ function renderList(){
   const list=$('usersList');if(!list)return;
   list.innerHTML='';
 
+  // AI kontakt - har doim yuqorida
+  const aiDiv=document.createElement('div');
+  const isAiActive=chatId==='ai_chat';
+  aiDiv.className='uitem'+(isAiActive?' active':'');
+  aiDiv.innerHTML=`<div class="avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">🤖</div>
+    <div class="info" onclick="window._openAiChat()">
+      <div class="uname">DoiraChat AI <span class="tag grp" style="background:rgba(99,102,241,.15);color:#6366f1">AI</span></div>
+      <div class="usub">Savollaringizga javob beraman</div>
+    </div>`;
+  list.appendChild(aiDiv);
+
   const grpItems=[];
   Object.entries(grps).forEach(([gid,g])=>{
     if(!g.members?.[myUid])return;
@@ -1045,6 +1056,33 @@ function renderList(){
 }
 
 window._openUsr=(uid,name)=>{openChat(uid,name,false);if(window.innerWidth<768)togSidebar();};
+
+// AI Chat
+window._openAiChat=function(){
+  chatId='ai_chat';chatUid=null;isGrp=false;chatName='DoiraChat AI';
+  $('chatTitle').textContent='🤖 DoiraChat AI';
+  $('chatSub').textContent='Llama 3 • Groq';
+  $('audioCallBtn').classList.remove('show');
+  $('videoCallBtn').classList.remove('show');
+  $('clearChatBtn').classList.remove('show');
+  $('statsBtn').classList.remove('show');
+  const box=$('messages');
+  box.innerHTML='';
+  // Xush kelibsiz xabari
+  const welcome=document.createElement('div');
+  welcome.className='mrow in';
+  welcome.innerHTML=`<div class="mbub" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));border:1px solid rgba(99,102,241,.2)">
+    <div style="font-size:13px">Salom! Men <b>DoiraChat AI</b>man 🤖<br><br>
+    Savollaringizga javob beraman, matn yozishga yordam beraman, tarjima qilaman va boshqa ko'p narsalar!<br><br>
+    <span style="color:var(--text2);font-size:11px">Llama 3.3 • Groq Cloud • O'zbek, Rus, Ingliz tillarida</span></div>
+    <div class="mmeta">Hozir</div>
+  </div>`;
+  box.appendChild(welcome);
+  // AI uchun input placeholder
+  $('msgInput').placeholder="AI ga savol yozing...";
+  if(window.innerWidth<768)togSidebar();
+  renderList();
+};
 window._openGrp=(gid,name)=>{openChat(gid,name,true);if(window.innerWidth<768)togSidebar();};
 window._openUserInfo=uid=>openUserInfo(uid);
 window._togFrd=async(uid,is)=>{
@@ -1071,6 +1109,7 @@ function openChat(id,name,isGroup){
   $('chatTitle').textContent=name;
   $('clearChatBtn').classList.add('show');
   $('statsBtn').classList.add('show');
+  $('msgInput').placeholder=t('typeMsg');
   remove(ref(db,`unread/${myUid}/${id}`));
   cancelReply();cancelEdit();
   loadMsgs();listenTyping();loadPinned();renderList();
@@ -1192,6 +1231,13 @@ async function sendMsg(){
   const inp=$('msgInput'),txt=inp.value.trim();
   if(!txt||!chatId)return;
   inp.value='';inp.style.height='auto';
+
+  // AI chat
+  if(chatId==='ai_chat'){
+    sendAiMsg(txt);
+    return;
+  }
+
   if(editKey){
     await update(ref(db,`chats/${chatId}/${editKey}`),{text:txt,edited:true,editTime:serverTimestamp()});
     cancelEdit();
@@ -1203,6 +1249,79 @@ async function sendMsg(){
     await push(ref(db,`chats/${chatId}`),msgData);
     cancelReply();
     notifyOther();
+  }
+}
+
+// AI xabar yuborish
+const GROQ_KEY='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';
+const aiHistory=[];
+
+async function sendAiMsg(userText){
+  const box=$('messages');
+
+  // Foydalanuvchi xabari
+  const userRow=document.createElement('div');
+  userRow.className='mrow out';
+  userRow.innerHTML=`<div class="mbub"><div>${esc(userText)}</div><div class="mmeta">${new Date().toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
+  box.appendChild(userRow);
+  box.scrollTop=box.scrollHeight;
+
+  // AI yozmoqda...
+  const typingRow=document.createElement('div');
+  typingRow.className='mrow in';
+  typingRow.id='ai-typing';
+  typingRow.innerHTML=`<div class="mbub" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));border:1px solid rgba(99,102,241,.2)">
+    <span style="color:#6366f1">🤖 Yozmoqda</span> <span style="animation:pulse 1s infinite">...</span>
+  </div>`;
+  box.appendChild(typingRow);
+  box.scrollTop=box.scrollHeight;
+
+  // AI tarixi
+  aiHistory.push({role:'user',content:userText});
+  if(aiHistory.length>20)aiHistory.splice(0,2);
+
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{
+        'Authorization':'Bearer '+GROQ_KEY,
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[
+          {role:'system',content:'Sen DoiraChat AI yordamchisisisan. O\'zbek, rus va ingliz tillarida yordam berasan. Qisqa, aniq va foydali javoblar ber. Ismingiz DoiraChat AI.'},
+          ...aiHistory
+        ],
+        max_tokens:1024,
+        temperature:0.7
+      })
+    });
+    const data=await res.json();
+    const aiText=data.choices?.[0]?.message?.content||'Xato yuz berdi';
+    aiHistory.push({role:'assistant',content:aiText});
+
+    // Typing olib tashla
+    document.getElementById('ai-typing')?.remove();
+
+    // AI javobi
+    const aiRow=document.createElement('div');
+    aiRow.className='mrow in';
+    const formattedText=aiText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');
+    aiRow.innerHTML=`<div class="mbub" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));border:1px solid rgba(99,102,241,.2)">
+      <div style="font-size:14px;line-height:1.6">${formattedText}</div>
+      <div class="mmeta">${new Date().toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>`;
+    box.appendChild(aiRow);
+    box.scrollTop=box.scrollHeight;
+
+  }catch(e){
+    document.getElementById('ai-typing')?.remove();
+    const errRow=document.createElement('div');
+    errRow.className='mrow in';
+    errRow.innerHTML=`<div class="mbub"><div style="color:var(--danger)">❌ Xato: Internet yoki API muammosi</div></div>`;
+    box.appendChild(errRow);
+    box.scrollTop=box.scrollHeight;
   }
 }
 
