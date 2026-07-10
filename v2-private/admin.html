@@ -85,6 +85,7 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
       </div>
       <button class="lbtn" id="adminLoginBtn">Kirish</button>
       <div id="loginErr"></div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline" id="forgotPassLink">Parolni unutdingizmi?</div>
     </div>
     <div id="noAccessBox">
       <div style="font-size:13px;color:var(--text2);line-height:1.6">
@@ -121,7 +122,7 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getDatabase, ref, onValue, update, get }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
@@ -130,7 +131,7 @@ const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-cha
 
 // !!! MUHIM: shu yerga o'z Firebase UID'ingizni qo'shing (pastdagi "Ruxsat yo'q" oynasida ko'rasiz) !!!
 const ADMIN_UIDS = [
-  "B2fpQCPiJZeD4mUEAOI4p2o9xZ43"
+  "ouhrHUv0hhNM8PN25cURnsg5eWE2"
 ];
 
 const fbApp=initializeApp(FB);
@@ -149,9 +150,24 @@ $('togglePassBtn').onclick=()=>{
   $('togglePassBtn').textContent=showing?'👁️':'🙈';
 };
 
+$('forgotPassLink').onclick=async()=>{
+  const email=$('adminEmail').value.trim();
+  $('loginErr').style.color='var(--danger)';
+  if(!email){$('loginErr').textContent='Avval email kiriting';return;}
+  try{
+    await sendPasswordResetEmail(auth,email);
+    $('loginErr').style.color='var(--accent2)';
+    $('loginErr').textContent='✓ Parolni tiklash xati emailingizga yuborildi';
+  }catch(e){
+    $('loginErr').style.color='var(--danger)';
+    $('loginErr').textContent='Xato: bu email topilmadi yoki noto\'g\'ri';
+  }
+};
+
 $('adminLoginBtn').onclick=async()=>{
   const email=$('adminEmail').value.trim();
   const pass=$('adminPass').value;
+  $('loginErr').style.color='var(--danger)';
   $('loginErr').textContent='';
   if(!email||!pass){$('loginErr').textContent='Email va parolni kiriting';return;}
   try{
