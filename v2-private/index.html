@@ -739,21 +739,14 @@ async function addByInviteCode(){
   renderList();
 }
 
-// === PREMIUM (💎) ===
+// === PREMIUM (💎) — faqat administrator boshqaradi ===
 function openPremiumModal(){
   const isPrem=!!users[myUid]?.premium;
   $('premiumStatusLine').innerHTML=isPrem
     ?'<span class="tag pro">💎 Sizda Premium faol</span>'
-    :"Premium orqali ismingiz yonida 💎 belgi chiqadi va reklama paneli yashiriladi.";
-  $('premiumActionBtn').textContent=isPrem?'✓ Allaqachon faol':'💎 Premiumni yoqish';
-  $('premiumActionBtn').disabled=isPrem;
-  $('premiumActionBtn').style.opacity=isPrem?'.6':'1';
+    :"Premium — ism yonida 💎 belgi va reklamasiz interfeys beradi. Buni faqat administrator yoqadi.";
+  $('premiumActionBtn').style.display='none';
   $('premiumModal').classList.add('open');
-}
-async function togglePremium(){
-  await update(ref(db,`users/${myUid}`),{premium:true});
-  toast('💎 Premium yoqildi!');
-  $('premiumModal').classList.remove('open');
 }
 
 // === CHAT BACKGROUND (🖼️) ===
@@ -831,7 +824,7 @@ setPersistence(auth, browserLocalPersistence).then(()=>{
       myUid=user.uid;
       myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'User';
       myAvatar=user.photoURL||'';
-      setupUser().then(()=>showApp());
+      setupUser().then(ok=>{if(ok)showApp();});
     } else {
       window.location.replace('login.html');
     }
@@ -843,7 +836,7 @@ setPersistence(auth, browserLocalPersistence).then(()=>{
       myUid=user.uid;
       myName=user.displayName||localStorage.getItem('dc_name')||user.email?.split('@')[0]||'User';
       myAvatar=user.photoURL||'';
-      setupUser().then(()=>showApp());
+      setupUser().then(ok=>{if(ok)showApp();});
     } else {
       window.location.replace('login.html');
     }
@@ -853,6 +846,14 @@ setPersistence(auth, browserLocalPersistence).then(()=>{
 function hideLoader(){const l=$('loadingScreen');l.style.opacity='0';setTimeout(()=>l.style.display='none',400);}
 
 async function setupUser(){
+  // Admin tomonidan bloklangan foydalanuvchini kirishdan to'xtatish
+  const banSnap=await get(ref(db,`users/${myUid}/banned`));
+  if(banSnap.val()===true){
+    alert("Siz administrator tomonidan bloklangansiz.");
+    await signOut(auth);localStorage.clear();
+    window.location.replace('login.html');
+    return false;
+  }
   const ur=ref(db,`users/${myUid}`);
   await update(ur,{name:myName,online:true,lastSeen:serverTimestamp(),avatar:myAvatar});
   onDisconnect(ur).update({online:false,lastSeen:serverTimestamp()});
@@ -862,6 +863,7 @@ async function setupUser(){
     const code=myUid.replace(/[^a-zA-Z0-9]/g,'').slice(-6).toUpperCase();
     await update(ur,{inviteCode:code});
   }
+  return true;
 }
 
 function showApp(){
@@ -989,7 +991,6 @@ function bindAll(){
   $('closeStatsBtn').onclick=()=>$('statsModal').classList.remove('open');
   $('closeFwdBtn').onclick=()=>$('fwdModal').classList.remove('open');
   $('adBar').onclick=openPremiumModal;
-  $('premiumActionBtn').onclick=togglePremium;
   $('closePremiumBtn').onclick=()=>$('premiumModal').classList.remove('open');
   $('closePrevBtn').onclick=closePrev;
   $('imgPrev').onclick=e=>{if(e.target===$('imgPrev'))closePrev();};
