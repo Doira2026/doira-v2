@@ -79,7 +79,10 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
     <div class="login-title">DoiraChat Admin</div>
     <div id="loginFormBox">
       <input id="adminEmail" class="linput" type="email" placeholder="Email">
-      <input id="adminPass" class="linput" type="password" placeholder="Parol">
+      <div style="position:relative">
+        <input id="adminPass" class="linput" type="password" placeholder="Parol" style="padding-right:44px">
+        <button id="togglePassBtn" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--text2)">👁️</button>
+      </div>
       <button class="lbtn" id="adminLoginBtn">Kirish</button>
       <div id="loginErr"></div>
     </div>
@@ -138,6 +141,13 @@ const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 let allUsers={},allGroups={};
+
+$('togglePassBtn').onclick=()=>{
+  const inp=$('adminPass');
+  const showing=inp.type==='text';
+  inp.type=showing?'password':'text';
+  $('togglePassBtn').textContent=showing?'👁️':'🙈';
+};
 
 $('adminLoginBtn').onclick=async()=>{
   const email=$('adminEmail').value.trim();
