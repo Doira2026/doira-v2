@@ -275,6 +275,7 @@ img{display:block;max-width:100%}
         <div id="chatSub"></div>
       </div>
       <div class="head-btns">
+        <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️</button>
         <button class="hbtn" id="statsBtn" title="Tahlil">📊</button>
         <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️</button>
         <button class="hbtn" id="audioCallBtn" title="Ovozli">📞</button>
@@ -397,6 +398,18 @@ img{display:block;max-width:100%}
       <button onclick="document.getElementById('galleryInput').click()" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer">+ Rasm qo'shish</button>
       <input type="file" id="galleryInput" accept="image/*" style="display:none">
     </div>
+    <!-- Taklif kodi -->
+    <div style="margin-top:16px;text-align:left">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">🎁 Taklif kodi</div>
+      <div style="display:flex;gap:8px;align-items:center;background:var(--bg4);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+        <div id="myInviteCode" style="flex:1;font-weight:800;letter-spacing:2px;font-size:15px;color:var(--accent)">------</div>
+        <button onclick="copyInviteCode()" style="padding:6px 12px;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Nusxa</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input id="friendCodeInput" class="modal-input" type="text" placeholder="Do'stingiz kodi" style="margin-bottom:0;text-transform:uppercase;flex:1;min-width:0;width:auto">
+        <button onclick="addByInviteCode()" style="padding:0 14px;border-radius:8px;background:var(--bg4);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">+ Qo'shish</button>
+      </div>
+    </div>
     <!-- Kim profil ko'rganlar -->
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">👁️ Profilni ko'rganlar</div>
@@ -455,6 +468,38 @@ img{display:block;max-width:100%}
     </div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="mbtn gray" onclick="document.getElementById('langModal').classList.remove('open')">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREMIUM MODAL -->
+<div class="modal-bg" id="premiumModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:48px;margin-bottom:8px">💎</div>
+    <div class="modal-title" style="margin-bottom:8px">DoiraChat Premium</div>
+    <div id="premiumStatusLine" style="font-size:13px;color:var(--text2);line-height:1.6;background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px;text-align:left"></div>
+    <div style="text-align:left;font-size:13px;color:var(--text2);line-height:1.9;margin-bottom:16px">
+      ✓ Ism yonida 💎 belgi<br>
+      ✓ Reklama panelisiz interfeys<br>
+      ✓ Kelajakda: katta fayl yuklash, maxsus stikerlar
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn primary" id="premiumActionBtn">💎 Premiumni yoqish</button>
+      <button class="mbtn gray" id="closePremiumBtn">Yopish</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHAT BACKGROUND MODAL -->
+<div class="modal-bg" id="bgModal">
+  <div class="modal-box">
+    <div class="modal-title">🖼️ Chat foni</div>
+    <div id="bgSwatches" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px"></div>
+    <button onclick="document.getElementById('bgImgInput').click()" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:10px">+ O'z rasmingizni qo'shish</button>
+    <input type="file" id="bgImgInput" accept="image/*" style="display:none">
+    <div class="modal-btns">
+      <button class="mbtn gray" onclick="resetChatBg()">↺ Standart</button>
+      <button class="mbtn gray" onclick="document.getElementById('bgModal').classList.remove('open')">✕ Yopish</button>
     </div>
   </div>
 </div>
@@ -629,6 +674,31 @@ function fmtDateTime(ts){
   if(!ts)return '—';
   return fmtDate(ts)+', '+fmtTime(ts);
 }
+// Nisbiy vaqt: "3 daqiqa oldin" / "3 минуты назад" / "3 minutes ago"
+function fmtAgo(ts){
+  if(!ts)return '—';
+  const diff=Math.max(0,Date.now()-ts);
+  const sec=Math.floor(diff/1000),min=Math.floor(sec/60),hr=Math.floor(min/60),day=Math.floor(hr/24);
+  if(lang==='ru'){
+    if(sec<60)return 'только что';
+    if(min<60)return `${min} мин. назад`;
+    if(hr<24)return `${hr} ч. назад`;
+    if(day<7)return `${day} дн. назад`;
+    return fmtDate(ts);
+  }
+  if(lang==='en'){
+    if(sec<60)return 'just now';
+    if(min<60)return `${min} min ago`;
+    if(hr<24)return `${hr} h ago`;
+    if(day<7)return `${day} d ago`;
+    return fmtDate(ts);
+  }
+  if(sec<60)return 'hozirgina';
+  if(min<60)return `${min} daqiqa oldin`;
+  if(hr<24)return `${hr} soat oldin`;
+  if(day<7)return `${day} kun oldin`;
+  return fmtDate(ts);
+}
 function fmtDateLong(ts){
   if(!ts)return '';
   const d=new Date(ts);
@@ -648,6 +718,98 @@ function fileIcon(name){
   if(['ppt','pptx'].includes(ext))return '📙';
   if(['zip','rar','7z'].includes(ext))return '🗜️';
   return '📄';
+}
+
+// === TAKLIF KODI (🎁) ===
+function copyInviteCode(){
+  const code=$('myInviteCode').textContent;
+  if(!code||code==='------')return;
+  navigator.clipboard?.writeText(code).then(()=>toast('✓ Nusxalandi: '+code)).catch(()=>toast(code));
+}
+async function addByInviteCode(){
+  const code=$('friendCodeInput').value.trim().toUpperCase();
+  if(!code){toast('Kodni kiriting');return;}
+  if(code===(users[myUid]?.inviteCode||'')){toast("O'zingizni qo'shib bo'lmaydi");return;}
+  const found=Object.entries(users).find(([uid,u])=>u.inviteCode===code);
+  if(!found){toast('Bunday kod topilmadi');return;}
+  const [fuid,fu]=found;
+  await set(ref(db,`friends/${myUid}/${fuid}`),true);
+  $('friendCodeInput').value='';
+  toast(`⭐ ${fu.name} do'stlarga qo'shildi!`);
+  renderList();
+}
+
+// === PREMIUM (💎) ===
+function openPremiumModal(){
+  const isPrem=!!users[myUid]?.premium;
+  $('premiumStatusLine').innerHTML=isPrem
+    ?'<span class="tag pro">💎 Sizda Premium faol</span>'
+    :"Premium orqali ismingiz yonida 💎 belgi chiqadi va reklama paneli yashiriladi.";
+  $('premiumActionBtn').textContent=isPrem?'✓ Allaqachon faol':'💎 Premiumni yoqish';
+  $('premiumActionBtn').disabled=isPrem;
+  $('premiumActionBtn').style.opacity=isPrem?'.6':'1';
+  $('premiumModal').classList.add('open');
+}
+async function togglePremium(){
+  await update(ref(db,`users/${myUid}`),{premium:true});
+  toast('💎 Premium yoqildi!');
+  $('premiumModal').classList.remove('open');
+}
+
+// === CHAT BACKGROUND (🖼️) ===
+const BG_PRESETS=[
+  {css:''},
+  {css:'linear-gradient(160deg,#0a1628,#122a4a)'},
+  {css:'linear-gradient(160deg,#04231e,#0a3d33)'},
+  {css:'linear-gradient(160deg,#1a0a2e,#2d1150)'},
+  {css:'linear-gradient(160deg,#3a1c1c,#5c2a1a)'},
+  {css:'linear-gradient(160deg,#0e2818,#163d24)'},
+  {css:'linear-gradient(160deg,#1c1c3a,#33305c)'},
+  {css:'linear-gradient(160deg,#2a1a0a,#4a3010)'},
+];
+function getBgKey(){return chatId?`dc_bg_${chatId}`:'dc_bg_default';}
+function applyChatBg(){
+  const msgs=$('messages');if(!msgs)return;
+  const saved=localStorage.getItem(getBgKey())||'';
+  if(!saved){msgs.style.backgroundImage='';return;}
+  if(saved.startsWith('http')){
+    msgs.style.backgroundImage=`url(${saved})`;msgs.style.backgroundSize='cover';msgs.style.backgroundPosition='center';
+  } else {
+    msgs.style.backgroundImage=saved;
+  }
+}
+function openBgModal(){
+  const sw=$('bgSwatches');sw.innerHTML='';
+  BG_PRESETS.forEach(p=>{
+    const d=document.createElement('div');
+    d.style.cssText=`height:48px;border-radius:8px;cursor:pointer;border:2px solid var(--border);background:${p.css||'var(--bg)'}`;
+    d.onclick=()=>setChatBg(p.css);
+    sw.appendChild(d);
+  });
+  $('bgModal').classList.add('open');
+}
+function setChatBg(css){
+  if(css)localStorage.setItem(getBgKey(),css);else localStorage.removeItem(getBgKey());
+  applyChatBg();
+  $('bgModal').classList.remove('open');
+  toast('✓');
+}
+function resetChatBg(){
+  localStorage.removeItem(getBgKey());
+  applyChatBg();
+  $('bgModal').classList.remove('open');
+  toast('↺ Standart fon');
+}
+async function uploadChatBg(e){
+  const f=e.target.files[0];if(!f)return;
+  e.target.value='';
+  toast('Fon yuklanmoqda...');
+  const fd=new FormData();fd.append('image',f);
+  try{
+    const r=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB}`,{method:'POST',body:fd});
+    const d=await r.json();
+    if(d.success)setChatBg(d.data.url);
+  }catch{toast('Xato!');}
 }
 
 let myUid,myName,myAvatar='';
@@ -694,6 +856,12 @@ async function setupUser(){
   const ur=ref(db,`users/${myUid}`);
   await update(ur,{name:myName,online:true,lastSeen:serverTimestamp(),avatar:myAvatar});
   onDisconnect(ur).update({online:false,lastSeen:serverTimestamp()});
+  // Taklif kodi (🎁) — birinchi marta kirganda yaratiladi
+  const snap=await get(ref(db,`users/${myUid}/inviteCode`));
+  if(!snap.exists()){
+    const code=myUid.replace(/[^a-zA-Z0-9]/g,'').slice(-6).toUpperCase();
+    await update(ur,{inviteCode:code});
+  }
 }
 
 function showApp(){
@@ -705,13 +873,23 @@ function showApp(){
   bindAll();
   buildStickers();
   buildReacts();
-  onValue(ref(db,'users'),s=>{users=s.val()||{};renderList();});
+  onValue(ref(db,'users'),s=>{
+    users=s.val()||{};renderList();
+    const ab=$('adBar');if(ab)ab.style.display=users[myUid]?.premium?'none':'flex';
+  });
   onValue(ref(db,`friends/${myUid}`),s=>{frds=s.val()||{};renderList();});
   onValue(ref(db,'groups'),s=>{grps=s.val()||{};renderList();});
   onValue(ref(db,`unread/${myUid}`),s=>{unreads=s.val()||{};renderList();});
   listenCalls();
   // Notification ruxsati so'rash
   requestNotifPermission();
+  // "X daqiqa oldin" matnlarini yangilab turish uchun
+  setInterval(()=>{
+    renderList();
+    if(chatUid&&!isGrp&&chatId!=='ai_chat'&&users[chatUid]){
+      $('chatSub').textContent=users[chatUid].online?t('online'):(users[chatUid].lastSeen?t('lastSeen')+fmtAgo(users[chatUid].lastSeen):t('offline'));
+    }
+  },30000);
 }
 
 async function requestNotifPermission(){
@@ -784,6 +962,8 @@ function bindAll(){
   $('menuBtn').onclick=togSidebar;
   $('overlay').onclick=togSidebar;
   $('myCard').onclick=openProfile;
+  $('chatBgBtn').onclick=openBgModal;
+  $('bgImgInput').onchange=uploadChatBg;
   $('searchInput').oninput=renderList;
   $('cancelGrpBtn').onclick=closeGrpModal;
   $('createGrpBtn').onclick=createGrp;
@@ -808,7 +988,9 @@ function bindAll(){
   $('statsBtn').onclick=showStats;
   $('closeStatsBtn').onclick=()=>$('statsModal').classList.remove('open');
   $('closeFwdBtn').onclick=()=>$('fwdModal').classList.remove('open');
-  $('adBar').onclick=()=>toast('Premium tez orada!');
+  $('adBar').onclick=openPremiumModal;
+  $('premiumActionBtn').onclick=togglePremium;
+  $('closePremiumBtn').onclick=()=>$('premiumModal').classList.remove('open');
   $('closePrevBtn').onclick=closePrev;
   $('imgPrev').onclick=e=>{if(e.target===$('imgPrev'))closePrev();};
   $('downloadImgBtn').onclick=downloadImg;
@@ -852,12 +1034,17 @@ function openAttachMenu(e){
 function closeAttachMenu(){$('attachMenuPanel').style.display='none';}
 
 // === PROFILE ===
-function openProfile(){
+async function openProfile(){
   $('newNameInput').value=myName;
   const pa=$('profAv');
   if(myAvatar){pa.style.backgroundImage=`url(${myAvatar})`;pa.textContent='';}
   else{pa.style.backgroundImage='';pa.textContent=av(myName);}
   $('profileModal').classList.add('open');
+  $('myInviteCode').textContent=users[myUid]?.inviteCode||'------';
+  if(!users[myUid]?.inviteCode){
+    const snap=await get(ref(db,`users/${myUid}/inviteCode`));
+    if(snap.exists())$('myInviteCode').textContent=snap.val();
+  }
   loadProfileViews();
   loadProfileGallery();
   $('galleryInput').onchange=uploadGalleryImg;
@@ -985,11 +1172,12 @@ function openUserInfo(uid){
   if(u.avatar){av_el.style.backgroundImage=`url(${u.avatar})`;av_el.textContent='';}
   else{av_el.style.backgroundImage='';av_el.textContent=av(u.name);}
   av_el.onclick=()=>{if(u.avatar)previewImg(u.avatar);};
-  $('uinfoName').textContent=u.name;
+  const uIsFrd=!!frds[uid];
+  $('uinfoName').innerHTML=`${esc(u.name)} ${u.premium?'<span class="tag pro">💎 PRO</span>':''} <button class="star-btn" style="vertical-align:middle" onclick="window._togFrd('${uid}',${uIsFrd})">${uIsFrd?'⭐':'☆'}</button>`;
   $('uinfoStatus').textContent=u.online?t('online'):t('offline');
   $('uinfoRows').innerHTML=`
     <div style="font-size:12px;color:var(--text2);margin-bottom:4px">${t('lastSeen')}</div>
-    <div style="font-size:14px;font-weight:600">${u.online?'—':fmtDateTime(u.lastSeen)}</div>
+    <div style="font-size:14px;font-weight:600">${u.online?'—':fmtAgo(u.lastSeen)}</div>
   `;
   $('uinfoChatBtn').textContent=t('directChat');
   $('uinfoCallBtn').textContent=t('callBtn');
@@ -1055,12 +1243,12 @@ function renderList(){
           <div class="usub">${item.members} ${t('members')}</div>
         </div>${item.unread?`<div class="badge">${item.unread}</div>`:''}`;
     } else {
-      const lastStr=item.lastSeen?fmtDateTime(item.lastSeen):'';
+      const lastStr=item.lastSeen?fmtAgo(item.lastSeen):'';
       const avStyle=item.avatar?`style="background-image:url(${item.avatar});background-size:cover;background-position:center"`:'' ;
       d.innerHTML=`<div class="odot ${item.online?'on':''}"></div>
         <div class="avatar" ${avStyle} onclick="event.stopPropagation();window._openUserInfo('${item.id}')">${item.avatar?'':av(item.name)}</div>
         <div class="info" onclick="window._openUsr('${item.id}','${esc(item.name)}')">
-          <div class="uname">${esc(item.name)}</div>
+          <div class="uname">${esc(item.name)} ${item.premium?'<span class="tag pro">💎</span>':''}</div>
           <div class="usub">${item.online?t('online'):(lastStr?t('lastSeen')+lastStr:t('offline'))}</div>
         </div>
         <button class="star-btn" onclick="event.stopPropagation();window._togFrd('${item.id}',${item.isFrd})">${item.isFrd?'⭐':'☆'}</button>
@@ -1081,6 +1269,8 @@ window._openAiChat=function(){
   $('videoCallBtn').classList.remove('show');
   $('clearChatBtn').classList.remove('show');
   $('statsBtn').classList.remove('show');
+  $('chatBgBtn').classList.remove('show');
+  applyChatBg();
   const box=$('messages');
   box.innerHTML='';
   // Xush kelibsiz xabari
@@ -1119,11 +1309,13 @@ function openChat(id,name,isGroup){
     chatUid=id;
     $('audioCallBtn').classList.add('show');
     $('videoCallBtn').classList.add('show');
-    $('chatSub').textContent=users[id]?.online?t('online'):t('offline');
+    $('chatSub').textContent=users[id]?.online?t('online'):(users[id]?.lastSeen?t('lastSeen')+fmtAgo(users[id].lastSeen):t('offline'));
   }
-  $('chatTitle').textContent=name;
+  $('chatTitle').innerHTML=(!isGroup&&users[id]?.premium)?`${esc(name)} <span class="tag pro" style="font-size:9px;padding:1px 5px">💎</span>`:esc(name);
+  applyChatBg();
   $('clearChatBtn').classList.add('show');
   $('statsBtn').classList.add('show');
+  $('chatBgBtn').classList.add('show');
   $('msgInput').placeholder=t('typeMsg');
   remove(ref(db,`unread/${myUid}/${id}`));
   cancelReply();cancelEdit();
@@ -1744,7 +1936,7 @@ async function leaveGroup(){
   $('chatSub').textContent='';
   $('messages').innerHTML=`<div id="empty"><div class="empty-icon">💬</div><div style="font-size:14px;text-align:center;line-height:1.6">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div></div>`;
   chatId=null;chatUid=null;isGrp=false;
-  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn'].forEach(b=>$(''+b).classList.remove('show'));
+  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn'].forEach(b=>$(''+b).classList.remove('show'));
   toast(t('groupLeft'));
 }
 
