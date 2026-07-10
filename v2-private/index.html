@@ -93,6 +93,10 @@ img{display:block;max-width:100%}
 .msender:hover{text-decoration:underline}
 .mmeta{display:flex;align-items:center;gap:3px;justify-content:flex-end;font-size:10px;color:var(--text2);margin-top:3px}
 .tick{font-size:12px}.tick.seen{color:var(--accent)}
+.tr-btn{font-size:11px;opacity:.55;margin-left:4px;padding:1px 4px;vertical-align:middle;transition:.15s}
+.tr-btn:hover{opacity:1}
+.tr-box{margin-top:5px;padding-top:5px;border-top:1px dashed rgba(255,255,255,.15);font-size:13px;color:var(--accent2);font-style:italic}
+.mod-warn{background:rgba(255,77,109,.12);border:1px solid rgba(255,77,109,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--danger);text-align:center;margin:4px 0}
 .edited-lbl{font-size:10px;color:var(--text2);font-style:italic}
 .mimg{border-radius:10px;max-width:240px;cursor:pointer;display:block}
 .msticker{font-size:54px;line-height:1}
@@ -331,6 +335,7 @@ img{display:block;max-width:100%}
     <div class="menu-item" id="menuNewGrpBtn"><span class="mi-icon">👥</span><span>Yangi guruh</span><span class="mi-arrow">›</span></div>
     <div class="menu-item" id="menuThemeBtn"><span class="mi-icon">🌙</span><span id="menuThemeLbl">Tungi rejim</span></div>
     <div class="menu-item" id="menuLangBtn"><span class="mi-icon">🌐</span><span>Til / Язык / Language</span><span class="mi-arrow">›</span></div>
+    <div class="menu-item" id="menuAutoTrBtn"><span class="mi-icon">🌍</span><span id="menuAutoTrLbl">Avtomatik tarjima: o'chiq</span></div>
   </div>
   <div class="menu-divider"></div>
   <div class="menu-section">
@@ -871,6 +876,7 @@ function showApp(){
   $('app').style.display='flex';
   applyTheme();
   applyLang();
+  updateAutoTrLabel();
   updateMyCard();
   bindAll();
   buildStickers();
@@ -959,6 +965,7 @@ function bindAll(){
   $('menuNewGrpBtn').onclick=()=>{closeMainMenu();openGrpModal();};
   $('menuThemeBtn').onclick=()=>{togTheme();};
   $('menuLangBtn').onclick=()=>{closeMainMenu();$('langModal').classList.add('open');};
+  $('menuAutoTrBtn').onclick=toggleAutoTranslate;
   $('menuAboutBtn').onclick=()=>{closeMainMenu();$('aboutModal').classList.add('open');};
   $('menuLogoutBtn').onclick=()=>{closeMainMenu();doLogout();};
   $('menuBtn').onclick=togSidebar;
@@ -1405,6 +1412,10 @@ function renderMsg(key,msg,box){
   else
     content=`<div>${esc(msg.text||'')}</div>`;
 
+  const canTranslate=(!mine)&&(msg.type==='text'||!msg.type)&&msg.text;
+  const trBtn=canTranslate?`<button class="tr-btn" onclick="window._toggleTranslate('${key}')" title="Tarjima">🌍</button>`:'';
+  const trBoxHtml=canTranslate?`<div class="tr-box" id="tr-${key}" data-orig="${esc(msg.text)}" style="display:none"></div>`:'';
+
   let reacts='';
   if(msg.reactions){
     const c={};Object.values(msg.reactions).forEach(r=>c[r]=(c[r]||0)+1);
@@ -1424,9 +1435,11 @@ function renderMsg(key,msg,box){
     ontouchend="window._eTouch()">
     ${senderHtml}${fwdHtml}${replyHtml}
     ${content}${ed}${reacts}
-    <div class="mmeta">${tm} ${tick}</div>
+    ${trBoxHtml}
+    <div class="mmeta">${tm} ${tick}${trBtn}</div>
   </div>`;
   box.appendChild(row);
+  if(canTranslate)autoTranslateMsg(key,msg.text);
 }
 
 window._scrollToMsg=key=>{
@@ -1450,6 +1463,14 @@ async function sendMsg(){
     await update(ref(db,`chats/${chatId}/${editKey}`),{text:txt,edited:true,editTime:serverTimestamp()});
     cancelEdit();
   } else {
+    if(isGrp){
+      const mod=await moderateText(txt);
+      if(mod.flagged){
+        toast(`🤖 Xabar yuborilmadi: ${mod.reason} aniqlandi`);
+        inp.value=txt;
+        return;
+      }
+    }
     const msgData={text:txt,sender:myUid,senderName:myName,time:serverTimestamp(),type:'text',status:'sent'};
     if(replyKey&&replyData){
       msgData.replyTo={key:replyKey,text:replyData.text||'📎',senderName:replyData.senderName||''};
@@ -1458,6 +1479,81 @@ async function sendMsg(){
     cancelReply();
     notifyOther();
   }
+}
+
+// === AI MODERATOR (🤖) — guruh xabarlarini tekshirish ===
+async function moderateText(text){
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[
+          {role:'system',content:"Sen chat moderatorisan. Foydalanuvchi xabarini tekshir: agar unda haqorat/so'kish, spam yoki reklama (masalan tovar sotish, boshqa kanalga taklif, pul ishlash e'lonlari) bo'lsa — faqat bitta so'z bilan javob ber: 'INSULT', 'SPAM', 'AD' yoki agar hech narsa bo'lmasa 'OK'. Boshqa hech narsa yozma."},
+          {role:'user',content:text}
+        ],
+        max_tokens:10,
+        temperature:0
+      })
+    });
+    const data=await res.json();
+    const verdict=(data.choices?.[0]?.message?.content||'OK').trim().toUpperCase();
+    if(verdict.includes('INSULT'))return{flagged:true,reason:"haqoratli so'zlar"};
+    if(verdict.includes('SPAM'))return{flagged:true,reason:'spam'};
+    if(verdict.includes('AD'))return{flagged:true,reason:'reklama'};
+    return{flagged:false};
+  }catch{return{flagged:false};}
+}
+
+// === AVTOMATIK TARJIMA (🌍) — Groq AI orqali ===
+let autoTranslate=localStorage.getItem('dc_autoTr')==='1';
+function updateAutoTrLabel(){
+  const lbl=$('menuAutoTrLbl');if(!lbl)return;
+  lbl.textContent=`Avtomatik tarjima: ${autoTranslate?"yoniq":"o'chiq"}`;
+}
+function toggleAutoTranslate(){
+  autoTranslate=!autoTranslate;
+  localStorage.setItem('dc_autoTr',autoTranslate?'1':'0');
+  updateAutoTrLabel();
+  toast(autoTranslate?'🌍 Avtomatik tarjima yoqildi':'🌍 Avtomatik tarjima o\'chirildi');
+}
+const trCache={};
+function langLabel(){return lang==='ru'?'rus':lang==='en'?'ingliz':"o'zbek";}
+async function translateText(text){
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[
+          {role:'system',content:`Sen tarjimonsan. Foydalanuvchi yuborgan matnni ${langLabel()} tiliga tarjima qil. Faqat tarjima qilingan matnni qaytar, hech qanday izoh yoki qo'shimcha so'z yozma.`},
+          {role:'user',content:text}
+        ],
+        max_tokens:512,
+        temperature:0.3
+      })
+    });
+    const data=await res.json();
+    return data.choices?.[0]?.message?.content?.trim()||null;
+  }catch{return null;}
+}
+window._toggleTranslate=async(key,btnEl)=>{
+  const box=$('tr-'+key);if(!box)return;
+  if(box.style.display==='block'){box.style.display='none';return;}
+  if(trCache[key]){box.textContent='🌍 '+trCache[key];box.style.display='block';return;}
+  box.style.display='block';box.textContent='🌍 Tarjima qilinmoqda...';
+  const original=box.dataset.orig||'';
+  const tr=await translateText(original);
+  if(tr){trCache[key]=tr;box.textContent='🌍 '+tr;}
+  else box.textContent="🌍 Tarjima qilib bo'lmadi";
+};
+async function autoTranslateMsg(key,text){
+  if(!autoTranslate)return;
+  const box=$('tr-'+key);if(!box)return;
+  const tr=await translateText(text);
+  if(tr){trCache[key]=tr;box.textContent='🌍 '+tr;box.style.display='block';}
 }
 
 // AI xabar yuborish
