@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoiraChat — Admin panel</title>
+<meta name="theme-color" content="#00c6a2">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a1628;--bg2:#0f1f35;--bg3:#162542;--bg4:#1e3054;
+  --accent:#00c6a2;--accent2:#00e5bb;--accent3:#0088cc;
+  --text:#e8f0fe;--text2:#7a9cc0;--border:#1e3054;
+  --danger:#ff4d6d;--gold:#ffd60a;--radius:14px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
+input{font-family:inherit;border:none;outline:none;background:none;color:var(--text)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:4px}
+
+/* LOGIN */
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:32px;width:min(380px,100%);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.login-logo{font-size:44px;margin-bottom:8px}
+.login-title{font-size:20px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px}
+.linput{width:100%;background:var(--bg4);border-radius:10px;padding:12px 14px;font-size:14px;margin-bottom:10px;border:2px solid transparent;transition:.2s}
+.linput:focus{border-color:var(--accent)}
+.lbtn{width:100%;padding:12px;border-radius:10px;font-weight:700;font-size:14px;background:linear-gradient(135deg,var(--accent),var(--accent3));color:#fff;margin-top:6px}
+.lbtn:hover{opacity:.9}
+#loginErr{color:var(--danger);font-size:12px;margin-top:10px;min-height:16px}
+#noAccessBox{display:none}
+#noAccessBox .uidbox{background:var(--bg4);border-radius:8px;padding:10px;font-size:12px;color:var(--accent2);word-break:break-all;margin:12px 0}
+
+/* DASHBOARD */
+#dash{display:none;max-width:1100px;margin:0 auto;padding:20px}
+.dash-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.dash-title{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logout-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--text2)}
+.logout-btn:hover{color:var(--danger);border-color:var(--danger)}
+
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px}
+.stat-num{font-size:26px;font-weight:800;color:var(--accent)}
+.stat-lbl{font-size:12px;color:var(--text2);margin-top:4px}
+
+.search-bar{display:flex;gap:8px;margin-bottom:14px}
+.search-bar input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:14px}
+
+.utable{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.urow{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.urow:last-child{border-bottom:none}
+.urow:hover{background:var(--bg3)}
+.uavatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0;background-size:cover;background-position:center}
+.uinfo{flex:1;min-width:0}
+.uname{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.usub{font-size:12px;color:var(--text2);margin-top:2px}
+.tag{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:700}
+.tag.pro{background:rgba(255,214,10,.15);color:var(--gold);border:1px solid rgba(255,214,10,.3)}
+.tag.on{background:rgba(34,209,122,.15);color:#22d17a;border:1px solid rgba(34,209,122,.3)}
+.tag.ban{background:rgba(255,77,109,.15);color:var(--danger);border:1px solid rgba(255,77,109,.3)}
+.urow-btns{display:flex;gap:6px;flex-shrink:0}
+.abtn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;background:var(--bg4);white-space:nowrap}
+.abtn.gold{background:rgba(255,214,10,.15);color:var(--gold)}
+.abtn.gold.active{background:var(--gold);color:#1a1400}
+.abtn.danger{background:rgba(255,77,109,.12);color:var(--danger)}
+.abtn.danger.active{background:var(--danger);color:#fff}
+.abtn:hover{filter:brightness(1.15)}
+#empty2{padding:30px;text-align:center;color:var(--text2);font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">🛡️</div>
+    <div class="login-title">DoiraChat Admin</div>
+    <div id="loginFormBox">
+      <input id="adminEmail" class="linput" type="email" placeholder="Email">
+      <input id="adminPass" class="linput" type="password" placeholder="Parol">
+      <button class="lbtn" id="adminLoginBtn">Kirish</button>
+      <div id="loginErr"></div>
+    </div>
+    <div id="noAccessBox">
+      <div style="font-size:13px;color:var(--text2);line-height:1.6">
+        Siz tizimga kirdingiz, lekin bu akkauntda admin huquqi yo'q.<br>
+        Administrator huquqini olish uchun quyidagi UID'ni <b>admin.html</b> ichidagi <code>ADMIN_UIDS</code> ro'yxatiga qo'shing:
+      </div>
+      <div class="uidbox" id="myUidBox"></div>
+      <button class="lbtn" id="logoutNoAccessBtn" style="background:var(--bg4);color:var(--text2)">Chiqish</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash">
+  <div class="dash-head">
+    <div class="dash-title">🛡️ DoiraChat — Admin panel</div>
+    <button class="logout-btn" id="dashLogoutBtn">Chiqish</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Jami foydalanuvchi</div></div>
+    <div class="stat-card"><div class="stat-num" id="statOnline">0</div><div class="stat-lbl">Onlayn</div></div>
+    <div class="stat-card"><div class="stat-num" id="statPremium">0</div><div class="stat-lbl">💎 Premium</div></div>
+    <div class="stat-card"><div class="stat-num" id="statGroups">0</div><div class="stat-lbl">Guruhlar</div></div>
+    <div class="stat-card"><div class="stat-num" id="statBanned">0</div><div class="stat-lbl">Bloklangan</div></div>
+  </div>
+
+  <div class="search-bar">
+    <input id="adminSearch" type="text" placeholder="Ism yoki email bo'yicha qidirish...">
+  </div>
+
+  <div class="utable" id="userTable"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getDatabase, ref, onValue, update, get }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+
+const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-chat-v2.firebaseapp.com",databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",projectId:"doira-chat-v2",storageBucket:"doira-chat-v2.firebasestorage.app",messagingSenderId:"885552294238",appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"};
+
+// !!! MUHIM: shu yerga o'z Firebase UID'ingizni qo'shing (pastdagi "Ruxsat yo'q" oynasida ko'rasiz) !!!
+const ADMIN_UIDS = [
+  // "SIZNING_UID_INGIZ_BU_YERGA"
+];
+
+const fbApp=initializeApp(FB);
+const auth=getAuth(fbApp);
+const db=getDatabase(fbApp);
+const $=id=>document.getElementById(id);
+const av=n=>(n||'?')[0].toUpperCase();
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+let allUsers={},allGroups={};
+
+$('adminLoginBtn').onclick=async()=>{
+  const email=$('adminEmail').value.trim();
+  const pass=$('adminPass').value;
+  $('loginErr').textContent='';
+  if(!email||!pass){$('loginErr').textContent='Email va parolni kiriting';return;}
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+  }catch(e){
+    $('loginErr').textContent='Xato: email yoki parol noto\'g\'ri';
+  }
+};
+
+$('logoutNoAccessBtn').onclick=()=>signOut(auth);
+$('dashLogoutBtn').onclick=()=>signOut(auth);
+
+onAuthStateChanged(auth,user=>{
+  if(!user){
+    $('loginScreen').style.display='flex';
+    $('loginFormBox').style.display='block';
+    $('noAccessBox').style.display='none';
+    $('dash').style.display='none';
+    return;
+  }
+  if(!ADMIN_UIDS.includes(user.uid)){
+    $('loginFormBox').style.display='none';
+    $('noAccessBox').style.display='block';
+    $('myUidBox').textContent=user.uid;
+    $('dash').style.display='none';
+    return;
+  }
+  // Admin tasdiqlandi
+  $('loginScreen').style.display='none';
+  $('dash').style.display='block';
+  startDashboard();
+});
+
+function startDashboard(){
+  onValue(ref(db,'users'),s=>{allUsers=s.val()||{};renderDashboard();});
+  onValue(ref(db,'groups'),s=>{allGroups=s.val()||{};renderDashboard();});
+  $('adminSearch').oninput=renderDashboard;
+}
+
+function renderDashboard(){
+  const entries=Object.entries(allUsers).filter(([uid,u])=>u&&u.name);
+  const total=entries.length;
+  const online=entries.filter(([,u])=>u.online).length;
+  const premium=entries.filter(([,u])=>u.premium).length;
+  const banned=entries.filter(([,u])=>u.banned).length;
+  $('statTotal').textContent=total;
+  $('statOnline').textContent=online;
+  $('statPremium').textContent=premium;
+  $('statGroups').textContent=Object.keys(allGroups||{}).length;
+  $('statBanned').textContent=banned;
+
+  const q=($('adminSearch').value||'').toLowerCase().trim();
+  let list=entries.filter(([,u])=>!q||u.name.toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q));
+  list.sort((a,b)=>{
+    if(a[1].online&&!b[1].online)return -1;
+    if(!a[1].online&&b[1].online)return 1;
+    return (b[1].lastSeen||0)-(a[1].lastSeen||0);
+  });
+
+  const table=$('userTable');
+  if(!list.length){table.innerHTML='<div id="empty2">Foydalanuvchi topilmadi</div>';return;}
+
+  table.innerHTML=list.map(([uid,u])=>{
+    const avStyle=u.avatar?`style="background-image:url(${u.avatar})"`:'';
+    return `<div class="urow">
+      <div class="uavatar" ${avStyle}>${u.avatar?'':av(u.name)}</div>
+      <div class="uinfo">
+        <div class="uname">${esc(u.name)}
+          ${u.online?'<span class="tag on">ONLAYN</span>':''}
+          ${u.premium?'<span class="tag pro">💎 PRO</span>':''}
+          ${u.banned?'<span class="tag ban">BLOK</span>':''}
+        </div>
+        <div class="usub">${esc(u.inviteCode||'')}  ·  UID: ${uid.slice(0,10)}...</div>
+      </div>
+      <div class="urow-btns">
+        <button class="abtn gold${u.premium?' active':''}" onclick="window._togPrem('${uid}',${!!u.premium})">${u.premium?'💎 Olish':'💎 Berish'}</button>
+        <button class="abtn danger${u.banned?' active':''}" onclick="window._togBan('${uid}',${!!u.banned})">${u.banned?'Blokdan chiqarish':'Bloklash'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window._togPrem=async(uid,current)=>{
+  await update(ref(db,`users/${uid}`),{premium:!current});
+};
+window._togBan=async(uid,current)=>{
+  if(!current&&!confirm('Bu foydalanuvchini bloklaysizmi? U tizimga kira olmay qoladi.'))return;
+  await update(ref(db,`users/${uid}`),{banned:!current});
+};
+</script>
+</body>
+</html>
