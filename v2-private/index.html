@@ -97,6 +97,10 @@ img{display:block;max-width:100%}
 .tr-btn:hover{opacity:1}
 .tr-box{margin-top:5px;padding-top:5px;border-top:1px dashed rgba(255,255,255,.15);font-size:13px;color:var(--accent2);font-style:italic}
 .mod-warn{background:rgba(255,77,109,.12);border:1px solid rgba(255,77,109,.3);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--danger);text-align:center;margin:4px 0}
+.ttl-opt{width:100%;text-align:left;padding:11px 14px;border-radius:10px;background:var(--bg4);font-size:14px;font-weight:600;transition:.15s}
+.ttl-opt:hover{background:var(--accent);color:#fff}
+.ttl-opt.active{background:var(--accent);color:#fff}
+.ttl-badge{font-size:10px;color:var(--gold);font-weight:700;margin-left:4px}
 .edited-lbl{font-size:10px;color:var(--text2);font-style:italic}
 .mimg{border-radius:10px;max-width:240px;cursor:pointer;display:block}
 .msticker{font-size:54px;line-height:1}
@@ -279,6 +283,7 @@ img{display:block;max-width:100%}
         <div id="chatSub"></div>
       </div>
       <div class="head-btns">
+        <button class="hbtn" id="chatPinBtn" title="Maxfiy rejim">🔓</button>
         <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️</button>
         <button class="hbtn" id="statsBtn" title="Tahlil">📊</button>
         <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️</button>
@@ -310,6 +315,7 @@ img{display:block;max-width:100%}
       <div class="irow">
         <button class="ibtn" id="attachBtn">📎</button>
         <button class="ibtn" id="stickerBtn">😊</button>
+        <button class="ibtn" id="ttlBtn" title="Vaqtli xabar">⏳</button>
         <textarea id="msgInput" rows="1" placeholder="Xabar yozing..."></textarea>
         <button class="ibtn" id="micBtn">🎤</button>
         <button id="sendBtn">➤</button>
@@ -336,6 +342,7 @@ img{display:block;max-width:100%}
     <div class="menu-item" id="menuThemeBtn"><span class="mi-icon">🌙</span><span id="menuThemeLbl">Tungi rejim</span></div>
     <div class="menu-item" id="menuLangBtn"><span class="mi-icon">🌐</span><span>Til / Язык / Language</span><span class="mi-arrow">›</span></div>
     <div class="menu-item" id="menuAutoTrBtn"><span class="mi-icon">🌍</span><span id="menuAutoTrLbl">Avtomatik tarjima: o'chiq</span></div>
+    <div class="menu-item" id="menuTrLangBtn"><span class="mi-icon">🗣️</span><span id="menuTrLangLbl">Tarjima tili: O'zbek</span><span class="mi-arrow">›</span></div>
   </div>
   <div class="menu-divider"></div>
   <div class="menu-section">
@@ -474,6 +481,54 @@ img{display:block;max-width:100%}
     <div class="modal-btns" style="margin-top:16px">
       <button class="mbtn gray" onclick="document.getElementById('langModal').classList.remove('open')">✕</button>
     </div>
+  </div>
+</div>
+
+<!-- MAXFIY REJIM: PIN O'RNATISH MODAL -->
+<div class="modal-bg" id="setPinModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:40px;margin-bottom:8px">🔐</div>
+    <div class="modal-title" id="setPinTitle">Chat uchun PIN o'rnating</div>
+    <div style="font-size:12px;color:var(--text2);margin:8px 0 16px">PIN faqat shu qurilmada saqlanadi va chatni ochishda so'raladi</div>
+    <input id="setPinInput" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="4-6 xonali PIN" style="text-align:center;font-size:20px;letter-spacing:6px">
+    <div class="modal-btns">
+      <button class="mbtn primary" id="savePinBtn">Saqlash</button>
+      <button class="mbtn gray" id="removePinBtn" style="display:none">🗑️ O'chirish</button>
+      <button class="mbtn gray" onclick="document.getElementById('setPinModal').classList.remove('open')">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAXFIY REJIM: PIN SO'RASH MODAL -->
+<div class="modal-bg" id="pinGateModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:40px;margin-bottom:8px">🔒</div>
+    <div class="modal-title">Maxfiy chat</div>
+    <div style="font-size:12px;color:var(--text2);margin:8px 0 16px">Ochish uchun PIN kiriting</div>
+    <input id="gatePinInput" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" style="text-align:center;font-size:20px;letter-spacing:6px">
+    <div id="gatePinErr" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:6px"></div>
+    <div class="modal-btns">
+      <button class="mbtn primary" id="gatePinBtn">Ochish</button>
+      <button class="mbtn gray" id="gatePinCancelBtn">Bekor</button>
+    </div>
+  </div>
+</div>
+
+<!-- TARJIMA TILI MODAL -->
+<div class="modal-bg" id="trLangModal">
+  <div class="modal-box">
+    <div class="modal-title">🗣️ Tarjima tili</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Kelgan xabarlar qaysi tilga tarjima qilinsin?</div>
+    <div id="trLangOptions" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- VAQTLI XABAR MODAL -->
+<div class="modal-bg" id="ttlModal">
+  <div class="modal-box">
+    <div class="modal-title">⏳ Vaqtli xabar</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Ushbu muddat o'tgach xabar avtomatik o'chib ketadi (o'qilgandan keyin boshlanadi)</div>
+    <div id="ttlOptions" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 </div>
 
@@ -877,6 +932,7 @@ function showApp(){
   applyTheme();
   applyLang();
   updateAutoTrLabel();
+  updateTrLangLabel();
   updateMyCard();
   bindAll();
   buildStickers();
@@ -966,17 +1022,25 @@ function bindAll(){
   $('menuThemeBtn').onclick=()=>{togTheme();};
   $('menuLangBtn').onclick=()=>{closeMainMenu();$('langModal').classList.add('open');};
   $('menuAutoTrBtn').onclick=toggleAutoTranslate;
+  $('menuTrLangBtn').onclick=openTrLangModal;
   $('menuAboutBtn').onclick=()=>{closeMainMenu();$('aboutModal').classList.add('open');};
   $('menuLogoutBtn').onclick=()=>{closeMainMenu();doLogout();};
   $('menuBtn').onclick=togSidebar;
   $('overlay').onclick=togSidebar;
   $('myCard').onclick=openProfile;
   $('chatBgBtn').onclick=openBgModal;
+  $('chatPinBtn').onclick=openSetPinModal;
+  $('savePinBtn').onclick=savePinForChat;
+  $('removePinBtn').onclick=removePinForChat;
+  $('gatePinBtn').onclick=tryUnlockPin;
+  $('gatePinCancelBtn').onclick=()=>{$('pinGateModal').classList.remove('open');pendingUnlockCb=null;};
+  $('gatePinInput').addEventListener('keydown',e=>{if(e.key==='Enter')tryUnlockPin();});
   $('bgImgInput').onchange=uploadChatBg;
   $('searchInput').oninput=renderList;
   $('cancelGrpBtn').onclick=closeGrpModal;
   $('createGrpBtn').onclick=createGrp;
   $('attachBtn').onclick=openAttachMenu;
+  $('ttlBtn').onclick=openTtlModal;
   $('attachImgBtn').onclick=()=>{closeAttachMenu();$('fileInput').click();};
   $('attachDocBtn').onclick=()=>{closeAttachMenu();$('docInput').click();};
   $('fileInput').onchange=uploadImg;
@@ -1278,6 +1342,7 @@ window._openAiChat=function(){
   $('clearChatBtn').classList.remove('show');
   $('statsBtn').classList.remove('show');
   $('chatBgBtn').classList.remove('show');
+  $('chatPinBtn').classList.remove('show');
   applyChatBg();
   const box=$('messages');
   box.innerHTML='';
@@ -1305,6 +1370,12 @@ window._togFrd=async(uid,is)=>{
 
 // === OPEN CHAT ===
 function openChat(id,name,isGroup){
+  const candidateId=isGroup?id:[myUid,id].sort().join('_');
+  const chatPin=localStorage.getItem('dc_pin_'+candidateId);
+  if(chatPin&&sessionStorage.getItem('dc_unlocked_'+candidateId)!=='1'){
+    showPinGate(candidateId,()=>openChat(id,name,isGroup));
+    return;
+  }
   isGrp=isGroup;chatName=name;
   const msgs=$('messages');msgs.innerHTML='';
   if(isGroup){
@@ -1324,6 +1395,8 @@ function openChat(id,name,isGroup){
   $('clearChatBtn').classList.add('show');
   $('statsBtn').classList.add('show');
   $('chatBgBtn').classList.add('show');
+  $('chatPinBtn').classList.add('show');
+  updateChatPinIcon();
   $('msgInput').placeholder=t('typeMsg');
   remove(ref(db,`unread/${myUid}/${id}`));
   cancelReply();cancelEdit();
@@ -1428,6 +1501,7 @@ function renderMsg(key,msg,box){
   const senderHtml=(!mine&&msg.senderName)?`<div class="msender" onclick="window._openUserInfo('${msg.sender}')">${esc(msg.senderName)}</div>`:'';
 
   const fwdHtml=msg.forwarded?`<div style="font-size:11px;color:var(--text2);margin-bottom:4px">↗️ ${esc(msg.forwarded)}</div>`:'';
+  const ttlBadge=msg.ttl?`<span class="ttl-badge" id="ttl-${key}">⏳</span>`:'';
 
   row.innerHTML=`<div class="mbub"
     oncontextmenu="window._showMenu(event,'${key}',${mine},'${msg.type||'text'}');return false;"
@@ -1436,10 +1510,11 @@ function renderMsg(key,msg,box){
     ${senderHtml}${fwdHtml}${replyHtml}
     ${content}${ed}${reacts}
     ${trBoxHtml}
-    <div class="mmeta">${tm} ${tick}${trBtn}</div>
+    <div class="mmeta">${tm} ${tick}${trBtn}${ttlBadge}</div>
   </div>`;
   box.appendChild(row);
   if(canTranslate)autoTranslateMsg(key,msg.text);
+  if(msg.ttl)watchTtlMsg(key,msg);
 }
 
 window._scrollToMsg=key=>{
@@ -1475,10 +1550,123 @@ async function sendMsg(){
     if(replyKey&&replyData){
       msgData.replyTo={key:replyKey,text:replyData.text||'📎',senderName:replyData.senderName||''};
     }
+    if(msgTTL>0){msgData.ttl=msgTTL;}
     await push(ref(db,`chats/${chatId}`),msgData);
+    if(msgTTL>0)selectTTL(0);
     cancelReply();
     notifyOther();
   }
+}
+
+// === MAXFIY REJIM (🔐) — chatni PIN bilan qulflash ===
+let pendingUnlockCb=null;
+function showPinGate(cid,onSuccess){
+  pendingUnlockCb={cid,onSuccess};
+  $('gatePinInput').value='';
+  $('gatePinErr').textContent='';
+  $('pinGateModal').classList.add('open');
+  setTimeout(()=>$('gatePinInput').focus(),100);
+}
+function tryUnlockPin(){
+  if(!pendingUnlockCb)return;
+  const {cid,onSuccess}=pendingUnlockCb;
+  const real=localStorage.getItem('dc_pin_'+cid);
+  const entered=$('gatePinInput').value.trim();
+  if(entered&&entered===real){
+    sessionStorage.setItem('dc_unlocked_'+cid,'1');
+    $('pinGateModal').classList.remove('open');
+    pendingUnlockCb=null;
+    onSuccess();
+  } else {
+    $('gatePinErr').textContent="Noto'g'ri PIN";
+  }
+}
+function currentChatCandidateId(){
+  return isGrp?chatId:(chatUid?[myUid,chatUid].sort().join('_'):null);
+}
+function openSetPinModal(){
+  const cid=currentChatCandidateId();
+  if(!cid){toast("Avval chat tanlang");return;}
+  const existing=localStorage.getItem('dc_pin_'+cid);
+  $('setPinInput').value='';
+  $('setPinTitle').textContent=existing?"PIN'ni o'zgartirish":'Chat uchun PIN o\'rnating';
+  $('removePinBtn').style.display=existing?'block':'none';
+  $('setPinModal').classList.add('open');
+}
+function savePinForChat(){
+  const cid=currentChatCandidateId();if(!cid)return;
+  const pin=$('setPinInput').value.trim();
+  if(pin.length<4){toast('Kamida 4 xonali PIN kiriting');return;}
+  localStorage.setItem('dc_pin_'+cid,pin);
+  sessionStorage.setItem('dc_unlocked_'+cid,'1');
+  updateChatPinIcon();
+  $('setPinModal').classList.remove('open');
+  toast('🔐 PIN saqlandi');
+}
+function removePinForChat(){
+  const cid=currentChatCandidateId();if(!cid)return;
+  localStorage.removeItem('dc_pin_'+cid);
+  sessionStorage.removeItem('dc_unlocked_'+cid);
+  updateChatPinIcon();
+  $('setPinModal').classList.remove('open');
+  toast("🔓 PIN o'chirildi");
+}
+function updateChatPinIcon(){
+  const cid=currentChatCandidateId();
+  const btn=$('chatPinBtn');if(!btn||!cid)return;
+  const locked=!!localStorage.getItem('dc_pin_'+cid);
+  btn.textContent=locked?'🔒':'🔓';
+}
+
+// === VAQTLI XABARLAR (⏳) — o'qilgandan keyin avtomatik o'chadi ===
+const TTL_OPTIONS=[
+  {label:"O'chirish (yo'q)",sec:0},
+  {label:'5 soniya',sec:5},
+  {label:'1 daqiqa',sec:60},
+  {label:'1 soat',sec:3600},
+  {label:'1 kun',sec:86400},
+  {label:'7 kun',sec:604800},
+  {label:'30 kun',sec:2592000},
+];
+let msgTTL=0;
+function openTtlModal(){
+  const box=$('ttlOptions');box.innerHTML='';
+  TTL_OPTIONS.forEach(o=>{
+    const b=document.createElement('button');
+    b.className='ttl-opt'+(o.sec===msgTTL?' active':'');
+    b.textContent=o.label;
+    b.onclick=()=>selectTTL(o.sec);
+    box.appendChild(b);
+  });
+  $('ttlModal').classList.add('open');
+}
+function selectTTL(sec){
+  msgTTL=sec;
+  $('ttlBtn').classList.toggle('active',sec>0);
+  $('ttlBtn').style.color=sec>0?'var(--accent)':'';
+  $('ttlModal').classList.remove('open');
+  if(sec>0)toast('⏳ Keyingi xabar vaqtli bo\'ladi');
+}
+const ttlTimers={};
+function watchTtlMsg(key,msg){
+  if(!msg.ttl||ttlTimers[key])return;
+  const expiresAt=(msg.time||Date.now())+msg.ttl*1000;
+  const badge=document.getElementById('ttl-'+key);
+  ttlTimers[key]=setInterval(()=>{
+    const left=Math.max(0,Math.round((expiresAt-Date.now())/1000));
+    const el=document.getElementById('ttl-'+key);
+    if(el)el.textContent='⏳ '+fmtCountdown(left);
+    if(left<=0){
+      clearInterval(ttlTimers[key]);delete ttlTimers[key];
+      remove(ref(db,`chats/${chatId}/${key}`)).catch(()=>{});
+    }
+  },1000);
+}
+function fmtCountdown(sec){
+  if(sec>=86400)return Math.ceil(sec/86400)+'k';
+  if(sec>=3600)return Math.ceil(sec/3600)+'s';
+  if(sec>=60)return Math.ceil(sec/60)+'d';
+  return sec+'soniya';
 }
 
 // === AI MODERATOR (🤖) — guruh xabarlarini tekshirish ===
@@ -1508,6 +1696,38 @@ async function moderateText(text){
 
 // === AVTOMATIK TARJIMA (🌍) — Groq AI orqali ===
 let autoTranslate=localStorage.getItem('dc_autoTr')==='1';
+const TR_LANGS=[
+  {code:'uz',label:"O'zbek"},{code:'ru',label:'Rus'},{code:'en',label:'Ingliz'},
+  {code:'tr',label:'Turk'},{code:'ar',label:'Arab'},{code:'kk',label:"Qozoq"},
+  {code:'tg',label:'Tojik'},{code:'ky',label:'Qirg\'iz'},{code:'zh',label:'Xitoy'},
+  {code:'de',label:'Nemis'},{code:'fr',label:'Fransuz'},{code:'es',label:'Ispan'},
+  {code:'ko',label:'Koreys'},{code:'ja',label:'Yapon'},{code:'hi',label:'Hind'},
+];
+function getTrLangCode(){return localStorage.getItem('dc_trLang')||lang||'uz';}
+function updateTrLangLabel(){
+  const lbl=$('menuTrLangLbl');if(!lbl)return;
+  const code=getTrLangCode();
+  const found=TR_LANGS.find(l=>l.code===code);
+  lbl.textContent='Tarjima tili: '+(found?found.label:"O'zbek");
+}
+function openTrLangModal(){
+  closeMainMenu();
+  const box=$('trLangOptions');box.innerHTML='';
+  const cur=getTrLangCode();
+  TR_LANGS.forEach(l=>{
+    const b=document.createElement('button');
+    b.className='ttl-opt'+(l.code===cur?' active':'');
+    b.textContent=l.label;
+    b.onclick=()=>{
+      localStorage.setItem('dc_trLang',l.code);
+      updateTrLangLabel();
+      $('trLangModal').classList.remove('open');
+      toast('✓ '+l.label);
+    };
+    box.appendChild(b);
+  });
+  $('trLangModal').classList.add('open');
+}
 function updateAutoTrLabel(){
   const lbl=$('menuAutoTrLbl');if(!lbl)return;
   lbl.textContent=`Avtomatik tarjima: ${autoTranslate?"yoniq":"o'chiq"}`;
@@ -1519,7 +1739,10 @@ function toggleAutoTranslate(){
   toast(autoTranslate?'🌍 Avtomatik tarjima yoqildi':'🌍 Avtomatik tarjima o\'chirildi');
 }
 const trCache={};
-function langLabel(){return lang==='ru'?'rus':lang==='en'?'ingliz':"o'zbek";}
+function langLabel(){
+  const found=TR_LANGS.find(l=>l.code===getTrLangCode());
+  return found?found.label:"o'zbek";
+}
 async function translateText(text){
   try{
     const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
@@ -1557,7 +1780,7 @@ async function autoTranslateMsg(key,text){
 }
 
 // AI xabar yuborish
-const GROQ_KEY='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';
+const GROQ_KEY='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';
 const aiHistory=[];
 
 async function sendAiMsg(userText){
@@ -2033,7 +2256,7 @@ async function leaveGroup(){
   $('chatSub').textContent='';
   $('messages').innerHTML=`<div id="empty"><div class="empty-icon">💬</div><div style="font-size:14px;text-align:center;line-height:1.6">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div></div>`;
   chatId=null;chatUid=null;isGrp=false;
-  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn'].forEach(b=>$(''+b).classList.remove('show'));
+  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn','chatPinBtn'].forEach(b=>$(''+b).classList.remove('show'));
   toast(t('groupLeft'));
 }
 
