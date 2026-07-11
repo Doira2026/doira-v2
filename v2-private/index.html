@@ -285,6 +285,7 @@ img{display:block;max-width:100%}
         <div id="chatSub"></div>
       </div>
       <div class="head-btns">
+        <button class="hbtn" id="grpSummaryBtn" title="Guruh xulosasi">📋</button>
         <button class="hbtn" id="chatPinBtn" title="Maxfiy rejim">🔓</button>
         <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️</button>
         <button class="hbtn" id="statsBtn" title="Tahlil">📊</button>
@@ -367,6 +368,7 @@ img{display:block;max-width:100%}
   <button id="attachDocBtn">📄 Fayl / PDF</button>
   <button id="attachTtlBtn">⏳ Vaqtli xabar</button>
   <button id="attachGameBtn">🎮 XO o'yini</button>
+  <button id="attachImproveBtn">✨ Matnni yaxshilash</button>
 </div>
 
 <!-- GROUP MODAL -->
@@ -491,6 +493,17 @@ img{display:block;max-width:100%}
     </div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="mbtn gray" onclick="document.getElementById('langModal').classList.remove('open')">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- GURUH XULOSASI MODAL -->
+<div class="modal-bg" id="summaryModal">
+  <div class="modal-box">
+    <div class="modal-title">📋 Guruh xulosasi</div>
+    <div id="summaryText" style="font-size:14px;line-height:1.7;color:var(--text);background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:14px;white-space:pre-wrap"></div>
+    <div class="modal-btns">
+      <button class="mbtn gray" onclick="document.getElementById('summaryModal').classList.remove('open')">Yopish</button>
     </div>
   </div>
 </div>
@@ -1054,6 +1067,7 @@ function bindAll(){
   $('myCard').onclick=openProfile;
   $('chatBgBtn').onclick=openBgModal;
   $('chatPinBtn').onclick=openSetPinModal;
+  $('grpSummaryBtn').onclick=summarizeGroupChat;
   $('savePinBtn').onclick=savePinForChat;
   $('removePinBtn').onclick=removePinForChat;
   $('gatePinBtn').onclick=tryUnlockPin;
@@ -1066,6 +1080,7 @@ function bindAll(){
   $('attachBtn').onclick=openAttachMenu;
   $('attachTtlBtn').onclick=()=>{closeAttachMenu();openTtlModal();};
   $('attachGameBtn').onclick=()=>{closeAttachMenu();startXoGame();};
+  $('attachImproveBtn').onclick=()=>{closeAttachMenu();improveMsgText();};
   $('attachImgBtn').onclick=()=>{closeAttachMenu();$('fileInput').click();};
   $('attachDocBtn').onclick=()=>{closeAttachMenu();$('docInput').click();};
   $('fileInput').onchange=uploadImg;
@@ -1372,6 +1387,7 @@ window._openAiChat=function(){
   $('statsBtn').classList.remove('show');
   $('chatBgBtn').classList.remove('show');
   $('chatPinBtn').classList.remove('show');
+  $('grpSummaryBtn').classList.remove('show');
   applyChatBg();
   const box=$('messages');
   box.innerHTML='';
@@ -1425,6 +1441,7 @@ function openChat(id,name,isGroup){
   $('statsBtn').classList.add('show');
   $('chatBgBtn').classList.add('show');
   $('chatPinBtn').classList.add('show');
+  $('grpSummaryBtn').classList.toggle('show',isGroup);
   updateChatPinIcon();
   $('msgInput').placeholder=t('typeMsg');
   remove(ref(db,`unread/${myUid}/${id}`));
@@ -1497,7 +1514,10 @@ function renderMsg(key,msg,box){
     content=`<img src="${esc(msg.url)}" class="mimg" onclick="window._prevImg('${esc(msg.url)}')" loading="lazy">`;
   else if(msg.type==='audio'){
     const src=msg.base64Audio||msg.url||'';
-    content=`<div class="maudio"><audio controls src="${src}"></audio></div>`;
+    content=`<div class="maudio"><audio controls src="${src}"></audio>
+      <button class="tr-btn" id="txbtn-${key}" style="display:block;margin-top:4px">📝 Matnga aylantirish</button>
+      <div class="tr-box" id="tx-${key}" style="display:none"></div>
+    </div>`;
   }
   else if(msg.type==='file'){
     content=`<div class="mfile" onclick="window._downloadFile('${esc(msg.url)}','${esc(msg.fileName)}')">
@@ -1546,6 +1566,10 @@ function renderMsg(key,msg,box){
   box.appendChild(row);
   if(canTranslate)autoTranslateMsg(key,msg.text);
   if(msg.ttl)watchTtlMsg(key,msg);
+  if(msg.type==='audio'){
+    const txBtn=document.getElementById('txbtn-'+key);
+    if(txBtn)txBtn.onclick=()=>transcribeAudioMsg(key,msg.base64Audio||msg.url||'');
+  }
 }
 
 window._scrollToMsg=key=>{
@@ -1782,6 +1806,105 @@ function fmtCountdown(sec){
   if(sec>=3600)return Math.ceil(sec/3600)+'s';
   if(sec>=60)return Math.ceil(sec/60)+'d';
   return sec+'soniya';
+}
+
+// === ✍️ XABARNI AI BILAN YAXSHILASH ===
+async function improveMsgText(){
+  const inp=$('msgInput');
+  const txt=inp.value.trim();
+  if(!txt){toast('Avval xabar yozing');return;}
+  if(!(await checkUsageLimit('improve',10)))return;
+  toast('✨ Yaxshilanmoqda...');
+  try{
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[
+          {role:'system',content:"Foydalanuvchi yozgan xabarni o'sha tilda, mazmunini o'zgartirmasdan, imlosini to'g'irlab, chiroyli va tushunarli uslubga keltir. Faqat tahrirlangan matnni qaytar, boshqa hech narsa yozma."},
+          {role:'user',content:txt}
+        ],
+        max_tokens:512,temperature:0.4
+      })
+    });
+    const data=await res.json();
+    const improved=data.choices?.[0]?.message?.content?.trim();
+    if(improved){inp.value=improved;autoH();toast('✓ Yaxshilandi');}
+    else toast("Bo'lmadi, qayta urinib ko'ring");
+  }catch{toast('Xato yuz berdi');}
+}
+
+// === 📋 GURUH SUHBATINI AI XULOSALASH ===
+async function summarizeGroupChat(){
+  if(!isGrp||!chatId){toast('Bu funksiya faqat guruhda ishlaydi');return;}
+  if(!(await checkUsageLimit('summary',3)))return;
+  toast('📋 Xulosa tayyorlanmoqda...');
+  try{
+    const snap=await get(ref(db,`chats/${chatId}`));
+    const msgs=snap.val()||{};
+    const arr=Object.values(msgs).filter(m=>m.type==='text'&&m.text).slice(-80);
+    if(!arr.length){toast('Xabarlar topilmadi');return;}
+    const transcript=arr.map(m=>`${m.senderName||'?'}: ${m.text}`).join('\n');
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'llama-3.3-70b-versatile',
+        messages:[
+          {role:'system',content:"Sen guruh suhbatini xulosalovchi yordamchisan. Quyidagi suhbatni o'zbek tilida 3-5 ta qisqa bandda xulosala: kim, nima haqida gaplashdi, qanday qarorlar yoki muhim fikrlar bor. Faqat xulosani yoz."},
+          {role:'user',content:transcript}
+        ],
+        max_tokens:600,temperature:0.4
+      })
+    });
+    const data=await res.json();
+    const summary=data.choices?.[0]?.message?.content?.trim();
+    if(summary){
+      $('summaryText').textContent=summary;
+      $('summaryModal').classList.add('open');
+    } else toast("Xulosa qilib bo'lmadi");
+  }catch{toast('Xato yuz berdi');}
+}
+
+// === 🎙️ OVOZLI XABARNI MATNGA AYLANTIRISH ===
+async function transcribeAudioMsg(key,src){
+  if(!(await checkUsageLimit('transcribe',5)))return;
+  const box=document.getElementById('tx-'+key);
+  if(!box)return;
+  box.style.display='block';box.textContent='📝 Tinglanmoqda...';
+  try{
+    const audioResp=await fetch(src);
+    const blob=await audioResp.blob();
+    const fd=new FormData();
+    fd.append('file',blob,'audio.webm');
+    fd.append('model','whisper-large-v3');
+    const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+GROQ_KEY},
+      body:fd
+    });
+    const data=await res.json();
+    if(data.text)box.textContent='📝 '+data.text.trim();
+    else box.textContent="📝 Matnga aylantirib bo'lmadi";
+  }catch{box.textContent="📝 Xato yuz berdi";}
+}
+window._transcribeAudioMsg=(key,src)=>transcribeAudioMsg(key,src);
+
+// === FREEMIUM LIMIT (kunlik AI foydalanish chegarasi) ===
+async function checkUsageLimit(feature,freeLimit){
+  if(users[myUid]?.premium)return true;
+  const today=new Date().toISOString().slice(0,10);
+  const path=`usage/${myUid}/${today}/${feature}`;
+  const snap=await get(ref(db,path));
+  const count=snap.val()||0;
+  if(count>=freeLimit){
+    toast(`⏳ Kunlik bepul limit (${freeLimit}) tugadi. 💎 Premium — cheksiz!`);
+    openPremiumModal();
+    return false;
+  }
+  await set(ref(db,path),count+1);
+  return true;
 }
 
 // === AI MODERATOR (🤖) — guruh xabarlarini tekshirish ===
@@ -2371,7 +2494,7 @@ async function leaveGroup(){
   $('chatSub').textContent='';
   $('messages').innerHTML=`<div id="empty"><div class="empty-icon">💬</div><div style="font-size:14px;text-align:center;line-height:1.6">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div></div>`;
   chatId=null;chatUid=null;isGrp=false;
-  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn','chatPinBtn'].forEach(b=>$(''+b).classList.remove('show'));
+  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn','chatPinBtn','grpSummaryBtn'].forEach(b=>$(''+b).classList.remove('show'));
   toast(t('groupLeft'));
 }
 
