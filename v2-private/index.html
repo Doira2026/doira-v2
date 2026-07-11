@@ -125,6 +125,8 @@ img{display:block;max-width:100%}
 #inputBar{background:linear-gradient(0deg,var(--bg3) 0%,var(--bg2) 100%);border-top:1px solid var(--border);padding:10px 12px;padding-bottom:calc(10px + env(safe-area-inset-bottom));flex-shrink:0;box-shadow:0 -2px 12px rgba(0,0,0,.2)}
 #editBan{display:none;background:var(--bg3);padding:5px 12px;font-size:12px;color:var(--text2);border-left:3px solid var(--accent);justify-content:space-between;align-items:center;margin-bottom:6px;border-radius:4px}
 #editBan.show{display:flex}
+#ttlBar{display:none;background:var(--bg3);padding:5px 12px;font-size:12px;color:var(--gold);border-left:3px solid var(--gold);justify-content:space-between;align-items:center;margin-bottom:6px;border-radius:4px}
+#ttlBar.show{display:flex}
 .irow{display:flex;align-items:flex-end;gap:6px}
 .ibtn{font-size:20px;padding:8px;border-radius:12px;color:var(--text2);transition:.2s;flex-shrink:0}
 .ibtn:hover{background:var(--bg4);color:var(--accent);transform:scale(1.1)}
@@ -312,10 +314,13 @@ img{display:block;max-width:100%}
         <span>✏️ Tahrirlash</span>
         <button id="cancelEditBtn" style="color:var(--danger);font-weight:700">✕</button>
       </div>
+      <div id="ttlBar">
+        <span id="ttlBarLbl">⏳ Vaqtli xabar</span>
+        <button onclick="selectTTL(0)" style="color:var(--danger);font-size:18px;padding:4px 8px">✕</button>
+      </div>
       <div class="irow">
         <button class="ibtn" id="attachBtn">📎</button>
         <button class="ibtn" id="stickerBtn">😊</button>
-        <button class="ibtn" id="ttlBtn" title="Vaqtli xabar">⏳</button>
         <textarea id="msgInput" rows="1" placeholder="Xabar yozing..."></textarea>
         <button class="ibtn" id="micBtn">🎤</button>
         <button id="sendBtn">➤</button>
@@ -360,6 +365,8 @@ img{display:block;max-width:100%}
 <div id="attachMenuPanel" class="mmenu" style="display:none;position:fixed;z-index:701">
   <button id="attachImgBtn">🖼️ Rasm</button>
   <button id="attachDocBtn">📄 Fayl / PDF</button>
+  <button id="attachTtlBtn">⏳ Vaqtli xabar</button>
+  <button id="attachGameBtn">🎮 XO o'yini</button>
 </div>
 
 <!-- GROUP MODAL -->
@@ -444,6 +451,10 @@ img{display:block;max-width:100%}
       <button class="mbtn primary" id="uinfoChatBtn">💬 Chat</button>
       <button class="mbtn gray" id="uinfoCallBtn">📞 Qo'ng'iroq</button>
     </div>
+    <div class="modal-btns" style="margin-top:8px">
+      <button class="mbtn gray" id="uinfoBlockBtn" style="color:var(--danger)">🚫 Blokirovka</button>
+      <button class="mbtn gray" id="uinfoReportBtn" style="color:var(--gold)">⚠️ Shikoyat</button>
+    </div>
   </div>
 </div>
 
@@ -480,6 +491,18 @@ img{display:block;max-width:100%}
     </div>
     <div class="modal-btns" style="margin-top:16px">
       <button class="mbtn gray" onclick="document.getElementById('langModal').classList.remove('open')">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIKOYAT (REPORT) MODAL -->
+<div class="modal-bg" id="reportModal">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ Shikoyat qilish</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">Sababni tanlang — administrator ko'rib chiqadi</div>
+    <div id="reportReasons" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="modal-btns" style="margin-top:12px">
+      <button class="mbtn gray" onclick="document.getElementById('reportModal').classList.remove('open')">Bekor</button>
     </div>
   </div>
 </div>
@@ -945,6 +968,7 @@ function showApp(){
   onValue(ref(db,'groups'),s=>{grps=s.val()||{};renderList();});
   onValue(ref(db,`unread/${myUid}`),s=>{unreads=s.val()||{};renderList();});
   listenCalls();
+  listenBlocked();
   // Notification ruxsati so'rash
   requestNotifPermission();
   // "X daqiqa oldin" matnlarini yangilab turish uchun
@@ -1040,7 +1064,8 @@ function bindAll(){
   $('cancelGrpBtn').onclick=closeGrpModal;
   $('createGrpBtn').onclick=createGrp;
   $('attachBtn').onclick=openAttachMenu;
-  $('ttlBtn').onclick=openTtlModal;
+  $('attachTtlBtn').onclick=()=>{closeAttachMenu();openTtlModal();};
+  $('attachGameBtn').onclick=()=>{closeAttachMenu();startXoGame();};
   $('attachImgBtn').onclick=()=>{closeAttachMenu();$('fileInput').click();};
   $('attachDocBtn').onclick=()=>{closeAttachMenu();$('docInput').click();};
   $('fileInput').onchange=uploadImg;
@@ -1079,6 +1104,8 @@ function bindAll(){
     $('userInfoModal').classList.remove('open');
     if(uinfoUid){chatUid=uinfoUid;startCall(false);}
   };
+  $('uinfoBlockBtn').onclick=()=>{if(uinfoUid)toggleBlockUser(uinfoUid);};
+  $('uinfoReportBtn').onclick=()=>{if(uinfoUid)openReportModal(uinfoUid);};
   $('msgInput').addEventListener('input',()=>{handleTyping();autoH();});
   $('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
   document.addEventListener('click',e=>{
@@ -1253,6 +1280,7 @@ function openUserInfo(uid){
   `;
   $('uinfoChatBtn').textContent=t('directChat');
   $('uinfoCallBtn').textContent=t('callBtn');
+  updateUinfoBlockBtn(uid);
   $('userInfoModal').classList.add('open');
 }
 
@@ -1292,6 +1320,7 @@ function renderList(){
   const userItems=[];
   Object.entries(users).forEach(([uid,u])=>{
     if(uid===myUid||!u.name)return;
+    if(blockedUsers[uid])return;
     if(q&&!u.name.toLowerCase().includes(q))return;
     userItems.push({id:uid,...u,type:'user',isFrd:!!frds[uid],unread:unreads[uid]||0});
   });
@@ -1482,6 +1511,8 @@ function renderMsg(key,msg,box){
   }
   else if(msg.type==='sticker')
     content=`<div class="msticker">${msg.text}</div>`;
+  else if(msg.type==='game'&&msg.gameType==='xo')
+    content=renderXoBoard(key,msg);
   else
     content=`<div>${esc(msg.text||'')}</div>`;
 
@@ -1556,6 +1587,85 @@ async function sendMsg(){
     cancelReply();
     notifyOther();
   }
+}
+
+// === BLOKIROVKA VA SHIKOYAT (🚫⚠️) ===
+let blockedUsers={};
+function listenBlocked(){
+  onValue(ref(db,`blocked/${myUid}`),s=>{blockedUsers=s.val()||{};renderList();});
+}
+async function toggleBlockUser(uid){
+  const isBlocked=!!blockedUsers[uid];
+  if(isBlocked){
+    await remove(ref(db,`blocked/${myUid}/${uid}`));
+    toast("🔓 Blokdan chiqarildi");
+  } else {
+    if(!confirm(`${users[uid]?.name||'Bu foydalanuvchi'}ni bloklaysizmi? U sizning ro'yxatingizda ko'rinmay qoladi.`))return;
+    await set(ref(db,`blocked/${myUid}/${uid}`),true);
+    toast('🚫 Bloklandi');
+    $('userInfoModal').classList.remove('open');
+  }
+  updateUinfoBlockBtn(uid);
+}
+function updateUinfoBlockBtn(uid){
+  const btn=$('uinfoBlockBtn');if(!btn)return;
+  const isBlocked=!!blockedUsers[uid];
+  btn.textContent=isBlocked?"🔓 Blokdan chiqarish":'🚫 Blokirovka';
+}
+const REPORT_REASONS=['Spam','Haqorat / so\'kish','Firibgarlik','Nomaqbul kontent','Boshqa sabab'];
+function openReportModal(uid){
+  const box=$('reportReasons');box.innerHTML='';
+  REPORT_REASONS.forEach(reason=>{
+    const b=document.createElement('button');
+    b.className='ttl-opt';
+    b.textContent=reason;
+    b.onclick=()=>submitReport(uid,reason);
+    box.appendChild(b);
+  });
+  $('reportModal').classList.add('open');
+}
+async function submitReport(uid,reason){
+  await push(ref(db,`reports/${uid}`),{reporterUid:myUid,reporterName:myName,reason,time:serverTimestamp()});
+  $('reportModal').classList.remove('open');
+  toast('✓ Shikoyat yuborildi, rahmat');
+}
+
+// === MINI-O'YIN: XO (🎮) ===
+function startXoGame(){
+  if(isGrp){toast("Bu o'yin hozircha faqat shaxsiy chatda ishlaydi");return;}
+  if(!chatId||!chatUid){toast('Avval suhbatdosh tanlang');return;}
+  const msgData={type:'game',gameType:'xo',board:Array(9).fill(''),turn:myUid,players:[myUid,chatUid],winner:null,time:serverTimestamp(),sender:myUid,senderName:myName};
+  push(ref(db,`chats/${chatId}`),msgData);
+}
+function xoWinner(b){
+  const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const[a,b1,c]of lines){if(b[a]&&b[a]===b[b1]&&b[a]===b[c])return b[a];}
+  if(b.every(x=>x))return 'draw';
+  return null;
+}
+window._xoMove=async(key,idx)=>{
+  const snap=await get(ref(db,`chats/${chatId}/${key}`));
+  const msg=snap.val();if(!msg||msg.winner)return;
+  if(msg.turn!==myUid||msg.board[idx])return;
+  const symbol=msg.players[0]===myUid?'X':'O';
+  const board=[...msg.board];board[idx]=symbol;
+  const win=xoWinner(board);
+  const nextTurn=msg.players.find(p=>p!==myUid);
+  await update(ref(db,`chats/${chatId}/${key}`),{board,turn:win?msg.turn:nextTurn,winner:win||null});
+};
+function renderXoBoard(key,msg){
+  const board=msg.board||Array(9).fill('');
+  const mySymbol=(msg.players&&msg.players[0]===myUid)?'X':'O';
+  const isMyTurn=msg.turn===myUid&&!msg.winner;
+  let status;
+  if(msg.winner==='draw')status="🤝 Durrang!";
+  else if(msg.winner)status=(msg.winner===mySymbol)?'🎉 Siz yutdingiz!':'😔 Siz yutqazdingiz';
+  else status=isMyTurn?'Sizning navbatingiz ⏳':'Kutilmoqda...';
+  const cells=board.map((c,i)=>`<button onclick="window._xoMove('${key}',${i})" ${(!isMyTurn||c||msg.winner)?'disabled':''} style="width:44px;height:44px;font-size:20px;font-weight:800;background:var(--bg4);border-radius:8px;color:${c==='X'?'var(--accent)':'var(--gold)'};border:none;cursor:${(!isMyTurn||c||msg.winner)?'default':'pointer'}">${c}</button>`).join('');
+  return `<div style="text-align:center;padding:4px 0">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">🎮 XO o'yini — ${esc(status)}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,44px);gap:4px;justify-content:center">${cells}</div>
+  </div>`;
 }
 
 // === MAXFIY REJIM (🔐) — chatni PIN bilan qulflash ===
@@ -1642,10 +1752,15 @@ function openTtlModal(){
 }
 function selectTTL(sec){
   msgTTL=sec;
-  $('ttlBtn').classList.toggle('active',sec>0);
-  $('ttlBtn').style.color=sec>0?'var(--accent)':'';
+  const opt=TTL_OPTIONS.find(o=>o.sec===sec);
+  if(sec>0){
+    $('ttlBarLbl').textContent='⏳ Vaqtli xabar: '+(opt?opt.label:sec+'s');
+    $('ttlBar').classList.add('show');
+    toast('⏳ Keyingi xabar vaqtli bo\'ladi');
+  } else {
+    $('ttlBar').classList.remove('show');
+  }
   $('ttlModal').classList.remove('open');
-  if(sec>0)toast('⏳ Keyingi xabar vaqtli bo\'ladi');
 }
 const ttlTimers={};
 function watchTtlMsg(key,msg){
