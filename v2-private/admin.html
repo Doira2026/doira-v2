@@ -111,13 +111,20 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
     <div class="stat-card"><div class="stat-num" id="statPremium">0</div><div class="stat-lbl">💎 Premium</div></div>
     <div class="stat-card"><div class="stat-num" id="statGroups">0</div><div class="stat-lbl">Guruhlar</div></div>
     <div class="stat-card"><div class="stat-num" id="statBanned">0</div><div class="stat-lbl">Bloklangan</div></div>
+    <div class="stat-card" style="cursor:pointer" id="statReportsCard"><div class="stat-num" id="statReports" style="color:var(--danger)">0</div><div class="stat-lbl">⚠️ Shikoyatlar</div></div>
   </div>
 
-  <div class="search-bar">
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <button class="abtn" id="tabUsersBtn" style="background:var(--accent);color:#fff">👥 Foydalanuvchilar</button>
+    <button class="abtn" id="tabReportsBtn">⚠️ Shikoyatlar</button>
+  </div>
+
+  <div class="search-bar" id="searchBarWrap">
     <input id="adminSearch" type="text" placeholder="Ism yoki email bo'yicha qidirish...">
   </div>
 
   <div class="utable" id="userTable"></div>
+  <div class="utable" id="reportsTable" style="display:none"></div>
 </div>
 
 <script type="module">
@@ -141,7 +148,7 @@ const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-let allUsers={},allGroups={};
+let allUsers={},allGroups={},allReports={};
 
 $('togglePassBtn').onclick=()=>{
   const inp=$('adminPass');
@@ -202,10 +209,55 @@ onAuthStateChanged(auth,user=>{
 });
 
 function startDashboard(){
-  onValue(ref(db,'users'),s=>{allUsers=s.val()||{};renderDashboard();});
+  onValue(ref(db,'users'),s=>{allUsers=s.val()||{};renderDashboard();renderReports();});
   onValue(ref(db,'groups'),s=>{allGroups=s.val()||{};renderDashboard();});
+  onValue(ref(db,'reports'),s=>{allReports=s.val()||{};renderReports();});
   $('adminSearch').oninput=renderDashboard;
+  $('tabUsersBtn').onclick=()=>{
+    $('tabUsersBtn').style.background='var(--accent)';$('tabUsersBtn').style.color='#fff';
+    $('tabReportsBtn').style.background='';$('tabReportsBtn').style.color='';
+    $('userTable').style.display='block';$('reportsTable').style.display='none';
+    $('searchBarWrap').style.display='flex';
+  };
+  $('tabReportsBtn').onclick=()=>{
+    $('tabReportsBtn').style.background='var(--accent)';$('tabReportsBtn').style.color='#fff';
+    $('tabUsersBtn').style.background='';$('tabUsersBtn').style.color='';
+    $('userTable').style.display='none';$('reportsTable').style.display='block';
+    $('searchBarWrap').style.display='none';
+  };
+  $('statReportsCard').onclick=()=>$('tabReportsBtn').click();
 }
+
+function renderReports(){
+  const box=$('reportsTable');if(!box)return;
+  let rows=[];
+  Object.entries(allReports).forEach(([reportedUid,list])=>{
+    Object.entries(list||{}).forEach(([rid,r])=>{
+      rows.push({reportedUid,rid,...r});
+    });
+  });
+  $('statReports').textContent=rows.length;
+  rows.sort((a,b)=>(b.time||0)-(a.time||0));
+  if(!rows.length){box.innerHTML='<div id="empty2">Shikoyatlar yo\'q</div>';return;}
+  box.innerHTML=rows.map(r=>{
+    const u=allUsers[r.reportedUid]||{};
+    const avStyle=u.avatar?`style="background-image:url(${u.avatar})"`:'';
+    return `<div class="urow">
+      <div class="uavatar" ${avStyle}>${u.avatar?'':av(u.name||'?')}</div>
+      <div class="uinfo">
+        <div class="uname">${esc(u.name||"Noma'lum")} ${u.banned?'<span class="tag ban">BLOK</span>':''}</div>
+        <div class="usub">Sabab: ${esc(r.reason||'—')} · Kimdan: ${esc(r.reporterName||'—')}</div>
+      </div>
+      <div class="urow-btns">
+        <button class="abtn danger${u.banned?' active':''}" onclick="window._togBan('${r.reportedUid}',${!!u.banned})">${u.banned?'Blokdan chiqarish':'Bloklash'}</button>
+        <button class="abtn" onclick="window._dismissReport('${r.reportedUid}','${r.rid}')">✕ O'chirish</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window._dismissReport=async(reportedUid,rid)=>{
+  await update(ref(db,`reports/${reportedUid}`),{[rid]:null});
+};
 
 function renderDashboard(){
   const entries=Object.entries(allUsers).filter(([uid,u])=>u&&u.name);
