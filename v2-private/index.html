@@ -1822,7 +1822,7 @@ async function improveMsgText(){
       body:JSON.stringify({
         model:'llama-3.3-70b-versatile',
         messages:[
-          {role:'system',content:"Foydalanuvchi yozgan xabarni o'sha tilda, mazmunini o'zgartirmasdan, imlosini to'g'irlab, chiroyli va tushunarli uslubga keltir. Faqat tahrirlangan matnni qaytar, boshqa hech narsa yozma."},
+          {role:'system',content:"You are a writing assistant. The user message can be in ANY language (Uzbek, Russian, English, etc). Fix grammar, spelling and style, making it clearer and nicer. CRITICAL RULE: output MUST be in the EXACT SAME language as the input — if input is Russian, output Russian; if Uzbek, output Uzbek; NEVER translate to a different language under any circumstance. Return ONLY the improved text, nothing else — no explanations, no labels, no quotes."},
           {role:'user',content:txt}
         ],
         max_tokens:512,temperature:0.4
