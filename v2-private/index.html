@@ -987,6 +987,7 @@ function showApp(){
   onValue(ref(db,`unread/${myUid}`),s=>{unreads=s.val()||{};renderList();});
   listenCalls();
   listenBlocked();
+  listenGlobalNotify();
   // Notification ruxsati so'rash
   requestNotifPermission();
   // "X daqiqa oldin" matnlarini yangilab turish uchun
@@ -996,6 +997,27 @@ function showApp(){
       $('chatSub').textContent=users[chatUid].online?t('online'):(users[chatUid].lastSeen?t('lastSeen')+fmtAgo(users[chatUid].lastSeen):t('offline'));
     }
   },30000);
+}
+
+// === GLOBAL BILDIRISHNOMA (barcha suhbatlar bo'yicha) ===
+let prevUnreads={};
+function listenGlobalNotify(){
+  onValue(ref(db,`unread/${myUid}`),s=>{
+    const fresh=s.val()||{};
+    Object.keys(fresh).forEach(key=>{
+      const prevCount=prevUnreads[key]||0;
+      const newCount=fresh[key]||0;
+      if(newCount>prevCount){
+        const isOpenNow=(isGrp?chatId:chatUid)===key;
+        if(!isOpenNow){
+          $('notifSnd').play().catch(()=>{});
+          const name=users[key]?.name||grps[key]?.name||'Kimdir';
+          showLocalNotif(name,'Yangi xabar keldi 📩',key);
+        }
+      }
+    });
+    prevUnreads=fresh;
+  });
 }
 
 async function requestNotifPermission(){
