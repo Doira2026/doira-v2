@@ -573,6 +573,18 @@ img{display:block;max-width:100%}
   </div>
 </div>
 
+<!-- YANGILIKLAR MODAL -->
+<div class="modal-bg" id="whatsNewModal">
+  <div class="modal-box" style="text-align:center">
+    <div style="font-size:44px;margin-bottom:8px">🎉</div>
+    <div class="modal-title" style="margin-bottom:10px">Yangiliklar!</div>
+    <div id="whatsNewText" style="text-align:left;font-size:14px;line-height:1.9;color:var(--text);background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px"></div>
+    <div class="modal-btns">
+      <button class="mbtn primary" onclick="document.getElementById('whatsNewModal').classList.remove('open')">Zo'r, tushunarli!</button>
+    </div>
+  </div>
+</div>
+
 <!-- PREMIUM MODAL -->
 <div class="modal-bg" id="premiumModal">
   <div class="modal-box" style="text-align:center">
@@ -967,6 +979,27 @@ async function setupUser(){
   return true;
 }
 
+// === YANGILIKLAR (versiya asosida bir martalik e'lon) ===
+const APP_VERSION='1.3.0';
+const WHATS_NEW=[
+  "🌍 Avtomatik tarjima — 15 ta tilga",
+  "🤖 AI moderator — guruhlarda spam/haqoratni aniqlaydi",
+  "⏳ Vaqtli xabarlar — o'qilgandan keyin o'chib ketadi",
+  "🎮 XO o'yini — do'stingiz bilan chatda o'ynang",
+  "🔐 Maxfiy rejim — chatni PIN bilan qulflang",
+  "✨ Xabarni AI bilan yaxshilash",
+  "📋 Guruh suhbatini AI xulosalashi",
+  "🎙️ Ovozli xabarni matnga aylantirish",
+  "🚫 Blokirovka va ⚠️ shikoyat qilish imkoniyati",
+];
+function checkWhatsNew(){
+  const seen=localStorage.getItem('dc_appVer');
+  if(seen===APP_VERSION)return;
+  $('whatsNewText').innerHTML=WHATS_NEW.map(x=>`• ${x}`).join('<br>');
+  $('whatsNewModal').classList.add('open');
+  localStorage.setItem('dc_appVer',APP_VERSION);
+}
+
 function showApp(){
   hideLoader();
   $('app').style.display='flex';
@@ -988,6 +1021,7 @@ function showApp(){
   listenCalls();
   listenBlocked();
   listenGlobalNotify();
+  checkWhatsNew();
   // Notification ruxsati so'rash
   requestNotifPermission();
   // "X daqiqa oldin" matnlarini yangilab turish uchun
