@@ -79,6 +79,8 @@ img{display:block;max-width:100%}
 .hbtn{font-size:18px;padding:7px 9px;border-radius:12px;transition:.2s;display:none;border:1px solid transparent}
 .hbtn:hover{background:var(--bg4);border-color:var(--border);transform:scale(1.05)}
 .hbtn.show{display:flex;align-items:center;justify-content:center}
+#chatOptionsPanel .hbtn.show{justify-content:flex-start;gap:10px;font-size:14px;padding:10px 12px;width:100%;border-radius:10px}
+#chatOptionsPanel .hbtn.show:hover{background:var(--bg4)}
 #pinnedBar{background:var(--bg3);border-left:3px solid var(--accent);padding:7px 14px;cursor:pointer;flex-shrink:0;display:none;font-size:13px}
 #pinnedBar .pt{font-size:10px;color:var(--accent);font-weight:700;margin-bottom:1px}
 #typingBar{padding:3px 16px;font-size:12px;color:var(--accent);font-style:italic;flex-shrink:0;display:none}
@@ -285,14 +287,17 @@ img{display:block;max-width:100%}
         <div id="chatSub"></div>
       </div>
       <div class="head-btns">
-        <button class="hbtn" id="grpSummaryBtn" title="Guruh xulosasi">📋</button>
-        <button class="hbtn" id="chatPinBtn" title="Maxfiy rejim">🔓</button>
-        <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️</button>
-        <button class="hbtn" id="statsBtn" title="Tahlil">📊</button>
-        <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️</button>
         <button class="hbtn" id="audioCallBtn" title="Ovozli">📞</button>
         <button class="hbtn" id="videoCallBtn" title="Video">📹</button>
+        <button class="hbtn" id="chatOptionsBtn" title="Ko'proq">⋮</button>
       </div>
+    </div>
+    <div id="chatOptionsPanel" class="mmenu" style="display:none;position:fixed;z-index:701">
+      <button class="hbtn" id="grpSummaryBtn" title="Guruh xulosasi">📋 <span>Guruh xulosasi</span></button>
+      <button class="hbtn" id="chatPinBtn" title="Maxfiy rejim">🔓 <span>Maxfiy rejim</span></button>
+      <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️ <span>Chat foni</span></button>
+      <button class="hbtn" id="statsBtn" title="Tahlil">📊 <span>Tahlil</span></button>
+      <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️ <span>Tozalash</span></button>
     </div>
     <div id="pinnedBar"><div class="pt">📌 Mahkamlangan xabar</div><div class="px" id="pinnedTxt"></div></div>
     <div id="messages">
@@ -1065,9 +1070,10 @@ function bindAll(){
   $('menuBtn').onclick=togSidebar;
   $('overlay').onclick=togSidebar;
   $('myCard').onclick=openProfile;
-  $('chatBgBtn').onclick=openBgModal;
-  $('chatPinBtn').onclick=openSetPinModal;
-  $('grpSummaryBtn').onclick=summarizeGroupChat;
+  $('chatBgBtn').onclick=()=>{closeChatOptionsMenu();openBgModal();};
+  $('chatPinBtn').onclick=()=>{closeChatOptionsMenu();openSetPinModal();};
+  $('grpSummaryBtn').onclick=()=>{closeChatOptionsMenu();summarizeGroupChat();};
+  $('chatOptionsBtn').onclick=openChatOptionsMenu;
   $('savePinBtn').onclick=savePinForChat;
   $('removePinBtn').onclick=removePinForChat;
   $('gatePinBtn').onclick=tryUnlockPin;
@@ -1097,8 +1103,8 @@ function bindAll(){
   $('acceptBtn').onclick=acceptCall;
   $('muteBtn').onclick=toggleMute;
   $('endBtn').onclick=endCall;
-  $('clearChatBtn').onclick=clearChat;
-  $('statsBtn').onclick=showStats;
+  $('clearChatBtn').onclick=()=>{closeChatOptionsMenu();clearChat();};
+  $('statsBtn').onclick=()=>{closeChatOptionsMenu();showStats();};
   $('closeStatsBtn').onclick=()=>$('statsModal').classList.remove('open');
   $('closeFwdBtn').onclick=()=>$('fwdModal').classList.remove('open');
   $('adBar').onclick=openPremiumModal;
@@ -1125,8 +1131,9 @@ function bindAll(){
   $('msgInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
   document.addEventListener('click',e=>{
     if(!e.target.closest('#reactPanel'))$('reactPanel').classList.remove('open');
-    if(!e.target.closest('.mmenu'))document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel')m.remove();});
+    if(!e.target.closest('.mmenu'))document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel'&&m.id!=='chatOptionsPanel')m.remove();});
     if(!e.target.closest('#attachMenuPanel')&&!e.target.closest('#attachBtn'))closeAttachMenu();
+    if(!e.target.closest('#chatOptionsPanel')&&!e.target.closest('#chatOptionsBtn'))closeChatOptionsMenu();
   });
 }
 
@@ -1146,6 +1153,16 @@ function openAttachMenu(e){
   m.style.bottom=(window.innerHeight-rect.top+8)+'px';
 }
 function closeAttachMenu(){$('attachMenuPanel').style.display='none';}
+
+// === CHAT OPTIONS MENU (⋮) ===
+function openChatOptionsMenu(){
+  const m=$('chatOptionsPanel');
+  const rect=$('chatOptionsBtn').getBoundingClientRect();
+  m.style.display='block';
+  m.style.right=(window.innerWidth-rect.right)+'px';
+  m.style.top=(rect.bottom+8)+'px';
+}
+function closeChatOptionsMenu(){$('chatOptionsPanel').style.display='none';}
 
 // === PROFILE ===
 async function openProfile(){
@@ -1328,24 +1345,24 @@ function renderList(){
   Object.entries(grps).forEach(([gid,g])=>{
     if(!g.members?.[myUid])return;
     if(q&&!g.name.toLowerCase().includes(q))return;
-    grpItems.push({id:gid,name:g.name,type:'grp',unread:unreads[gid]||0,members:Object.keys(g.members||{}).length,created:g.created||0});
+    grpItems.push({id:gid,name:g.name,type:'grp',unread:unreads[gid]||0,members:Object.keys(g.members||{}).length,created:g.created||0,sortTime:g.created||0});
   });
-  grpItems.sort((a,b)=>b.created-a.created);
 
   const userItems=[];
   Object.entries(users).forEach(([uid,u])=>{
     if(uid===myUid||!u.name)return;
     if(blockedUsers[uid])return;
     if(q&&!u.name.toLowerCase().includes(q))return;
-    userItems.push({id:uid,...u,type:'user',isFrd:!!frds[uid],unread:unreads[uid]||0});
-  });
-  userItems.sort((a,b)=>{
-    if(a.unread&&!b.unread)return -1;if(!a.unread&&b.unread)return 1;
-    if(a.online&&!b.online)return -1;if(!a.online&&b.online)return 1;
-    return(b.lastSeen||0)-(a.lastSeen||0);
+    userItems.push({id:uid,...u,type:'user',isFrd:!!frds[uid],unread:unreads[uid]||0,sortTime:u.lastSeen||0});
   });
 
   const allItems=[...grpItems,...userItems];
+  allItems.sort((a,b)=>{
+    if(a.unread&&!b.unread)return -1;if(!a.unread&&b.unread)return 1;
+    if(a.online&&!b.online)return -1;if(!a.online&&b.online)return 1;
+    return(b.sortTime||0)-(a.sortTime||0);
+  });
+
   if(!allItems.length){list.innerHTML=`<div style="padding:20px;text-align:center;font-size:13px;color:var(--text2)">${t('noOne')}</div>`;return;}
 
   allItems.forEach(item=>{
@@ -1388,6 +1405,7 @@ window._openAiChat=function(){
   $('chatBgBtn').classList.remove('show');
   $('chatPinBtn').classList.remove('show');
   $('grpSummaryBtn').classList.remove('show');
+  $('chatOptionsBtn').classList.remove('show');
   applyChatBg();
   const box=$('messages');
   box.innerHTML='';
@@ -1442,6 +1460,7 @@ function openChat(id,name,isGroup){
   $('chatBgBtn').classList.add('show');
   $('chatPinBtn').classList.add('show');
   $('grpSummaryBtn').classList.toggle('show',isGroup);
+  $('chatOptionsBtn').classList.add('show');
   updateChatPinIcon();
   $('msgInput').placeholder=t('typeMsg');
   remove(ref(db,`unread/${myUid}/${id}`));
@@ -2204,12 +2223,14 @@ window._sendStkr=async s=>{
 function buildReacts(){
   $('reactPanel').innerHTML=REACTS.map(r=>`<div class="ritem" onclick="window._addReact('${r}')">${r}</div>`).join('');
 }
-window._showReactPanel=(key,x,y)=>{
+window._showReactPanel=(e,key)=>{
+  const rect=e.target.getBoundingClientRect();
+  document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel'&&m.id!=='chatOptionsPanel')m.remove();});
   reactKey=key;
   const p=$('reactPanel');
   p.classList.add('open');
-  const px=Math.min(parseInt(x)||0,window.innerWidth-260);
-  const py=Math.max((parseInt(y)||0)-70,4);
+  const px=Math.min(rect.left,window.innerWidth-260);
+  const py=Math.max(rect.top-60,4);
   p.style.left=px+'px';
   p.style.top=py+'px';
 };
@@ -2231,14 +2252,14 @@ window._sTouch=(e,k,mine,type)=>{
 window._eTouch=()=>clearTimeout(touchT);
 
 window._showMenu=(e,key,mine,type)=>{
-  document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel')m.remove();});
+  document.querySelectorAll('.mmenu').forEach(m=>{if(m.id!=='attachMenuPanel'&&m.id!=='chatOptionsPanel')m.remove();});
   const px=e.pageX||e.clientX||0;
   const py=e.pageY||e.clientY||0;
   const m=document.createElement('div');m.className='mmenu';
   const isImg=type==='image';
   const isFile=type==='file';
   m.innerHTML=`
-    <button onclick="window._showReactPanel('${key}',${px},${py})">😊 ${t('react')}</button>
+    <button onclick="window._showReactPanel(event,'${key}')">😊 ${t('react')}</button>
     <button onclick="window._replyMsg('${key}')">↩️ ${t('reply')}</button>
     <button onclick="window._fwdMsg('${key}')">↗️ ${t('forward')}</button>
     ${(!isImg&&!isFile)?`<button onclick="window._copyMsg('${key}')">📋 ${t('copy')}</button>`:''}
@@ -2494,7 +2515,7 @@ async function leaveGroup(){
   $('chatSub').textContent='';
   $('messages').innerHTML=`<div id="empty"><div class="empty-icon">💬</div><div style="font-size:14px;text-align:center;line-height:1.6">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div></div>`;
   chatId=null;chatUid=null;isGrp=false;
-  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn','chatPinBtn','grpSummaryBtn'].forEach(b=>$(''+b).classList.remove('show'));
+  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn','chatPinBtn','grpSummaryBtn','chatOptionsBtn'].forEach(b=>$(''+b).classList.remove('show'));
   toast(t('groupLeft'));
 }
 
