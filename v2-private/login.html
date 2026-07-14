@@ -22,8 +22,11 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
 button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit}
 input{font-family:inherit;border:none;outline:none;background:none;color:var(--text)}
 body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
-.wrap{width:min(400px,100%);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;text-align:center;animation:slideUp .5s ease}
+.wrap{width:min(400px,100%);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;text-align:center;animation:slideUp .5s ease;position:relative}
 @keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.lang-switch{position:absolute;top:14px;right:14px;display:flex;gap:4px;background:var(--bg3);border-radius:10px;padding:3px}
+.lang-btn{padding:5px 9px;border-radius:7px;font-size:12px;font-weight:700;color:var(--text2);transition:.15s}
+.lang-btn.active{background:var(--accent);color:#fff}
 .logo{font-size:52px;margin-bottom:12px;display:block}
 .title{font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px}
 .sub{font-size:13px;color:var(--text2);margin-bottom:24px}
@@ -42,6 +45,11 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
 </head>
 <body>
 <div class="wrap">
+  <div class="lang-switch">
+    <button class="lang-btn" id="langUzBtn" onclick="setLoginLang('uz')">UZ</button>
+    <button class="lang-btn" id="langRuBtn" onclick="setLoginLang('ru')">RU</button>
+    <button class="lang-btn" id="langEnBtn" onclick="setLoginLang('en')">EN</button>
+  </div>
   <span class="logo">💬</span>
   <div class="title">DoiraChat</div>
   <div class="sub" id="subText">Hisobingizga kiring</div>
@@ -74,7 +82,75 @@ const app = initializeApp({
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Persistence - brauzер sessionni eslab qoladi
+// === TIL (Til/Язык/Language) ===
+const LOGIN_LANGS = {
+  uz: {
+    subLogin: "Hisobingizga kiring", subReg: "Yangi hisob yarating",
+    tabLogin: "Kirish", tabReg: "Ro'yxat",
+    nameP: "Ismingiz", emailP: "Email manzilingiz", passP: "Parol (kamida 6 belgi)",
+    btnLogin: "Kirish", btnReg: "Ro'yxatdan o'tish",
+    noteLogin: "📧 Email va parol bilan kiring.",
+    noteReg: "✅ Bir marta ro'yxatdan o'ting — keyingi safar email+parol bilan kirasiz.",
+    errEmail: "❌ Email kiriting", errPass: "❌ Parol kamida 6 belgi", errName: "❌ Ismingizni kiriting",
+    errInUse: "❌ Bu email ro'yxatdan o'tgan. Kirish tabiga o'ting.",
+    errNotFound: "❌ Bu email topilmadi. Ro'yxatdan o'ting.",
+    errWrongPass: "❌ Parol noto'g'ri.", errInvalidCred: "❌ Email yoki parol noto'g'ri.",
+    errInvalidEmail: "❌ Email noto'g'ri formatda.", errTooMany: "❌ Juda ko'p urinish. Biroz kuting.",
+    errNetwork: "❌ Internet aloqasi yo'q.",
+  },
+  ru: {
+    subLogin: "Войдите в аккаунт", subReg: "Создайте новый аккаунт",
+    tabLogin: "Войти", tabReg: "Регистрация",
+    nameP: "Ваше имя", emailP: "Ваш email", passP: "Пароль (минимум 6 символов)",
+    btnLogin: "Войти", btnReg: "Зарегистрироваться",
+    noteLogin: "📧 Войдите с email и паролем.",
+    noteReg: "✅ Зарегистрируйтесь один раз — в следующий раз входите по email+паролю.",
+    errEmail: "❌ Введите email", errPass: "❌ Пароль минимум 6 символов", errName: "❌ Введите имя",
+    errInUse: "❌ Этот email уже зарегистрирован. Перейдите на вкладку «Войти».",
+    errNotFound: "❌ Email не найден. Зарегистрируйтесь.",
+    errWrongPass: "❌ Неверный пароль.", errInvalidCred: "❌ Неверный email или пароль.",
+    errInvalidEmail: "❌ Неверный формат email.", errTooMany: "❌ Слишком много попыток. Подождите.",
+    errNetwork: "❌ Нет подключения к интернету.",
+  },
+  en: {
+    subLogin: "Sign in to your account", subReg: "Create a new account",
+    tabLogin: "Sign in", tabReg: "Register",
+    nameP: "Your name", emailP: "Your email address", passP: "Password (min 6 characters)",
+    btnLogin: "Sign in", btnReg: "Register",
+    noteLogin: "📧 Sign in with your email and password.",
+    noteReg: "✅ Register once — next time sign in with email+password.",
+    errEmail: "❌ Enter your email", errPass: "❌ Password must be at least 6 characters", errName: "❌ Enter your name",
+    errInUse: "❌ This email is already registered. Go to the Sign in tab.",
+    errNotFound: "❌ Email not found. Please register.",
+    errWrongPass: "❌ Incorrect password.", errInvalidCred: "❌ Incorrect email or password.",
+    errInvalidEmail: "❌ Invalid email format.", errTooMany: "❌ Too many attempts. Please wait.",
+    errNetwork: "❌ No internet connection.",
+  }
+};
+let loginLang = localStorage.getItem('dc_lang') || 'uz';
+const lt = k => LOGIN_LANGS[loginLang][k] || LOGIN_LANGS.uz[k] || k;
+
+window.setLoginLang = function(l) {
+  loginLang = l;
+  localStorage.setItem('dc_lang', l);
+  document.getElementById('langUzBtn').className = 'lang-btn' + (l==='uz'?' active':'');
+  document.getElementById('langRuBtn').className = 'lang-btn' + (l==='ru'?' active':'');
+  document.getElementById('langEnBtn').className = 'lang-btn' + (l==='en'?' active':'');
+  applyLoginLang();
+};
+
+function applyLoginLang() {
+  document.getElementById('nameInput').placeholder = lt('nameP');
+  document.getElementById('emailInput').placeholder = lt('emailP');
+  document.getElementById('passInput').placeholder = lt('passP');
+  document.getElementById('tabLogin').textContent = lt('tabLogin');
+  document.getElementById('tabReg').textContent = lt('tabReg');
+  document.getElementById('subText').textContent = currentTab==='login' ? lt('subLogin') : lt('subReg');
+  document.getElementById('authBtn').textContent = currentTab==='login' ? lt('btnLogin') : lt('btnReg');
+  document.getElementById('noteText').textContent = currentTab==='login' ? lt('noteLogin') : lt('noteReg');
+}
+
+// Persistence - brauzer sessionni eslab qoladi
 setPersistence(auth, browserLocalPersistence).catch(()=>{});
 
 // Agar allaqachon kirgan bo'lsa - to'g'ridan chatga o'tish
@@ -89,12 +165,8 @@ window.switchTab = function(tab) {
   document.getElementById('tabLogin').className = 'tab' + (tab==='login'?' active':'');
   document.getElementById('tabReg').className = 'tab' + (tab==='reg'?' active':'');
   document.getElementById('nameInput').style.display = tab==='reg'?'block':'none';
-  document.getElementById('authBtn').textContent = tab==='login'?'Kirish':"Ro'yxatdan o'tish";
-  document.getElementById('subText').textContent = tab==='login'?'Hisobingizga kiring':'Yangi hisob yarating';
-  document.getElementById('noteText').textContent = tab==='login'
-    ? "📧 Email va parol bilan kiring."
-    : "✅ Bir marta ro'yxatdan o'ting — keyingi safar email+parol bilan kirasiz.";
   document.getElementById('errMsg').textContent = '';
+  applyLoginLang();
 };
 
 window.doAuth = async function() {
@@ -105,9 +177,9 @@ window.doAuth = async function() {
   const btn = document.getElementById('authBtn');
 
   errEl.textContent = '';
-  if (!email || !email.includes('@')) { errEl.textContent = '❌ Email kiriting'; return; }
-  if (!pass || pass.length < 6) { errEl.textContent = '❌ Parol kamida 6 belgi'; return; }
-  if (currentTab==='reg' && !name) { errEl.textContent = '❌ Ismingizni kiriting'; return; }
+  if (!email || !email.includes('@')) { errEl.textContent = lt('errEmail'); return; }
+  if (!pass || pass.length < 6) { errEl.textContent = lt('errPass'); return; }
+  if (currentTab==='reg' && !name) { errEl.textContent = lt('errName'); return; }
 
   btn.disabled = true;
   btn.textContent = '...';
@@ -139,19 +211,22 @@ window.doAuth = async function() {
 
   } catch(e) {
     btn.disabled = false;
-    btn.textContent = currentTab==='login'?'Kirish':"Ro'yxatdan o'tish";
+    btn.textContent = currentTab==='login' ? lt('btnLogin') : lt('btnReg');
     const codes = {
-      'auth/email-already-in-use': "❌ Bu email ro'yxatdan o'tgan. Kirish tabiga o'ting.",
-      'auth/user-not-found': "❌ Bu email topilmadi. Ro'yxatdan o'ting.",
-      'auth/wrong-password': '❌ Parol noto\'g\'ri.',
-      'auth/invalid-credential': '❌ Email yoki parol noto\'g\'ri.',
-      'auth/invalid-email': '❌ Email noto\'g\'ri formatda.',
-      'auth/too-many-requests': '❌ Juda ko\'p urinish. Biroz kuting.',
-      'auth/network-request-failed': '❌ Internet aloqasi yo\'q.',
+      'auth/email-already-in-use': lt('errInUse'),
+      'auth/user-not-found': lt('errNotFound'),
+      'auth/wrong-password': lt('errWrongPass'),
+      'auth/invalid-credential': lt('errInvalidCred'),
+      'auth/invalid-email': lt('errInvalidEmail'),
+      'auth/too-many-requests': lt('errTooMany'),
+      'auth/network-request-failed': lt('errNetwork'),
     };
     errEl.textContent = codes[e.code] || ('❌ ' + e.message);
   }
 };
+
+// Boshlang'ich tilni qo'llash
+setLoginLang(loginLang);
 
 document.addEventListener('keydown', e => { if(e.key==='Enter') window.doAuth(); });
 </script>
