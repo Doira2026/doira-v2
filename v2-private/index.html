@@ -433,7 +433,7 @@ img{display:block;max-width:100%}
         <button onclick="copyInviteCode()" style="padding:6px 12px;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Nusxa</button>
       </div>
       <div style="display:flex;gap:8px">
-        <input id="friendCodeInput" class="modal-input" type="text" placeholder="Do'stingiz kodi" style="margin-bottom:0;text-transform:uppercase;flex:1;min-width:0;width:auto">
+        <input id="friendCodeInput" class="modal-input" type="text" placeholder="Do'stingiz kodi" autocomplete="off" name="dc-friend-code" style="margin-bottom:0;text-transform:uppercase;flex:1;min-width:0;width:auto">
         <button onclick="addByInviteCode()" style="padding:0 14px;border-radius:8px;background:var(--bg4);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">+ Qo'shish</button>
       </div>
     </div>
@@ -537,7 +537,7 @@ img{display:block;max-width:100%}
     <div style="font-size:40px;margin-bottom:8px">🔐</div>
     <div class="modal-title" id="setPinTitle">Chat uchun PIN o'rnating</div>
     <div style="font-size:12px;color:var(--text2);margin:8px 0 16px">PIN faqat shu qurilmada saqlanadi va chatni ochishda so'raladi</div>
-    <input id="setPinInput" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="4-6 xonali PIN" style="text-align:center;font-size:20px;letter-spacing:6px">
+    <input id="setPinInput" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="4-6 xonali PIN" autocomplete="new-password" style="text-align:center;font-size:20px;letter-spacing:6px">
     <div class="modal-btns">
       <button class="mbtn primary" id="savePinBtn">Saqlash</button>
       <button class="mbtn gray" id="removePinBtn" style="display:none">🗑️ O'chirish</button>
@@ -552,7 +552,7 @@ img{display:block;max-width:100%}
     <div style="font-size:40px;margin-bottom:8px">🔒</div>
     <div class="modal-title">Maxfiy chat</div>
     <div style="font-size:12px;color:var(--text2);margin:8px 0 16px">Ochish uchun PIN kiriting</div>
-    <input id="gatePinInput" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" style="text-align:center;font-size:20px;letter-spacing:6px">
+    <input id="gatePinInput" class="modal-input" type="password" inputmode="numeric" maxlength="6" placeholder="PIN" autocomplete="off" style="text-align:center;font-size:20px;letter-spacing:6px">
     <div id="gatePinErr" style="color:var(--danger);font-size:12px;min-height:16px;margin-bottom:6px"></div>
     <div class="modal-btns">
       <button class="mbtn primary" id="gatePinBtn">Ochish</button>
