@@ -89,7 +89,8 @@ img{display:block;max-width:100%}
 .mrow.out{align-self:flex-end;flex-direction:row-reverse}
 .mrow.in{align-self:flex-start}
 .mbub{padding:8px 12px 6px;border-radius:var(--radius);font-size:14px;line-height:1.6;word-break:break-word;position:relative;cursor:context-menu;box-shadow:var(--shadow2)}
-.mrow.out .mbub{background:linear-gradient(135deg,#0b5a85,#0a4a6f);border-bottom-right-radius:4px;border:1px solid rgba(0,198,162,.15)}
+.mrow.out .mbub{background:linear-gradient(135deg,#0b5a85,#0a4a6f);border-bottom-right-radius:4px;border:1px solid rgba(0,198,162,.15);color:#f0f6ff}
+.mrow.out .mbub .mmeta{color:rgba(240,246,255,.75)}
 .mrow.in .mbub{background:var(--msg-in);border-bottom-left-radius:4px;border:1px solid rgba(30,48,84,.8)}
 .msender{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:3px;cursor:pointer}
 .msender:hover{text-decoration:underline}
@@ -293,11 +294,11 @@ img{display:block;max-width:100%}
       </div>
     </div>
     <div id="chatOptionsPanel" class="mmenu" style="display:none;position:fixed;z-index:701">
-      <button class="hbtn" id="grpSummaryBtn" title="Guruh xulosasi">📋 <span>Guruh xulosasi</span></button>
-      <button class="hbtn" id="chatPinBtn" title="Maxfiy rejim">🔓 <span>Maxfiy rejim</span></button>
-      <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️ <span>Chat foni</span></button>
-      <button class="hbtn" id="statsBtn" title="Tahlil">📊 <span>Tahlil</span></button>
-      <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️ <span>Tozalash</span></button>
+      <button class="hbtn" id="grpSummaryBtn" title="Guruh xulosasi">📋 <span id="optSummaryLbl">Guruh xulosasi</span></button>
+      <button class="hbtn" id="chatPinBtn" title="Maxfiy rejim">🔓 <span id="optSecretLbl">Maxfiy rejim</span></button>
+      <button class="hbtn" id="chatBgBtn" title="Chat foni">🖼️ <span id="optBgLbl">Chat foni</span></button>
+      <button class="hbtn" id="statsBtn" title="Tahlil">📊 <span id="optStatsLbl">Tahlil</span></button>
+      <button class="hbtn" id="clearChatBtn" title="Tozalash">🗑️ <span id="optClearLbl">Tozalash</span></button>
     </div>
     <div id="pinnedBar"><div class="pt">📌 Mahkamlangan xabar</div><div class="px" id="pinnedTxt"></div></div>
     <div id="messages">
@@ -348,8 +349,8 @@ img{display:block;max-width:100%}
     </div>
   </div>
   <div class="menu-section" style="padding-top:8px">
-    <div class="menu-item" id="menuProfileBtn"><span class="mi-icon">👤</span><span>Mening profilim</span><span class="mi-arrow">›</span></div>
-    <div class="menu-item" id="menuNewGrpBtn"><span class="mi-icon">👥</span><span>Yangi guruh</span><span class="mi-arrow">›</span></div>
+    <div class="menu-item" id="menuProfileBtn"><span class="mi-icon">👤</span><span id="menuProfileLbl">Mening profilim</span><span class="mi-arrow">›</span></div>
+    <div class="menu-item" id="menuNewGrpBtn"><span class="mi-icon">👥</span><span id="menuNewGrpLbl">Yangi guruh</span><span class="mi-arrow">›</span></div>
     <div class="menu-item" id="menuThemeBtn"><span class="mi-icon">🌙</span><span id="menuThemeLbl">Tungi rejim</span></div>
     <div class="menu-item" id="menuLangBtn"><span class="mi-icon">🌐</span><span>Til / Язык / Language</span><span class="mi-arrow">›</span></div>
     <div class="menu-item" id="menuAutoTrBtn"><span class="mi-icon">🌍</span><span id="menuAutoTrLbl">Avtomatik tarjima: o'chiq</span></div>
@@ -357,11 +358,11 @@ img{display:block;max-width:100%}
   </div>
   <div class="menu-divider"></div>
   <div class="menu-section">
-    <div class="menu-item" id="menuAboutBtn"><span class="mi-icon">ℹ️</span><span>DoiraChat haqida</span></div>
+    <div class="menu-item" id="menuAboutBtn"><span class="mi-icon">ℹ️</span><span id="menuAboutLbl">DoiraChat haqida</span></div>
   </div>
   <div class="menu-divider"></div>
   <div class="menu-section">
-    <div class="menu-item" id="menuLogoutBtn" style="color:var(--danger)"><span class="mi-icon">⏻</span><span>Chiqish</span></div>
+    <div class="menu-item" id="menuLogoutBtn" style="color:var(--danger)"><span class="mi-icon">⏻</span><span id="menuLogoutLbl">Chiqish</span></div>
   </div>
 </div>
 
@@ -369,11 +370,11 @@ img{display:block;max-width:100%}
 
 <!-- ATTACH MENU -->
 <div id="attachMenuPanel" class="mmenu" style="display:none;position:fixed;z-index:701">
-  <button id="attachImgBtn">🖼️ Rasm</button>
-  <button id="attachDocBtn">📄 Fayl / PDF</button>
-  <button id="attachTtlBtn">⏳ Vaqtli xabar</button>
-  <button id="attachGameBtn">🎮 XO o'yini</button>
-  <button id="attachImproveBtn">✨ Matnni yaxshilash</button>
+  <button id="attachImgBtn"><span id="attachImgLbl">🖼️ Rasm</span></button>
+  <button id="attachDocBtn"><span id="attachDocLbl">📄 Fayl / PDF</span></button>
+  <button id="attachTtlBtn"><span id="attachTtlLbl">⏳ Vaqtli xabar</span></button>
+  <button id="attachGameBtn"><span id="attachGameLbl">🎮 XO o'yini</span></button>
+  <button id="attachImproveBtn"><span id="attachImproveLbl">✨ Matnni yaxshilash</span></button>
 </div>
 
 <!-- GROUP MODAL -->
@@ -440,6 +441,11 @@ img{display:block;max-width:100%}
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">👁️ Profilni ko'rganlar</div>
       <div id="profileViewsList" style="max-height:160px;overflow-y:auto"></div>
+    </div>
+    <!-- Bloklanganlar ro'yxati -->
+    <div style="margin-top:16px;text-align:left">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700" id="blockedListTitle">🚫 Bloklanganlar</div>
+      <div id="blockedUsersList" style="max-height:180px;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -711,7 +717,12 @@ const LANGS={
     callAudio:"📞 Qo'ng'iroq...",callVideo:"📹 Video...",callConnected:'✓ Ulandi',
     callFailed:'Ulanish uzildi',callPerm:'Mikrofon/kamera ruxsati kerak!',
     mutedMic:"Mikrofon o'chirildi",unmutedMic:'Mikrofon yoqildi',
-    directChat:'💬 Chat boshlash',callBtn:'📞 Qo\'ng\'iroq',nightMode:'Tungi rejim',dayMode:'Kunduzgi rejim',myProfile:'Mening profilim'},
+    directChat:'💬 Chat boshlash',callBtn:'📞 Qo\'ng\'iroq',nightMode:'Tungi rejim',dayMode:'Kunduzgi rejim',myProfile:'Mening profilim',
+    menuProfile:'Mening profilim',menuNewGroup:'Yangi guruh',menuAbout:'DoiraChat haqida',menuLogout:'Chiqish',
+    autoTrOn:'Avtomatik tarjima: yoniq',autoTrOff:"Avtomatik tarjima: o'chiq",trLangPrefix:'Tarjima tili: ',
+    attachImage:'🖼️ Rasm',attachFile:'📄 Fayl / PDF',attachTtl:'⏳ Vaqtli xabar',attachGame:"🎮 XO o'yini",attachImprove:"✨ Matnni yaxshilash",
+    optSummary:'📋 Guruh xulosasi',optSecret:'🔓 Maxfiy rejim',optBg:'🖼️ Chat foni',optStats:'📊 Tahlil',optClear:"🗑️ Tozalash",optionsBtn:"Ko'proq",
+    blockUser:'🚫 Blokirovka',unblockUser:"🔓 Blokdan chiqarish",reportUser:'⚠️ Shikoyat',blockedList:'🚫 Bloklanganlar',noBlocked:"Bloklangan foydalanuvchi yo'q"},
   ru:{search:'Поиск...',typeMsg:'Написать...',online:'🟢 онлайн',offline:'⚫ офлайн',
     lastSeen:'Был: ',members:'участник',noOne:'Никого не найдено',
     reply:'↩️ Ответить',forward:'↗️ Переслать',download:'⬇️ Скачать',
@@ -731,7 +742,12 @@ const LANGS={
     callAudio:'📞 Звонок...',callVideo:'📹 Видеозвонок...',callConnected:'✓ Подключено',
     callFailed:'Соединение разорвано',callPerm:'Нужен доступ к микрофону/камере!',
     mutedMic:'Микрофон выключен',unmutedMic:'Микрофон включён',
-    directChat:'💬 Написать',callBtn:'📞 Позвонить',nightMode:'Ночной режим',dayMode:'Дневной режим',myProfile:'Мой профиль'},
+    directChat:'💬 Написать',callBtn:'📞 Позвонить',nightMode:'Ночной режим',dayMode:'Дневной режим',myProfile:'Мой профиль',
+    menuProfile:'Мой профиль',menuNewGroup:'Новая группа',menuAbout:'О DoiraChat',menuLogout:'Выйти',
+    autoTrOn:'Автоперевод: включён',autoTrOff:'Автоперевод: выключен',trLangPrefix:'Язык перевода: ',
+    attachImage:'🖼️ Фото',attachFile:'📄 Файл / PDF',attachTtl:'⏳ Временное сообщение',attachGame:'🎮 Игра Крестики-нолики',attachImprove:'✨ Улучшить текст',
+    optSummary:'📋 Итоги группы',optSecret:'🔓 Секретный режим',optBg:'🖼️ Фон чата',optStats:'📊 Аналитика',optClear:'🗑️ Очистить',optionsBtn:'Ещё',
+    blockUser:'🚫 Заблокировать',unblockUser:'🔓 Разблокировать',reportUser:'⚠️ Пожаловаться',blockedList:'🚫 Заблокированные',noBlocked:'Нет заблокированных пользователей'},
   en:{search:'Search...',typeMsg:'Type a message...',online:'🟢 online',offline:'⚫ offline',
     lastSeen:'Last seen: ',members:'member',noOne:'Nobody found',
     reply:'↩️ Reply',forward:'↗️ Forward',download:'⬇️ Download',
@@ -751,7 +767,12 @@ const LANGS={
     callAudio:'📞 Calling...',callVideo:'📹 Video call...',callConnected:'✓ Connected',
     callFailed:'Connection failed',callPerm:'Microphone/camera permission needed!',
     mutedMic:'Mic off',unmutedMic:'Mic on',
-    directChat:'💬 Message',callBtn:'📞 Call',nightMode:'Night mode',dayMode:'Day mode',myProfile:'My profile'}
+    directChat:'💬 Message',callBtn:'📞 Call',nightMode:'Night mode',dayMode:'Day mode',myProfile:'My profile',
+    menuProfile:'My profile',menuNewGroup:'New group',menuAbout:'About DoiraChat',menuLogout:'Log out',
+    autoTrOn:'Auto-translate: on',autoTrOff:'Auto-translate: off',trLangPrefix:'Translate to: ',
+    attachImage:'🖼️ Image',attachFile:'📄 File / PDF',attachTtl:'⏳ Timed message',attachGame:'🎮 XO game',attachImprove:'✨ Improve text',
+    optSummary:'📋 Group summary',optSecret:'🔓 Secret mode',optBg:'🖼️ Chat background',optStats:'📊 Analytics',optClear:'🗑️ Clear chat',optionsBtn:'More',
+    blockUser:'🚫 Block',unblockUser:'🔓 Unblock',reportUser:'⚠️ Report',blockedList:'🚫 Blocked users',noBlocked:'No blocked users'}
 };
 let lang=localStorage.getItem('dc_lang')||'uz';
 const t=k=>LANGS[lang][k]||LANGS.uz[k]||k;
@@ -760,6 +781,25 @@ function applyLang(){
   const s=document.getElementById('searchInput');if(s)s.placeholder=t('search');
   const m=document.getElementById('msgInput');if(m)m.placeholder=t('typeMsg');
   const tl=document.getElementById('menuThemeLbl');if(tl)tl.textContent=dark?t('nightMode'):t('dayMode');
+  const setTxt=(id,key)=>{const el=document.getElementById(id);if(el)el.textContent=t(key);};
+  setTxt('menuProfileLbl','menuProfile');
+  setTxt('menuNewGrpLbl','menuNewGroup');
+  setTxt('menuAboutLbl','menuAbout');
+  setTxt('menuLogoutLbl','menuLogout');
+  setTxt('attachImgLbl','attachImage');
+  setTxt('attachDocLbl','attachFile');
+  setTxt('attachTtlLbl','attachTtl');
+  setTxt('attachGameLbl','attachGame');
+  setTxt('attachImproveLbl','attachImprove');
+  setTxt('optSummaryLbl','optSummary');
+  setTxt('optSecretLbl','optSecret');
+  setTxt('optBgLbl','optBg');
+  setTxt('optStatsLbl','optStats');
+  setTxt('optClearLbl','optClear');
+  const cob=document.getElementById('chatOptionsBtn');if(cob)cob.title=t('optionsBtn');
+  updateAutoTrLabel();
+  updateTrLangLabel();
+  if(typeof uinfoUid!=='undefined'&&uinfoUid)updateUinfoBlockBtn(uinfoUid);
 }
 
 const fbApp=initializeApp(FB);
@@ -851,6 +891,8 @@ async function addByInviteCode(){
   toast(`⭐ ${fu.name} do'stlarga qo'shildi!`);
   renderList();
 }
+window.copyInviteCode=copyInviteCode;
+window.addByInviteCode=addByInviteCode;
 
 // === PREMIUM (💎) — faqat administrator boshqaradi ===
 function openPremiumModal(){
@@ -906,6 +948,7 @@ function resetChatBg(){
   $('bgModal').classList.remove('open');
   toast('↺ Standart fon');
 }
+window.resetChatBg=resetChatBg;
 async function uploadChatBg(e){
   const f=e.target.files[0];if(!f)return;
   e.target.value='';
@@ -980,17 +1023,12 @@ async function setupUser(){
 }
 
 // === YANGILIKLAR (versiya asosida bir martalik e'lon) ===
-const APP_VERSION='1.3.0';
+const APP_VERSION='1.4.0';
 const WHATS_NEW=[
-  "🌍 Avtomatik tarjima — 15 ta tilga",
-  "🤖 AI moderator — guruhlarda spam/haqoratni aniqlaydi",
-  "⏳ Vaqtli xabarlar — o'qilgandan keyin o'chib ketadi",
-  "🎮 XO o'yini — do'stingiz bilan chatda o'ynang",
-  "🔐 Maxfiy rejim — chatni PIN bilan qulflang",
-  "✨ Xabarni AI bilan yaxshilash",
-  "📋 Guruh suhbatini AI xulosalashi",
-  "🎙️ Ovozli xabarni matnga aylantirish",
-  "🚫 Blokirovka va ⚠️ shikoyat qilish imkoniyati",
+  "🚫 Bloklanganlar ro'yxati — profilda ko'rasiz va istalgan payt blokdan chiqarasiz",
+  "🌐 Til to'liq ishlaydi — menyu, tugmalar endi tanlangan tilda",
+  "🎨 Chat foni tuzatildi — \"Standart\" tugmasi endi ishlaydi",
+  "✍️ Chiqgan xabarlar matni endi har doim aniq ko'rinadi",
 ];
 function checkWhatsNew(){
   const seen=localStorage.getItem('dc_appVer');
@@ -1234,6 +1272,7 @@ async function openProfile(){
   }
   loadProfileViews();
   loadProfileGallery();
+  renderBlockedList();
   $('galleryInput').onchange=uploadGalleryImg;
 }
 
@@ -1691,8 +1730,22 @@ async function sendMsg(){
 // === BLOKIROVKA VA SHIKOYAT (🚫⚠️) ===
 let blockedUsers={};
 function listenBlocked(){
-  onValue(ref(db,`blocked/${myUid}`),s=>{blockedUsers=s.val()||{};renderList();});
+  onValue(ref(db,`blocked/${myUid}`),s=>{blockedUsers=s.val()||{};renderList();renderBlockedList();});
 }
+function renderBlockedList(){
+  const box=$('blockedUsersList');if(!box)return;
+  const title=$('blockedListTitle');if(title)title.textContent=t('blockedList');
+  const uids=Object.keys(blockedUsers);
+  if(!uids.length){box.innerHTML=`<div style="font-size:12px;color:var(--text2)">${t('noBlocked')}</div>`;return;}
+  box.innerHTML=uids.map(uid=>{
+    const u=users[uid]||{};
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:13px">${esc(u.name||"Noma'lum")}</div>
+      <button onclick="window._unblockFromList('${uid}')" style="padding:5px 10px;border-radius:8px;background:var(--bg4);color:var(--danger);font-size:12px;font-weight:700;cursor:pointer">${t('unblockUser')}</button>
+    </div>`;
+  }).join('');
+}
+window._unblockFromList=uid=>toggleBlockUser(uid);
 async function toggleBlockUser(uid){
   const isBlocked=!!blockedUsers[uid];
   if(isBlocked){
@@ -1709,7 +1762,8 @@ async function toggleBlockUser(uid){
 function updateUinfoBlockBtn(uid){
   const btn=$('uinfoBlockBtn');if(!btn)return;
   const isBlocked=!!blockedUsers[uid];
-  btn.textContent=isBlocked?"🔓 Blokdan chiqarish":'🚫 Blokirovka';
+  btn.textContent=isBlocked?t('unblockUser'):t('blockUser');
+  const rbtn=$('uinfoReportBtn');if(rbtn)rbtn.textContent=t('reportUser');
 }
 const REPORT_REASONS=['Spam','Haqorat / so\'kish','Firibgarlik','Nomaqbul kontent','Boshqa sabab'];
 function openReportModal(uid){
@@ -1861,6 +1915,7 @@ function selectTTL(sec){
   }
   $('ttlModal').classList.remove('open');
 }
+window.selectTTL=selectTTL;
 const ttlTimers={};
 function watchTtlMsg(key,msg){
   if(!msg.ttl||ttlTimers[key])return;
@@ -2021,7 +2076,7 @@ function updateTrLangLabel(){
   const lbl=$('menuTrLangLbl');if(!lbl)return;
   const code=getTrLangCode();
   const found=TR_LANGS.find(l=>l.code===code);
-  lbl.textContent='Tarjima tili: '+(found?found.label:"O'zbek");
+  lbl.textContent=t('trLangPrefix')+(found?found.label:"O'zbek");
 }
 function openTrLangModal(){
   closeMainMenu();
@@ -2043,7 +2098,7 @@ function openTrLangModal(){
 }
 function updateAutoTrLabel(){
   const lbl=$('menuAutoTrLbl');if(!lbl)return;
-  lbl.textContent=`Avtomatik tarjima: ${autoTranslate?"yoniq":"o'chiq"}`;
+  lbl.textContent=autoTranslate?t('autoTrOn'):t('autoTrOff');
 }
 function toggleAutoTranslate(){
   autoTranslate=!autoTranslate;
