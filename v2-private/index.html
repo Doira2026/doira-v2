@@ -418,14 +418,12 @@ img{display:block;max-width:100%}
       <button class="mbtn primary" id="saveProfileBtn">✓ Saqlash</button>
       <button class="mbtn gray" id="closeProfileBtn">Bekor</button>
     </div>
-    <!-- Profil rasmlari galereya -->
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">🖼️ Mening rasmlarim</div>
       <div id="profileGallery" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px"></div>
       <button onclick="document.getElementById('galleryInput').click()" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer">+ Rasm qo'shish</button>
       <input type="file" id="galleryInput" accept="image/*" style="display:none">
     </div>
-    <!-- Taklif kodi -->
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">🎁 Taklif kodi</div>
       <div style="display:flex;gap:8px;align-items:center;background:var(--bg4);border-radius:8px;padding:10px 12px;margin-bottom:10px">
@@ -437,12 +435,10 @@ img{display:block;max-width:100%}
         <button onclick="addByInviteCode()" style="padding:0 14px;border-radius:8px;background:var(--bg4);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">+ Qo'shish</button>
       </div>
     </div>
-    <!-- Kim profil ko'rganlar -->
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">👁️ Profilni ko'rganlar</div>
       <div id="profileViewsList" style="max-height:160px;overflow-y:auto"></div>
     </div>
-    <!-- Bloklanganlar ro'yxati -->
     <div style="margin-top:16px;text-align:left">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700" id="blockedListTitle">🚫 Bloklanganlar</div>
       <div id="blockedUsersList" style="max-height:180px;overflow-y:auto"></div>
@@ -670,33 +666,23 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signOut, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getDatabase, ref, set, get, push, update, remove, onValue, onChildAdded, onDisconnect, serverTimestamp, off }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
-
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
 const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-chat-v2.firebaseapp.com",databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",projectId:"doira-chat-v2",storageBucket:"doira-chat-v2.firebasestorage.app",messagingSenderId:"885552294238",appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"};
 const IMGBB='e4cecebb229f451e3322c126e3d09399';
 const STICKERS=[
-  // Yuzlar
   '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','🙂','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','😵','🤯','😎','🤓','🥸','😲','😳','🥺','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩',
-  // Жесты
   '👍','👎','👌','✌️','🤞','🖖','🤟','🤘','🤙','👈','👉','👆','👇','☝️','👋','🤚','🖐️','✋','🖕','💪','🦾','🙏','🤲','👐','🫶','🫂','🤝','🙌','👏',
-  // Сердечки
   '❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','♥️','🔥',
-  // Животные
   '🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐻‍❄️','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🙈','🙉','🙊','🐔','🐧','🐦','🦆','🦅','🦉','🦇','🐺','🐗','🐴','🦄','🐝','🐛','🦋','🐌','🐞','🐜','🦗','🕷️',
-  // Еда
   '🍎','🍊','🍋','🍇','🍓','🍒','🍑','🥝','🍕','🍔','🌮','🌯','🍜','🍣','🍩','🎂','🍰','🧁','☕','🍵','🧃','🥤','🍺','🍻','🥂','🍾',
-  // Природа
   '🌸','🌺','🌻','🌹','🌷','🌿','🍀','🌈','⭐','🌟','💫','✨','🌙','☀️','🌤️','⛅','🌧️','⛈️','🌨️','❄️','🌊','🔥','💥',
-  // Активность
   '⚽','🏀','🏈','⚾','🎾','🏐','🏉','🎱','🏓','🏸','🥊','🏆','🥇','🎮','🎲','🎭','🎨','🎬','🎤','🎵','🎶','🎼','🎹','🎸','🎺','🥁',
-  // Путешествия
   '🚗','🚕','🚙','🚌','🏎️','🚓','🚑','✈️','🚀','🛸','🚂','⛵','🏠','🏢','🗽','🗼','🏰','🌍','🌎','🌏',
-  // Символы
   '💯','✅','❌','❓','❕','💢','💬','💭','💤','🔔','🔕','🎵','🔑','💡','🔍','📱','💻','⌨️','🖥️','📷','📸','🎥','📹','📺','📻','🧲','💊','🩺','🩹'
 ];
 const REACTS=['❤️','😂','👍','😮','😢','🙏','🔥','😎'];
 const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun2.l.google.com:19302'}]};
 
-// === TILLAR ===
 const LANGS={
   uz:{search:'Qidirish...',typeMsg:'Xabar yozing...',online:'🟢 online',offline:'⚫ offline',
     lastSeen:'Oxirgi: ',members:"a'zo",noOne:'Hech kim topilmadi',
@@ -805,12 +791,38 @@ function applyLang(){
 const fbApp=initializeApp(FB);
 const auth=getAuth(fbApp);
 const db=getDatabase(fbApp);
+const functions=getFunctions(fbApp);
+const askGroqFn=httpsCallable(functions,'askGroq');
+async function askAI(messages,maxTokens=512,temp=0.4){
+  try{
+    const r=await askGroqFn({model:'llama-3.3-70b-versatile',messages:messages,max_tokens:maxTokens,temperature:temp});
+    return r.data.result.choices?.[0]?.message?.content?.trim();
+  }catch(e){
+    console.error('AI xatosi:',e);
+    return null;
+  }
+}
+async function askAIAudio(blob,model){
+  const askGroqAudioFn=httpsCallable(functions,'askGroqAudio');
+  const base64=await new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=rej;
+    r.readAsDataURL(blob);
+  });
+  try{
+    const result=await askGroqAudioFn({audioBase64:base64,model:model||'whisper-large-v3'});
+    return result.data.result;
+  }catch(e){
+    console.error('Audio AI xatosi:',e);
+    return null;
+  }
+}
 const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 function toast(msg,dur=2500){const el=document.createElement('div');el.className='toast';el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),dur);}
 
-// Sana + vaqt formati: 12.01.2026, 14:30
 function fmtDate(ts){
   if(!ts)return '—';
   const d=new Date(ts);
@@ -827,7 +839,6 @@ function fmtDateTime(ts){
   if(!ts)return '—';
   return fmtDate(ts)+', '+fmtTime(ts);
 }
-// Nisbiy vaqt: "3 daqiqa oldin" / "3 минуты назад" / "3 minutes ago"
 function fmtAgo(ts){
   if(!ts)return '—';
   const diff=Math.max(0,Date.now()-ts);
@@ -873,7 +884,6 @@ function fileIcon(name){
   return '📄';
 }
 
-// === TAKLIF KODI (🎁) ===
 function copyInviteCode(){
   const code=$('myInviteCode').textContent;
   if(!code||code==='------')return;
@@ -894,7 +904,6 @@ async function addByInviteCode(){
 window.copyInviteCode=copyInviteCode;
 window.addByInviteCode=addByInviteCode;
 
-// === PREMIUM (💎) — faqat administrator boshqaradi ===
 function openPremiumModal(){
   const isPrem=!!users[myUid]?.premium;
   $('premiumStatusLine').innerHTML=isPrem
@@ -904,7 +913,6 @@ function openPremiumModal(){
   $('premiumModal').classList.add('open');
 }
 
-// === CHAT BACKGROUND (🖼️) ===
 const BG_PRESETS=[
   {css:''},
   {css:'linear-gradient(160deg,#0a1628,#122a4a)'},
@@ -972,8 +980,6 @@ let offFns=[];
 let dark=localStorage.getItem('dc_theme')!=='light';
 let uinfoUid=null;
 
-// BOOT
-// Auto-login: persistence LOCAL qilib, keyin auth tekshirish
 setPersistence(auth, browserLocalPersistence).then(()=>{
   onAuthStateChanged(auth,user=>{
     if(user){
@@ -986,7 +992,6 @@ setPersistence(auth, browserLocalPersistence).then(()=>{
     }
   });
 }).catch(()=>{
-  // Fallback - persistence ishlamasa ham davom etsin
   onAuthStateChanged(auth,user=>{
     if(user){
       myUid=user.uid;
@@ -1002,7 +1007,6 @@ setPersistence(auth, browserLocalPersistence).then(()=>{
 function hideLoader(){const l=$('loadingScreen');l.style.opacity='0';setTimeout(()=>l.style.display='none',400);}
 
 async function setupUser(){
-  // Admin tomonidan bloklangan foydalanuvchini kirishdan to'xtatish
   const banSnap=await get(ref(db,`users/${myUid}/banned`));
   if(banSnap.val()===true){
     alert("Siz administrator tomonidan bloklangansiz.");
@@ -1013,7 +1017,6 @@ async function setupUser(){
   const ur=ref(db,`users/${myUid}`);
   await update(ur,{name:myName,online:true,lastSeen:serverTimestamp(),avatar:myAvatar});
   onDisconnect(ur).update({online:false,lastSeen:serverTimestamp()});
-  // Taklif kodi (🎁) — birinchi marta kirganda yaratiladi
   const snap=await get(ref(db,`users/${myUid}/inviteCode`));
   if(!snap.exists()){
     const code=myUid.replace(/[^a-zA-Z0-9]/g,'').slice(-6).toUpperCase();
@@ -1022,7 +1025,6 @@ async function setupUser(){
   return true;
 }
 
-// === YANGILIKLAR (versiya asosida bir martalik e'lon) ===
 const APP_VERSION='1.4.0';
 const WHATS_NEW=[
   "🚫 Bloklanganlar ro'yxati — profilda ko'rasiz va istalgan payt blokdan chiqarasiz",
@@ -1060,9 +1062,7 @@ function showApp(){
   listenBlocked();
   listenGlobalNotify();
   checkWhatsNew();
-  // Notification ruxsati so'rash
   requestNotifPermission();
-  // "X daqiqa oldin" matnlarini yangilab turish uchun
   setInterval(()=>{
     renderList();
     if(chatUid&&!isGrp&&chatId!=='ai_chat'&&users[chatUid]){
@@ -1071,7 +1071,6 @@ function showApp(){
   },30000);
 }
 
-// === GLOBAL BILDIRISHNOMA (barcha suhbatlar bo'yicha) ===
 let prevUnreads={};
 function listenGlobalNotify(){
   onValue(ref(db,`unread/${myUid}`),s=>{
@@ -1108,16 +1107,13 @@ async function requestNotifPermission(){
 async function saveNotifToken(){
   try{
     const reg=await navigator.serviceWorker.ready;
-    // FCM VAPID key (keyinroq qo'shiladi)
-    // Hozircha local notification ishlatamiz
     await update(ref(db,'users/'+myUid),{notifEnabled:true});
   }catch(e){console.log('Notif token error:',e);}
 }
 
-// Xabar kelganida local notification ko'rsatish
 function showLocalNotif(title, body, chatId){
   if(Notification.permission!=='granted')return;
-  if(document.hasFocus())return; // Foydalanuvchi sahifada bo'lsa ko'rsatma
+  if(document.hasFocus())return;
   const n=new Notification(title,{
     body: body,
     icon: './icons/icon-192.png',
@@ -1234,11 +1230,9 @@ function bindAll(){
 function autoH(){const el=$('msgInput');el.style.height='auto';el.style.height=Math.min(el.scrollHeight,130)+'px';}
 function togSidebar(){$('sidebar').classList.toggle('open');$('overlay').classList.toggle('open');}
 
-// === MAIN MENU (Telegram-like) ===
 function openMainMenu(){$('mainMenuPanel').classList.add('open');$('menuOverlay').classList.add('open');}
 function closeMainMenu(){$('mainMenuPanel').classList.remove('open');$('menuOverlay').classList.remove('open');}
 
-// === ATTACH MENU ===
 function openAttachMenu(e){
   const m=$('attachMenuPanel');
   const rect=$('attachBtn').getBoundingClientRect();
@@ -1248,7 +1242,6 @@ function openAttachMenu(e){
 }
 function closeAttachMenu(){$('attachMenuPanel').style.display='none';}
 
-// === CHAT OPTIONS MENU (⋮) ===
 function openChatOptionsMenu(){
   const m=$('chatOptionsPanel');
   const rect=$('chatOptionsBtn').getBoundingClientRect();
@@ -1258,7 +1251,6 @@ function openChatOptionsMenu(){
 }
 function closeChatOptionsMenu(){$('chatOptionsPanel').style.display='none';}
 
-// === PROFILE ===
 async function openProfile(){
   $('newNameInput').value=myName;
   const pa=$('profAv');
@@ -1339,14 +1331,12 @@ function loadProfileViews(){
     }).join('');
   });
 }
-// Profilga kirgan odamning profiliga o'tish
 window._openViewerProfile=function(uid){
   $('profileModal').classList.remove('open');
   setTimeout(()=>{
     if(users[uid]){
       openUserInfo(uid);
     } else {
-      // Firebase dan yuklab olish
       get(ref(db,'users/'+uid)).then(snap=>{
         if(snap.val()){
           users[uid]=snap.val();
@@ -1388,11 +1378,9 @@ async function uploadAvatar(e){
   }catch{toast('Xato!');}
 }
 
-// === USER INFO MODAL ===
 function openUserInfo(uid){
   const u=users[uid];if(!u)return;
   uinfoUid=uid;
-  // Профилга кирдим — Firebase'га ёзамиз
   set(ref(db,`profileViews/${uid}/${myUid}`),{name:myName,avatar:myAvatar||'',time:Date.now()});
   const av_el=$('uinfoAv');
   if(u.avatar){av_el.style.backgroundImage=`url(${u.avatar})`;av_el.textContent='';}
@@ -1411,7 +1399,6 @@ function openUserInfo(uid){
   $('userInfoModal').classList.add('open');
 }
 
-// === LOGOUT ===
 async function doLogout(){
   if(!confirm('Chiqmoqchimisiz?'))return;
   await update(ref(db,`users/${myUid}`),{online:false,lastSeen:serverTimestamp()});
@@ -1419,13 +1406,11 @@ async function doLogout(){
   window.location.replace('login.html');
 }
 
-// === RENDER LIST ===
 function renderList(){
   const q=($('searchInput')?.value||'').toLowerCase().trim();
   const list=$('usersList');if(!list)return;
   list.innerHTML='';
 
-  // AI kontakt - har doim yuqorida
   const aiDiv=document.createElement('div');
   const isAiActive=chatId==='ai_chat';
   aiDiv.className='uitem'+(isAiActive?' active':'');
@@ -1488,7 +1473,6 @@ function renderList(){
 
 window._openUsr=(uid,name)=>{openChat(uid,name,false);if(window.innerWidth<768)togSidebar();};
 
-// AI Chat
 window._openAiChat=function(){
   chatId='ai_chat';chatUid=null;isGrp=false;chatName='DoiraChat AI';
   $('chatTitle').textContent='🤖 DoiraChat AI';
@@ -1504,7 +1488,6 @@ window._openAiChat=function(){
   applyChatBg();
   const box=$('messages');
   box.innerHTML='';
-  // Xush kelibsiz xabari
   const welcome=document.createElement('div');
   welcome.className='mrow in';
   welcome.innerHTML=`<div class="mbub" style="background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));border:1px solid rgba(99,102,241,.2)">
@@ -1514,7 +1497,6 @@ window._openAiChat=function(){
     <div class="mmeta">Hozir</div>
   </div>`;
   box.appendChild(welcome);
-  // AI uchun input placeholder
   $('msgInput').placeholder="AI ga savol yozing...";
   if(window.innerWidth<768)togSidebar();
   renderList();
@@ -1526,7 +1508,6 @@ window._togFrd=async(uid,is)=>{
   else{await set(ref(db,`friends/${myUid}/${uid}`),true);toast('⭐');}
 };
 
-// === OPEN CHAT ===
 function openChat(id,name,isGroup){
   const candidateId=isGroup?id:[myUid,id].sort().join('_');
   const chatPin=localStorage.getItem('dc_pin_'+candidateId);
@@ -1563,7 +1544,6 @@ function openChat(id,name,isGroup){
   loadMsgs();listenTyping();loadPinned();renderList();
 }
 
-// === LOAD MESSAGES ===
 function loadMsgs(){
   offFns.forEach(f=>f());offFns=[];
   const box=$('messages');box.innerHTML='';
@@ -1574,7 +1554,6 @@ function loadMsgs(){
     const msg=snap.val();
     if(msg.sender!==myUid){
       $('notifSnd').play().catch(()=>{});
-      // Notification ko'rsatish
       const senderName=msg.senderName||'Kimdir';
       const body=msg.type==='text'?(msg.text||''):(msg.type==='image'?'🖼️ Rasm':(msg.type==='audio'?'🎤 Ovozli xabar':(msg.type==='file'?'📄 Fayl':'😊 Stiker')));
       showLocalNotif(senderName, body, chatId);
@@ -1606,7 +1585,6 @@ function loadMsgs(){
   offFns=[()=>off(cr)];
 }
 
-// === RENDER MESSAGE ===
 function renderMsg(key,msg,box){
   const mine=msg.sender===myUid;
   const row=document.createElement('div');
@@ -1691,13 +1669,11 @@ window._scrollToMsg=key=>{
   if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.opacity='.5';setTimeout(()=>el.style.opacity='',800);}
 };
 
-// === SEND ===
 async function sendMsg(){
   const inp=$('msgInput'),txt=inp.value.trim();
   if(!txt||!chatId)return;
   inp.value='';inp.style.height='auto';
 
-  // AI chat
   if(chatId==='ai_chat'){
     sendAiMsg(txt);
     return;
@@ -1727,7 +1703,6 @@ async function sendMsg(){
   }
 }
 
-// === BLOKIROVKA VA SHIKOYAT (🚫⚠️) ===
 let blockedUsers={};
 function listenBlocked(){
   onValue(ref(db,`blocked/${myUid}`),s=>{blockedUsers=s.val()||{};renderList();renderBlockedList();});
@@ -1783,7 +1758,6 @@ async function submitReport(uid,reason){
   toast('✓ Shikoyat yuborildi, rahmat');
 }
 
-// === MINI-O'YIN: XO (🎮) ===
 function startXoGame(){
   if(isGrp){toast("Bu o'yin hozircha faqat shaxsiy chatda ishlaydi");return;}
   if(!chatId||!chatUid){toast('Avval suhbatdosh tanlang');return;}
@@ -1821,7 +1795,6 @@ function renderXoBoard(key,msg){
   </div>`;
 }
 
-// === MAXFIY REJIM (🔐) — chatni PIN bilan qulflash ===
 let pendingUnlockCb=null;
 function showPinGate(cid,onSuccess){
   pendingUnlockCb={cid,onSuccess};
@@ -1881,7 +1854,6 @@ function updateChatPinIcon(){
   btn.textContent=locked?'🔒':'🔓';
 }
 
-// === VAQTLI XABARLAR (⏳) — o'qilgandan keyin avtomatik o'chadi ===
 const TTL_OPTIONS=[
   {label:"O'chirish (yo'q)",sec:0},
   {label:'5 soniya',sec:5},
@@ -1938,7 +1910,6 @@ function fmtCountdown(sec){
   return sec+'soniya';
 }
 
-// === ✍️ XABARNI AI BILAN YAXSHILASH ===
 async function improveMsgText(){
   const inp=$('msgInput');
   const txt=inp.value.trim();
@@ -1946,26 +1917,15 @@ async function improveMsgText(){
   if(!(await checkUsageLimit('improve',10)))return;
   toast('✨ Yaxshilanmoqda...');
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[
-          {role:'system',content:"You are a writing assistant. The user message can be in ANY language (Uzbek, Russian, English, etc). Fix grammar, spelling and style, making it clearer and nicer. CRITICAL RULE: output MUST be in the EXACT SAME language as the input — if input is Russian, output Russian; if Uzbek, output Uzbek; NEVER translate to a different language under any circumstance. Return ONLY the improved text, nothing else — no explanations, no labels, no quotes."},
-          {role:'user',content:txt}
-        ],
-        max_tokens:512,temperature:0.4
-      })
-    });
-    const data=await res.json();
-    const improved=data.choices?.[0]?.message?.content?.trim();
+    const improved=await askAI([
+      {role:'system',content:"You are a writing assistant. The user message can be in ANY language (Uzbek, Russian, English, etc). Fix grammar, spelling and style, making it clearer and nicer. CRITICAL RULE: output MUST be in the EXACT SAME language as the input - if input is Russian, output Russian; if Uzbek, output Uzbek; NEVER translate to a different language under any circumstance. Return ONLY the improved text, nothing else - no explanations, no labels, no quotes."},
+      {role:'user',content:txt}
+    ],512,0.4);
     if(improved){inp.value=improved;autoH();toast('✓ Yaxshilandi');}
     else toast("Bo'lmadi, qayta urinib ko'ring");
   }catch{toast('Xato yuz berdi');}
 }
 
-// === 📋 GURUH SUHBATINI AI XULOSALASH ===
 async function summarizeGroupChat(){
   if(!isGrp||!chatId){toast('Bu funksiya faqat guruhda ishlaydi');return;}
   if(!(await checkUsageLimit('summary',3)))return;
@@ -1976,20 +1936,10 @@ async function summarizeGroupChat(){
     const arr=Object.values(msgs).filter(m=>m.type==='text'&&m.text).slice(-80);
     if(!arr.length){toast('Xabarlar topilmadi');return;}
     const transcript=arr.map(m=>`${m.senderName||'?'}: ${m.text}`).join('\n');
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[
-          {role:'system',content:"Sen guruh suhbatini xulosalovchi yordamchisan. Quyidagi suhbatni o'zbek tilida 3-5 ta qisqa bandda xulosala: kim, nima haqida gaplashdi, qanday qarorlar yoki muhim fikrlar bor. Faqat xulosani yoz."},
-          {role:'user',content:transcript}
-        ],
-        max_tokens:600,temperature:0.4
-      })
-    });
-    const data=await res.json();
-    const summary=data.choices?.[0]?.message?.content?.trim();
+    const summary=await askAI([
+      {role:'system',content:"Sen guruh suhbatini xulosalovchi yordamchisan. Quyidagi suhbatni o'zbek tilida 3-5 ta qisqa bandda xulosala: kim, nima haqida gaplashdi, qanday qarorlar yoki muhim fikrlar bor. Faqat xulosani yoz."},
+      {role:'user',content:transcript}
+    ],600,0.4);
     if(summary){
       $('summaryText').textContent=summary;
       $('summaryModal').classList.add('open');
@@ -1997,7 +1947,6 @@ async function summarizeGroupChat(){
   }catch{toast('Xato yuz berdi');}
 }
 
-// === 🎙️ OVOZLI XABARNI MATNGA AYLANTIRISH ===
 async function transcribeAudioMsg(key,src){
   if(!(await checkUsageLimit('transcribe',5)))return;
   const box=document.getElementById('tx-'+key);
@@ -2006,22 +1955,13 @@ async function transcribeAudioMsg(key,src){
   try{
     const audioResp=await fetch(src);
     const blob=await audioResp.blob();
-    const fd=new FormData();
-    fd.append('file',blob,'audio.webm');
-    fd.append('model','whisper-large-v3');
-    const res=await fetch('https://api.groq.com/openai/v1/audio/transcriptions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+GROQ_KEY},
-      body:fd
-    });
-    const data=await res.json();
+    const data=await askAIAudio(blob,'whisper-large-v3');
     if(data.text)box.textContent='📝 '+data.text.trim();
     else box.textContent="📝 Matnga aylantirib bo'lmadi";
   }catch{box.textContent="📝 Xato yuz berdi";}
 }
 window._transcribeAudioMsg=(key,src)=>transcribeAudioMsg(key,src);
 
-// === FREEMIUM LIMIT (kunlik AI foydalanish chegarasi) ===
 async function checkUsageLimit(feature,freeLimit){
   if(users[myUid]?.premium)return true;
   const today=new Date().toISOString().slice(0,10);
@@ -2037,32 +1977,20 @@ async function checkUsageLimit(feature,freeLimit){
   return true;
 }
 
-// === AI MODERATOR (🤖) — guruh xabarlarini tekshirish ===
 async function moderateText(text){
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[
-          {role:'system',content:"Sen chat moderatorisan. Foydalanuvchi xabarini tekshir: agar unda haqorat/so'kish, spam yoki reklama (masalan tovar sotish, boshqa kanalga taklif, pul ishlash e'lonlari) bo'lsa — faqat bitta so'z bilan javob ber: 'INSULT', 'SPAM', 'AD' yoki agar hech narsa bo'lmasa 'OK'. Boshqa hech narsa yozma."},
-          {role:'user',content:text}
-        ],
-        max_tokens:10,
-        temperature:0
-      })
-    });
-    const data=await res.json();
-    const verdict=(data.choices?.[0]?.message?.content||'OK').trim().toUpperCase();
-    if(verdict.includes('INSULT'))return{flagged:true,reason:"haqoratli so'zlar"};
-    if(verdict.includes('SPAM'))return{flagged:true,reason:'spam'};
-    if(verdict.includes('AD'))return{flagged:true,reason:'reklama'};
+    const verdict=(await askAI([
+      {role:'system',content:"Sen chat moderatorisan. Foydalanuvchi xabarini tekshir: agar unda haqorat/so'kish, spam yoki reklama (masalan tovar sotish, boshqa kanalga taklif, pul ishlash e'lonlari) bo'lsa – faqat bitta so'z bilan javob ber: 'INSULT', 'SPAM', 'AD' yoki agar hech narsa bo'lmasa 'OK'. Boshqa hech narsa yozma."},
+      {role:'user',content:text}
+    ],10,0))||'OK';
+    const v=verdict.toUpperCase();
+    if(v.includes('INSULT'))return{flagged:true,reason:"haqoratli so'zlar"};
+    if(v.includes('SPAM'))return{flagged:true,reason:'spam'};
+    if(v.includes('AD'))return{flagged:true,reason:'reklama'};
     return{flagged:false};
   }catch{return{flagged:false};}
 }
 
-// === AVTOMATIK TARJIMA (🌍) — Groq AI orqali ===
 let autoTranslate=localStorage.getItem('dc_autoTr')==='1';
 const TR_LANGS=[
   {code:'uz',label:"O'zbek"},{code:'ru',label:'Rus'},{code:'en',label:'Ingliz'},
@@ -2113,21 +2041,10 @@ function langLabel(){
 }
 async function translateText(text){
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Authorization':'Bearer '+GROQ_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[
-          {role:'system',content:`Sen tarjimonsan. Foydalanuvchi yuborgan matnni ${langLabel()} tiliga tarjima qil. Faqat tarjima qilingan matnni qaytar, hech qanday izoh yoki qo'shimcha so'z yozma.`},
-          {role:'user',content:text}
-        ],
-        max_tokens:512,
-        temperature:0.3
-      })
-    });
-    const data=await res.json();
-    return data.choices?.[0]?.message?.content?.trim()||null;
+    return await askAI([
+      {role:'system',content:`Sen tarjimonsan. Foydalanuvchi yuborgan matnni ${langLabel()} tiliga tarjima qil. Faqat tarjima qilingan matnni qaytar, hech qanday izoh yoki qo'shimcha so'z yozma.`},
+      {role:'user',content:text}
+    ],512,0.3);
   }catch{return null;}
 }
 window._toggleTranslate=async(key,btnEl)=>{
@@ -2147,21 +2064,17 @@ async function autoTranslateMsg(key,text){
   if(tr){trCache[key]=tr;box.textContent='🌍 '+tr;box.style.display='block';}
 }
 
-// AI xabar yuborish
-const GROQ_KEY='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';
 const aiHistory=[];
 
 async function sendAiMsg(userText){
   const box=$('messages');
 
-  // Foydalanuvchi xabari
   const userRow=document.createElement('div');
   userRow.className='mrow out';
   userRow.innerHTML=`<div class="mbub"><div>${esc(userText)}</div><div class="mmeta">${new Date().toLocaleTimeString('uz',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
   box.appendChild(userRow);
   box.scrollTop=box.scrollHeight;
 
-  // AI yozmoqda...
   const typingRow=document.createElement('div');
   typingRow.className='mrow in';
   typingRow.id='ai-typing';
@@ -2171,35 +2084,18 @@ async function sendAiMsg(userText){
   box.appendChild(typingRow);
   box.scrollTop=box.scrollHeight;
 
-  // AI tarixi
   aiHistory.push({role:'user',content:userText});
   if(aiHistory.length>20)aiHistory.splice(0,2);
 
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{
-        'Authorization':'Bearer '+GROQ_KEY,
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[
-          {role:'system',content:'Sen DoiraChat AI yordamchisisisan. O\'zbek, rus va ingliz tillarida yordam berasan. Qisqa, aniq va foydali javoblar ber. Ismingiz DoiraChat AI.'},
-          ...aiHistory
-        ],
-        max_tokens:1024,
-        temperature:0.7
-      })
-    });
-    const data=await res.json();
-    const aiText=data.choices?.[0]?.message?.content||'Xato yuz berdi';
+    const aiText=await askAI([
+      {role:'system',content:'Sen DoiraChat AI yordamchisisisan. O\'zbek, rus va ingliz tillarida yordam berasan. Qisqa, aniq va foydali javoblar ber. Ismingiz DoiraChat AI.'},
+      ...aiHistory
+    ],1024,0.7)||'Xato yuz berdi';
     aiHistory.push({role:'assistant',content:aiText});
 
-    // Typing olib tashla
     document.getElementById('ai-typing')?.remove();
 
-    // AI javobi
     const aiRow=document.createElement('div');
     aiRow.className='mrow in';
     const formattedText=aiText.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\*(.*?)\*/g,'<i>$1</i>');
@@ -2220,7 +2116,6 @@ async function sendAiMsg(userText){
   }
 }
 
-// === REPLY ===
 function setReply(key,msg){
   replyKey=key;replyData=msg;
   $('replyText').textContent=(msg.senderName||'')+': '+(msg.text||'📎');
@@ -2233,7 +2128,6 @@ window.cancelReply=function(){
   $('replyText').textContent='';
 };
 
-// === FORWARD ===
 function openForward(msg){
   fwdMsgData=msg;
   const list=$('fwdList');list.innerHTML='';
@@ -2283,7 +2177,6 @@ function notifyOther(){
   }
 }
 
-// === CLEAR CHAT === (BARCHA xabarlarni o'chiradi, ikki tomon ham)
 async function clearChat(){
   if(!chatId)return;
   const snap=await get(ref(db,`chats/${chatId}`));
@@ -2295,7 +2188,6 @@ async function clearChat(){
   toast(`${allKeys.length} ${t('cleared')}`);
 }
 
-// === STATS ===
 async function showStats(){
   if(!chatId)return;
   const snap=await get(ref(db,`chats/${chatId}`));
@@ -2320,7 +2212,6 @@ async function showStats(){
   $('statsModal').classList.add('open');
 }
 
-// === STICKERS ===
 function buildStickers(){$('stickerPanel').innerHTML=STICKERS.map(s=>`<div class="sitem" onclick="window._sendStkr('${s}')">${s}</div>`).join('');}
 function togStickers(){$('stickerPanel').classList.toggle('open');}
 window._sendStkr=async s=>{
@@ -2330,7 +2221,6 @@ window._sendStkr=async s=>{
   notifyOther();
 };
 
-// === REACTIONS ===
 function buildReacts(){
   $('reactPanel').innerHTML=REACTS.map(r=>`<div class="ritem" onclick="window._addReact('${r}')">${r}</div>`).join('');
 }
@@ -2354,7 +2244,6 @@ window._addReact=async emoji=>{
   reactKey=null;
 };
 
-// === MSG MENU ===
 let touchT=null,touchKey=null,touchMine=null,touchType=null;
 window._sTouch=(e,k,mine,type)=>{
   touchKey=k;touchMine=mine;touchType=type;
@@ -2429,13 +2318,11 @@ window._startEdit=async key=>{
 };
 function cancelEdit(){editKey=null;$('msgInput').value='';$('editBan').classList.remove('show');}
 
-// БАРЧА ФОЙДАЛАНУВЧИЛАР ХАБАРНИ О'ЧИРА ОЛАДИ (ўзиники ва бошқасиники)
 window._delMsg=async key=>{
   if(!confirm(t('confirmDel')))return;
   await remove(ref(db,`chats/${chatId}/${key}`));toast(t('msgDeleted'));
 };
 
-// === PINNED ===
 function loadPinned(){
   onValue(ref(db,`pinned/${chatId}`),snap=>{
     const p=snap.val();
@@ -2445,7 +2332,6 @@ function loadPinned(){
   });
 }
 
-// === TYPING ===
 function listenTyping(){
   if(isGrp||!chatUid)return;
   onValue(ref(db,`typing/${chatId}/${chatUid}`),snap=>{
@@ -2461,7 +2347,6 @@ function handleTyping(){
   typTimer=setTimeout(()=>set(ref(db,`typing/${chatId}/${myUid}`),false),2000);
 }
 
-// === IMAGE UPLOAD ===
 async function uploadImg(e){
   const f=e.target.files[0];if(!f||!chatId)return;
   e.target.value='';toast(t('imgUploading'));
@@ -2478,7 +2363,6 @@ async function uploadImg(e){
   }catch{toast('Xato!');}
 }
 
-// === FILE/PDF UPLOAD (base64 orqali Firebase ga, 30MB gacha) ===
 async function uploadDoc(e){
   const f=e.target.files[0];if(!f||!chatId)return;
   e.target.value='';
@@ -2503,7 +2387,6 @@ async function uploadDoc(e){
   }catch{toast(t('fileError'));}
 }
 
-// === AUDIO RECORD ===
 async function togRec(){
   if(mediaRec&&mediaRec.state==='recording'){
     mediaRec.stop();$('inputBar').classList.remove('recording');$('micBtn').textContent='🎤';return;
@@ -2539,7 +2422,6 @@ async function togRec(){
   }catch{toast(t('micError'));}
 }
 
-// === IMAGE PREVIEW & DOWNLOAD ===
 function previewImg(url){$('prevImg').src=url;$('imgPrev').classList.add('open');}
 window._prevImg=previewImg;
 function closePrev(){$('imgPrev').classList.remove('open');$('prevImg').src='';}
@@ -2554,7 +2436,6 @@ function downloadImg(){
   if(src)downloadFromUrl(src,'image.jpg');
 }
 
-// === GROUPS ===
 function openGrpModal(){
   const list=$('grpUsersList');list.innerHTML='';
   Object.entries(users).forEach(([uid,u])=>{
@@ -2630,7 +2511,6 @@ async function leaveGroup(){
   toast(t('groupLeft'));
 }
 
-// === WEBRTC ===
 function makePeer(targetUid){
   const pc=new RTCPeerConnection(ICE);
   pc.ontrack=e=>{
@@ -2715,7 +2595,6 @@ function endCall(){
   $('localVideo').style.display='none';$('localVideo').srcObject=null;
   $('remoteVideo').style.display='none';$('remoteVideo').srcObject=null;
   $('remoteAudio').srcObject=null;
-  // Raqibga "qo'ng'iroq tugadi" signali yuborish
   if(chatUid){
     set(ref(db,`calls/${chatUid}/ended`),{by:myUid,time:Date.now()});
     setTimeout(()=>remove(ref(db,`calls/${chatUid}/ended`)),3000);
@@ -2725,7 +2604,6 @@ function endCall(){
 }
 
 function listenCalls(){
-  // Kiruvchi qo'ng'iroqni tinglash
   onValue(ref(db,`calls/${myUid}/incoming`),snap=>{
     const d=snap.val();if(!d)return;
     if(callId&&callId!==d.callId){remove(ref(db,`calls/${myUid}/incoming`));return;}
@@ -2737,7 +2615,6 @@ function listenCalls(){
     $('ringSnd').play().catch(()=>{});
   });
 
-  // Raqib qo'ng'iroqni tugatsа — menda ham tugaydi
   onValue(ref(db,`calls/${myUid}/ended`),snap=>{
     if(snap.val()&&callId){
       remove(ref(db,`calls/${myUid}/ended`));
