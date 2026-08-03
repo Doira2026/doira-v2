@@ -88,11 +88,9 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
       <div style="margin-top:14px;font-size:12px;color:var(--text2);cursor:pointer;text-decoration:underline" id="forgotPassLink">Parolni unutdingizmi?</div>
     </div>
     <div id="noAccessBox">
-      <div style="font-size:13px;color:var(--text2);line-height:1.6">
-        Siz tizimga kirdingiz, lekin bu akkauntda admin huquqi yo'q.<br>
-        Administrator huquqini olish uchun quyidagi UID'ni <b>admin.html</b> ichidagi <code>ADMIN_UIDS</code> ro'yxatiga qo'shing:
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;text-align:center">
+        Sizda administrator huquqi yo'q.
       </div>
-      <div class="uidbox" id="myUidBox"></div>
       <button class="lbtn" id="logoutNoAccessBtn" style="background:var(--bg4);color:var(--text2)">Chiqish</button>
     </div>
   </div>
@@ -198,7 +196,6 @@ onAuthStateChanged(auth,user=>{
   if(!ADMIN_UIDS.includes(user.uid)){
     $('loginFormBox').style.display='none';
     $('noAccessBox').style.display='block';
-    $('myUidBox').textContent=user.uid;
     $('dash').style.display='none';
     return;
   }
