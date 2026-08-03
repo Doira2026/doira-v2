@@ -182,6 +182,14 @@ img{display:block;max-width:100%}
 .stat-val{font-size:15px;font-weight:700;color:var(--accent)}
 .prof-av{width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;margin:0 auto 16px;cursor:pointer;transition:.2s;background-size:cover;background-position:center}
 .prof-av:hover{opacity:.85}
+#profileModal .modal-box{padding-top:0;overflow:visible}
+.prof-cover{height:64px;border-radius:20px 20px 0 0;background:linear-gradient(135deg,var(--accent),var(--accent3));margin:0 -24px 0 -24px}
+.prof-av-wrap{position:relative;display:inline-block;margin-top:-46px}
+.prof-av-wrap .prof-av{width:92px;height:92px;font-size:38px;margin:0;border:4px solid var(--bg2);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.prof-av-cam{position:absolute;bottom:2px;right:2px;width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid var(--bg2);pointer-events:none}
+.prof-section{background:var(--bg3);border-radius:14px;padding:14px;margin-top:14px;text-align:left}
+.prof-section-title{font-size:12px;color:var(--text2);font-weight:700;margin-bottom:10px;letter-spacing:.2px}
+.prof-invite-box{display:flex;gap:8px;align-items:center;background:var(--bg4);border:1px dashed var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:10px}
 /* USER INFO MODAL */
 .uinfo-av{width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:#fff;margin:0 auto 12px;cursor:pointer;background-size:cover;background-position:center;transition:.2s}
 .uinfo-av:hover{opacity:.85}
@@ -204,8 +212,19 @@ img{display:block;max-width:100%}
 #menuOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:940;display:none}
 #menuOverlay.open{display:block}
 /* Call */
-#callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:60px 20px 50px}
+#callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:60px 20px 50px;transition:.25s ease}
 #callModal.open{display:flex}
+#callModal.minimized{inset:auto;top:70px;right:16px;left:auto;bottom:auto;width:220px;height:auto;padding:10px 12px;border-radius:18px;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:850;cursor:pointer}
+#callModal.minimized .call-top{flex-direction:row;gap:8px;flex:1;justify-content:flex-start;min-width:0}
+#callModal.minimized .call-av{width:34px;height:34px;font-size:15px;animation:none;flex-shrink:0}
+#callModal.minimized .call-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#callModal.minimized .call-stat{display:none}
+#callModal.minimized #localVideo,#callModal.minimized #remoteVideo{display:none!important}
+#callModal.minimized .call-btns{background:none;padding:0;width:auto;max-width:none;gap:8px}
+#callModal.minimized .cbtn{width:32px;height:32px;font-size:14px}
+#callModal.minimized .cbtn.mute,#callModal.minimized .cbtn.acc{display:none!important}
+#callModal.minimized .call-min-hide{display:none}
+.cbtn.min{background:rgba(255,255,255,.2)}
 .call-top{display:flex;flex-direction:column;align-items:center;gap:10px;flex:1;justify-content:center}
 .call-av{width:96px;height:96px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:700;color:#fff;animation:callPulse 2s ease infinite}
 @keyframes callPulse{0%,100%{box-shadow:0 0 0 0 rgba(0,168,132,.4)}50%{box-shadow:0 0 0 20px rgba(0,168,132,0)}}
@@ -409,38 +428,42 @@ img{display:block;max-width:100%}
 <!-- PROFILE MODAL -->
 <div class="modal-bg" id="profileModal">
   <div class="modal-box" style="text-align:center">
-    <div class="modal-title">👤 Profil</div>
-    <div class="prof-av" id="profAv" onclick="document.getElementById('avatarInput').click()">?</div>
+    <div class="prof-cover"></div>
+    <div class="prof-av-wrap">
+      <div class="prof-av" id="profAv" onclick="document.getElementById('avatarInput').click()">?</div>
+      <div class="prof-av-cam">📷</div>
+    </div>
+    <div class="modal-title" id="profTitleLbl" style="margin-top:10px">👤 Profil</div>
     <input type="file" id="avatarInput" accept="image/*" style="display:none">
-    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Rasmni o'zgartirish uchun bosing</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px" id="changeAvatarHintLbl">Rasmni o'zgartirish uchun bosing</div>
     <input id="newNameInput" class="modal-input" type="text" placeholder="Yangi ismingiz">
     <div class="modal-btns">
       <button class="mbtn primary" id="saveProfileBtn">✓ Saqlash</button>
       <button class="mbtn gray" id="closeProfileBtn">Bekor</button>
     </div>
-    <div style="margin-top:16px;text-align:left">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">🖼️ Mening rasmlarim</div>
+    <div class="prof-section">
+      <div class="prof-section-title" id="myPhotosTitleLbl">🖼️ Mening rasmlarim</div>
       <div id="profileGallery" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px"></div>
-      <button onclick="document.getElementById('galleryInput').click()" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer">+ Rasm qo'shish</button>
+      <button onclick="document.getElementById('galleryInput').click()" id="addPhotoBtnLbl" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer">+ Rasm qo'shish</button>
       <input type="file" id="galleryInput" accept="image/*" style="display:none">
     </div>
-    <div style="margin-top:16px;text-align:left">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">🎁 Taklif kodi</div>
-      <div style="display:flex;gap:8px;align-items:center;background:var(--bg4);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+    <div class="prof-section">
+      <div class="prof-section-title" id="inviteCodeTitleLbl">🎁 Taklif kodi</div>
+      <div class="prof-invite-box">
         <div id="myInviteCode" style="flex:1;font-weight:800;letter-spacing:2px;font-size:15px;color:var(--accent)">------</div>
-        <button onclick="copyInviteCode()" style="padding:6px 12px;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Nusxa</button>
+        <button onclick="copyInviteCode()" id="copyBtnLbl" style="padding:6px 12px;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Nusxa</button>
       </div>
       <div style="display:flex;gap:8px">
         <input id="friendCodeInput" class="modal-input" type="text" placeholder="Do'stingiz kodi" autocomplete="off" name="dc-friend-code" style="margin-bottom:0;text-transform:uppercase;flex:1;min-width:0;width:auto">
-        <button onclick="addByInviteCode()" style="padding:0 14px;border-radius:8px;background:var(--bg4);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">+ Qo'shish</button>
+        <button onclick="addByInviteCode()" id="addFriendBtnLbl" style="padding:0 14px;border-radius:8px;background:var(--bg4);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">+ Qo'shish</button>
       </div>
     </div>
-    <div style="margin-top:16px;text-align:left">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700">👁️ Profilni ko'rganlar</div>
+    <div class="prof-section">
+      <div class="prof-section-title" id="profileViewsTitleLbl">👁️ Profilni ko'rganlar</div>
       <div id="profileViewsList" style="max-height:160px;overflow-y:auto"></div>
     </div>
-    <div style="margin-top:16px;text-align:left">
-      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:700" id="blockedListTitle">🚫 Bloklanganlar</div>
+    <div class="prof-section">
+      <div class="prof-section-title" id="blockedListTitle">🚫 Bloklanganlar</div>
       <div id="blockedUsersList" style="max-height:180px;overflow-y:auto"></div>
     </div>
   </div>
@@ -648,6 +671,7 @@ img{display:block;max-width:100%}
   <div class="call-btns">
     <button class="cbtn acc" id="acceptBtn" style="display:none">📞</button>
     <button class="cbtn mute" id="muteBtn">🎤</button>
+    <button class="cbtn min" id="minimizeCallBtn" title="Kichraytirish">🔽</button>
     <button class="cbtn end" id="endBtn">📵</button>
   </div>
 </div>
@@ -707,7 +731,11 @@ const LANGS={
     autoTrOn:'Avtomatik tarjima: yoniq',autoTrOff:"Avtomatik tarjima: o'chiq",trLangPrefix:'Tarjima tili: ',
     attachImage:'🖼️ Rasm',attachFile:'📄 Fayl / PDF',attachTtl:'⏳ Vaqtli xabar',attachGame:"🎮 XO o'yini",attachImprove:"✨ Matnni yaxshilash",
     optSummary:'📋 Guruh xulosasi',optSecret:'🔓 Maxfiy rejim',optBg:'🖼️ Chat foni',optStats:'📊 Tahlil',optClear:"🗑️ Tozalash",optionsBtn:"Ko'proq",
-    blockUser:'🚫 Blokirovka',unblockUser:"🔓 Blokdan chiqarish",reportUser:'⚠️ Shikoyat',blockedList:'🚫 Bloklanganlar',noBlocked:"Bloklangan foydalanuvchi yo'q"},
+    blockUser:'🚫 Blokirovka',unblockUser:"🔓 Blokdan chiqarish",reportUser:'⚠️ Shikoyat',blockedList:'🚫 Bloklanganlar',noBlocked:"Bloklangan foydalanuvchi yo'q",
+    profTitle:'👤 Profil',changeAvatarHint:"Rasmni o'zgartirish uchun bosing",newNamePlaceholder:'Yangi ismingiz',cancelBtn:'Bekor',
+    myPhotosTitle:'🖼️ Mening rasmlarim',addPhotoBtn:"+ Rasm qo'shish",noPhotosYet:'Hali rasm qoshilmagan',
+    inviteCodeTitle:'🎁 Taklif kodi',copyBtn:'Nusxa',friendCodePlaceholder:"Do'stingiz kodi",addFriendBtn:"+ Qo'shish",
+    profileViewsTitle:"👁️ Profilni ko'rganlar"},
   ru:{search:'Поиск...',typeMsg:'Написать...',online:'🟢 онлайн',offline:'⚫ офлайн',
     lastSeen:'Был: ',members:'участник',noOne:'Никого не найдено',
     reply:'↩️ Ответить',forward:'↗️ Переслать',download:'⬇️ Скачать',
@@ -732,7 +760,11 @@ const LANGS={
     autoTrOn:'Автоперевод: включён',autoTrOff:'Автоперевод: выключен',trLangPrefix:'Язык перевода: ',
     attachImage:'🖼️ Фото',attachFile:'📄 Файл / PDF',attachTtl:'⏳ Временное сообщение',attachGame:'🎮 Игра Крестики-нолики',attachImprove:'✨ Улучшить текст',
     optSummary:'📋 Итоги группы',optSecret:'🔓 Секретный режим',optBg:'🖼️ Фон чата',optStats:'📊 Аналитика',optClear:'🗑️ Очистить',optionsBtn:'Ещё',
-    blockUser:'🚫 Заблокировать',unblockUser:'🔓 Разблокировать',reportUser:'⚠️ Пожаловаться',blockedList:'🚫 Заблокированные',noBlocked:'Нет заблокированных пользователей'},
+    blockUser:'🚫 Заблокировать',unblockUser:'🔓 Разблокировать',reportUser:'⚠️ Пожаловаться',blockedList:'🚫 Заблокированные',noBlocked:'Нет заблокированных пользователей',
+    profTitle:'👤 Профиль',changeAvatarHint:'Нажмите, чтобы изменить фото',newNamePlaceholder:'Новое имя',cancelBtn:'Отмена',
+    myPhotosTitle:'🖼️ Мои фото',addPhotoBtn:'+ Добавить фото',noPhotosYet:'Пока нет фото',
+    inviteCodeTitle:'🎁 Код приглашения',copyBtn:'Копировать',friendCodePlaceholder:'Код друга',addFriendBtn:'+ Добавить',
+    profileViewsTitle:'👁️ Кто смотрел профиль'},
   en:{search:'Search...',typeMsg:'Type a message...',online:'🟢 online',offline:'⚫ offline',
     lastSeen:'Last seen: ',members:'member',noOne:'Nobody found',
     reply:'↩️ Reply',forward:'↗️ Forward',download:'⬇️ Download',
@@ -757,7 +789,11 @@ const LANGS={
     autoTrOn:'Auto-translate: on',autoTrOff:'Auto-translate: off',trLangPrefix:'Translate to: ',
     attachImage:'🖼️ Image',attachFile:'📄 File / PDF',attachTtl:'⏳ Timed message',attachGame:'🎮 XO game',attachImprove:'✨ Improve text',
     optSummary:'📋 Group summary',optSecret:'🔓 Secret mode',optBg:'🖼️ Chat background',optStats:'📊 Analytics',optClear:'🗑️ Clear chat',optionsBtn:'More',
-    blockUser:'🚫 Block',unblockUser:'🔓 Unblock',reportUser:'⚠️ Report',blockedList:'🚫 Blocked users',noBlocked:'No blocked users'}
+    blockUser:'🚫 Block',unblockUser:'🔓 Unblock',reportUser:'⚠️ Report',blockedList:'🚫 Blocked users',noBlocked:'No blocked users',
+    profTitle:'👤 Profile',changeAvatarHint:'Tap to change photo',newNamePlaceholder:'Your new name',cancelBtn:'Cancel',
+    myPhotosTitle:'🖼️ My photos',addPhotoBtn:'+ Add photo',noPhotosYet:'No photos yet',
+    inviteCodeTitle:'🎁 Invite code',copyBtn:'Copy',friendCodePlaceholder:"Friend's code",addFriendBtn:'+ Add',
+    profileViewsTitle:'👁️ Profile viewers'}
 };
 let lang=localStorage.getItem('dc_lang')||'uz';
 const t=k=>LANGS[lang][k]||LANGS.uz[k]||k;
@@ -781,6 +817,18 @@ function applyLang(){
   setTxt('optBgLbl','optBg');
   setTxt('optStatsLbl','optStats');
   setTxt('optClearLbl','optClear');
+  setTxt('profTitleLbl','profTitle');
+  setTxt('changeAvatarHintLbl','changeAvatarHint');
+  setTxt('saveProfileBtn','save');
+  setTxt('closeProfileBtn','cancelBtn');
+  setTxt('myPhotosTitleLbl','myPhotosTitle');
+  setTxt('addPhotoBtnLbl','addPhotoBtn');
+  setTxt('inviteCodeTitleLbl','inviteCodeTitle');
+  setTxt('copyBtnLbl','copyBtn');
+  setTxt('addFriendBtnLbl','addFriendBtn');
+  setTxt('profileViewsTitleLbl','profileViewsTitle');
+  const nni=document.getElementById('newNameInput');if(nni)nni.placeholder=t('newNamePlaceholder');
+  const fci=document.getElementById('friendCodeInput');if(fci)fci.placeholder=t('friendCodePlaceholder');
   const cob=document.getElementById('chatOptionsBtn');if(cob)cob.title=t('optionsBtn');
   updateAutoTrLabel();
   updateTrLangLabel();
@@ -1201,6 +1249,10 @@ function bindAll(){
   $('acceptBtn').onclick=acceptCall;
   $('muteBtn').onclick=toggleMute;
   $('endBtn').onclick=endCall;
+  $('minimizeCallBtn').onclick=(e)=>{e.stopPropagation();$('callModal').classList.add('minimized');};
+  $('callModal').onclick=()=>{
+    if($('callModal').classList.contains('minimized'))$('callModal').classList.remove('minimized');
+  };
   $('clearChatBtn').onclick=()=>{closeChatOptionsMenu();clearChat();};
   $('statsBtn').onclick=()=>{closeChatOptionsMenu();showStats();};
   $('closeStatsBtn').onclick=()=>$('statsModal').classList.remove('open');
@@ -1288,7 +1340,7 @@ async function loadProfileGallery(){
     gl.appendChild(div);
   });
   if(!Object.keys(imgs).length){
-    gl.innerHTML='<div style="font-size:12px;color:var(--text2);grid-column:span 3">Hali rasm qoshilmagan</div>';
+    gl.innerHTML=`<div style="font-size:12px;color:var(--text2);grid-column:span 3">${t('noPhotosYet')}</div>`;
   }
 }
 
@@ -2546,6 +2598,7 @@ async function startCall(withVideo){
     $('callAv').textContent=av(users[chatUid]?.name||chatName);
     $('callStat').textContent=withVideo?t('callVideo'):t('callAudio');
     $('acceptBtn').style.display='none';
+    $('callModal').classList.remove('minimized');
     $('callModal').classList.add('open');
     $('ringSnd').play().catch(()=>{});
     onValue(ref(db,`calls/${myUid}/answer`),async snap=>{
@@ -2584,7 +2637,7 @@ function toggleMute(){
 }
 
 function endCall(){
-  $('ringSnd').pause();$('callModal').classList.remove('open');
+  $('ringSnd').pause();$('callModal').classList.remove('open');$('callModal').classList.remove('minimized');
   if(locStream){locStream.getTracks().forEach(tr=>tr.stop());locStream=null;}
   if(peerConn){peerConn.close();peerConn=null;}
   $('localVideo').style.display='none';$('localVideo').srcObject=null;
@@ -2606,7 +2659,7 @@ function listenCalls(){
     $('callName').textContent=d.callerName||'?';
     $('callAv').textContent=av(d.callerName||'?');
     $('callStat').textContent=d.video?t('callVideo'):t('callAudio');
-    $('acceptBtn').style.display='';$('callModal').classList.add('open');
+    $('acceptBtn').style.display='';$('callModal').classList.remove('minimized');$('callModal').classList.add('open');
     $('ringSnd').play().catch(()=>{});
   });
 
