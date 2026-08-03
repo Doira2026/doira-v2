@@ -112,9 +112,12 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
     <div class="stat-card" style="cursor:pointer" id="statReportsCard"><div class="stat-num" id="statReports" style="color:var(--danger)">0</div><div class="stat-lbl">⚠️ Shikoyatlar</div></div>
   </div>
 
-  <div style="display:flex;gap:8px;margin-bottom:14px">
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     <button class="abtn" id="tabUsersBtn" style="background:var(--accent);color:#fff">👥 Foydalanuvchilar</button>
     <button class="abtn" id="tabReportsBtn">⚠️ Shikoyatlar</button>
+    <button class="abtn" id="tabGroupsBtn">👨‍👩‍👧 Guruhlar</button>
+    <button class="abtn" id="tabBroadcastBtn">📢 Xabar yuborish</button>
+    <button class="abtn" id="tabCostBtn">💰 Xarajat</button>
   </div>
 
   <div class="search-bar" id="searchBarWrap">
@@ -123,13 +126,34 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
 
   <div class="utable" id="userTable"></div>
   <div class="utable" id="reportsTable" style="display:none"></div>
+  <div class="utable" id="groupsTable" style="display:none"></div>
+  <div class="utable" id="costTable" style="display:none"></div>
+
+  <div id="broadcastBox" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px">
+    <div style="font-weight:700;margin-bottom:10px">Barcha foydalanuvchilarga xabar yuborish</div>
+    <textarea id="broadcastText" rows="4" placeholder="Xabar matnini yozing..." style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;color:var(--text);resize:vertical;font-family:inherit"></textarea>
+    <div style="font-size:12px;color:var(--text2);margin:8px 0">Bu xabar har bir foydalanuvchiga "DoiraChat jamoasi" nomidan shaxsiy xabar sifatida yuboriladi.</div>
+    <button class="lbtn" id="sendBroadcastBtn" style="width:auto;padding:10px 24px">Yuborish</button>
+    <div id="broadcastStatus" style="font-size:13px;margin-top:10px;color:var(--accent2)"></div>
+  </div>
+</div>
+
+<!-- SUHBAT MODAL -->
+<div id="chatModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;max-width:500px;width:100%;max-height:80vh;display:flex;flex-direction:column">
+    <div style="padding:16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:700">Suhbat (shikoyat asosida)</div>
+      <button onclick="window._closeChatModal()" style="font-size:20px;color:var(--text2)">✕</button>
+    </div>
+    <div id="chatModalBody" style="padding:16px;overflow-y:auto;flex:1;font-size:13px"></div>
+  </div>
 </div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getDatabase, ref, onValue, update, get }
+import { getDatabase, ref, onValue, update, get, push }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
 const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-chat-v2.firebaseapp.com",databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",projectId:"doira-chat-v2",storageBucket:"doira-chat-v2.firebasestorage.app",messagingSenderId:"885552294238",appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"};
@@ -146,7 +170,8 @@ const $=id=>document.getElementById(id);
 const av=n=>(n||'?')[0].toUpperCase();
 const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
-let allUsers={},allGroups={},allReports={};
+let allUsers={},allGroups={},allReports={},allUsageStats={};
+const MY_ADMIN_UID=ADMIN_UIDS[0];
 
 $('togglePassBtn').onclick=()=>{
   const inp=$('adminPass');
@@ -207,22 +232,41 @@ onAuthStateChanged(auth,user=>{
 
 function startDashboard(){
   onValue(ref(db,'users'),s=>{allUsers=s.val()||{};renderDashboard();renderReports();});
-  onValue(ref(db,'groups'),s=>{allGroups=s.val()||{};renderDashboard();});
-  onValue(ref(db,'reports'),s=>{allReports=s.val()||{};renderReports();});
+  onValue(ref(db,'groups'),s=>{allGroups=s.val()||{};renderDashboard();renderGroups();});
+  onValue(ref(db,'reports'),s=>{allReports=s.val()||{};renderReports();renderDashboard();});
+  onValue(ref(db,'usageStats'),s=>{allUsageStats=s.val()||{};renderCost();});
   $('adminSearch').oninput=renderDashboard;
-  $('tabUsersBtn').onclick=()=>{
-    $('tabUsersBtn').style.background='var(--accent)';$('tabUsersBtn').style.color='#fff';
-    $('tabReportsBtn').style.background='';$('tabReportsBtn').style.color='';
-    $('userTable').style.display='block';$('reportsTable').style.display='none';
-    $('searchBarWrap').style.display='flex';
+
+  const tabs={
+    tabUsersBtn:{table:'userTable',search:true},
+    tabReportsBtn:{table:'reportsTable',search:false},
+    tabGroupsBtn:{table:'groupsTable',search:false},
+    tabCostBtn:{table:'costTable',search:false},
+    tabBroadcastBtn:{table:'broadcastBox',search:false}
   };
-  $('tabReportsBtn').onclick=()=>{
-    $('tabReportsBtn').style.background='var(--accent)';$('tabReportsBtn').style.color='#fff';
-    $('tabUsersBtn').style.background='';$('tabUsersBtn').style.color='';
-    $('userTable').style.display='none';$('reportsTable').style.display='block';
-    $('searchBarWrap').style.display='none';
-  };
-  $('statReportsCard').onclick=()=>$('tabReportsBtn').click();
+  function activateTab(activeId){
+    Object.keys(tabs).forEach(id=>{
+      const isActive=id===activeId;
+      $(id).style.background=isActive?'var(--accent)':'';
+      $(id).style.color=isActive?'#fff':'';
+      $(tabs[id].table).style.display=isActive?'block':'none';
+    });
+    $('searchBarWrap').style.display=tabs[activeId].search?'flex':'none';
+  }
+  Object.keys(tabs).forEach(id=>{
+    $(id).onclick=()=>activateTab(id);
+  });
+  $('statReportsCard').onclick=()=>activateTab('tabReportsBtn');
+
+  $('sendBroadcastBtn').onclick=sendBroadcast;
+}
+
+function getReportCounts(){
+  const counts={};
+  Object.entries(allReports).forEach(([uid,list])=>{
+    counts[uid]=Object.keys(list||{}).length;
+  });
+  return counts;
 }
 
 function renderReports(){
@@ -236,16 +280,19 @@ function renderReports(){
   $('statReports').textContent=rows.length;
   rows.sort((a,b)=>(b.time||0)-(a.time||0));
   if(!rows.length){box.innerHTML='<div id="empty2">Shikoyatlar yo\'q</div>';return;}
+  const counts=getReportCounts();
   box.innerHTML=rows.map(r=>{
     const u=allUsers[r.reportedUid]||{};
     const avStyle=u.avatar?`style="background-image:url(${u.avatar})"`:'';
+    const cnt=counts[r.reportedUid]||0;
     return `<div class="urow">
       <div class="uavatar" ${avStyle}>${u.avatar?'':av(u.name||'?')}</div>
       <div class="uinfo">
-        <div class="uname">${esc(u.name||"Noma'lum")} ${u.banned?'<span class="tag ban">BLOK</span>':''}</div>
+        <div class="uname">${esc(u.name||"Noma'lum")} ${u.banned?'<span class="tag ban">BLOK</span>':''} ${cnt>=3?`<span class="tag ban">⚠️ ${cnt} shikoyat</span>`:''}</div>
         <div class="usub">Sabab: ${esc(r.reason||'—')} · Kimdan: ${esc(r.reporterName||'—')}</div>
       </div>
       <div class="urow-btns">
+        ${r.chatId?`<button class="abtn" onclick="window._viewChat('${r.chatId}')">💬 Suhbat</button>`:''}
         <button class="abtn danger${u.banned?' active':''}" onclick="window._togBan('${r.reportedUid}',${!!u.banned})">${u.banned?'Blokdan chiqarish':'Bloklash'}</button>
         <button class="abtn" onclick="window._dismissReport('${r.reportedUid}','${r.rid}')">✕ O'chirish</button>
       </div>
@@ -254,6 +301,92 @@ function renderReports(){
 }
 window._dismissReport=async(reportedUid,rid)=>{
   await update(ref(db,`reports/${reportedUid}`),{[rid]:null});
+};
+
+function renderGroups(){
+  const box=$('groupsTable');if(!box)return;
+  const entries=Object.entries(allGroups||{});
+  if(!entries.length){box.innerHTML='<div id="empty2">Guruhlar yo\'q</div>';return;}
+  entries.sort((a,b)=>(b[1].created||0)-(a[1].created||0));
+  box.innerHTML=entries.map(([gid,g])=>{
+    const memberCount=Object.keys(g.members||{}).length;
+    return `<div class="urow">
+      <div class="uavatar">👥</div>
+      <div class="uinfo">
+        <div class="uname">${esc(g.name||"Noma'lum guruh")}</div>
+        <div class="usub">${memberCount} a'zo · Yaratuvchi: ${esc((allUsers[g.creator]||{}).name||g.creator||'—')}</div>
+      </div>
+      <div class="urow-btns">
+        <button class="abtn danger" onclick="window._deleteGroup('${gid}')">🗑️ O'chirish</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window._deleteGroup=async(gid)=>{
+  if(!confirm('Bu guruhni butunlay o\'chirasizmi? Barcha xabarlar ham o\'chadi va bu amalni qaytarib bo\'lmaydi.'))return;
+  await update(ref(db,'groups'),{[gid]:null});
+  await update(ref(db,'chats'),{[gid]:null});
+};
+
+function renderCost(){
+  const box=$('costTable');if(!box)return;
+  const rows=Object.entries(allUsageStats||{}).map(([uid,stats])=>{
+    const total=(stats.askGroq||0)+(stats.askGroqAudio||0)+(stats.uploadImage||0);
+    return {uid,askGroq:stats.askGroq||0,askGroqAudio:stats.askGroqAudio||0,uploadImage:stats.uploadImage||0,total};
+  });
+  if(!rows.length){box.innerHTML='<div id="empty2">Hali ma\'lumot yo\'q</div>';return;}
+  rows.sort((a,b)=>b.total-a.total);
+  box.innerHTML=rows.map(r=>{
+    const u=allUsers[r.uid]||{};
+    const avStyle=u.avatar?`style="background-image:url(${u.avatar})"`:'';
+    return `<div class="urow">
+      <div class="uavatar" ${avStyle}>${u.avatar?'':av(u.name||'?')}</div>
+      <div class="uinfo">
+        <div class="uname">${esc(u.name||"Noma'lum")}</div>
+        <div class="usub">💬 AI: ${r.askGroq} · 🎤 Audio: ${r.askGroqAudio} · 🖼️ Rasm: ${r.uploadImage}</div>
+      </div>
+      <div class="urow-btns"><div style="font-weight:800;color:var(--accent2)">${r.total}</div></div>
+    </div>`;
+  }).join('');
+}
+
+async function sendBroadcast(){
+  const text=$('broadcastText').value.trim();
+  if(!text){$('broadcastStatus').textContent='Xabar matnini yozing.';return;}
+  if(!confirm(`Bu xabar ${Object.keys(allUsers).length} ta foydalanuvchiga yuboriladi. Davom etasizmi?`))return;
+  $('broadcastStatus').textContent='Yuborilmoqda...';
+  let sent=0;
+  for(const uid of Object.keys(allUsers)){
+    if(uid===MY_ADMIN_UID)continue;
+    const chatId=[MY_ADMIN_UID,uid].sort().join('_');
+    try{
+      await push(ref(db,`chats/${chatId}`),{
+        text,sender:MY_ADMIN_UID,senderName:'DoiraChat jamoasi',time:Date.now(),type:'text',status:'sent'
+      });
+      sent++;
+    }catch(e){console.error(e);}
+  }
+  $('broadcastStatus').textContent=`✓ ${sent} ta foydalanuvchiga yuborildi.`;
+  $('broadcastText').value='';
+}
+
+window._closeChatModal=()=>{$('chatModal').style.display='none';};
+window._viewChat=(chatId)=>{
+  $('chatModal').style.display='flex';
+  $('chatModalBody').innerHTML='Yuklanmoqda...';
+  onValue(ref(db,`chats/${chatId}`),s=>{
+    const msgs=Object.values(s.val()||{});
+    msgs.sort((a,b)=>(a.time||0)-(b.time||0));
+    if(!msgs.length){$('chatModalBody').innerHTML='<div style="color:var(--text2)">Xabar topilmadi</div>';return;}
+    $('chatModalBody').innerHTML=msgs.map(m=>{
+      const senderName=(allUsers[m.sender]||{}).name||m.senderName||'—';
+      const content=m.type==='image'?`<img src="${m.url}" style="max-width:150px;border-radius:8px">`:esc(m.text||'');
+      return `<div style="margin-bottom:10px;padding:8px 12px;background:var(--bg3);border-radius:8px">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px">${esc(senderName)}</div>
+        <div>${content}</div>
+      </div>`;
+    }).join('');
+  },{onlyOnce:true});
 };
 
 function renderDashboard(){
@@ -279,8 +412,10 @@ function renderDashboard(){
   const table=$('userTable');
   if(!list.length){table.innerHTML='<div id="empty2">Foydalanuvchi topilmadi</div>';return;}
 
+  const reportCounts=getReportCounts();
   table.innerHTML=list.map(([uid,u])=>{
     const avStyle=u.avatar?`style="background-image:url(${u.avatar})"`:'';
+    const rc=reportCounts[uid]||0;
     return `<div class="urow">
       <div class="uavatar" ${avStyle}>${u.avatar?'':av(u.name)}</div>
       <div class="uinfo">
@@ -288,6 +423,7 @@ function renderDashboard(){
           ${u.online?'<span class="tag on">ONLAYN</span>':''}
           ${u.premium?'<span class="tag pro">💎 PRO</span>':''}
           ${u.banned?'<span class="tag ban">BLOK</span>':''}
+          ${rc>=3?`<span class="tag ban">⚠️ ${rc} shikoyat</span>`:''}
         </div>
         <div class="usub">${esc(u.inviteCode||'')}  ·  UID: ${uid.slice(0,10)}...</div>
       </div>
