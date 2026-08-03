@@ -1752,7 +1752,7 @@ function openReportModal(uid){
   $('reportModal').classList.add('open');
 }
 async function submitReport(uid,reason){
-  await push(ref(db,`reports/${uid}`),{reporterUid:myUid,reporterName:myName,reason,time:serverTimestamp()});
+  await push(ref(db,`reports/${uid}`),{reporterUid:myUid,reporterName:myName,reason,time:serverTimestamp(),chatId:[myUid,uid].sort().join('_')});
   $('reportModal').classList.remove('open');
   toast('✓ Shikoyat yuborildi, rahmat');
 }
