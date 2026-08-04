@@ -182,12 +182,16 @@ img{display:block;max-width:100%}
 .stat-val{font-size:15px;font-weight:700;color:var(--accent)}
 .prof-av{width:80px;height:80px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:700;color:#fff;margin:0 auto 16px;cursor:pointer;transition:.2s;background-size:cover;background-position:center}
 .prof-av:hover{opacity:.85}
-#profileModal .modal-box{padding-top:0;overflow:visible}
-.prof-cover{height:64px;border-radius:20px 20px 0 0;background:linear-gradient(135deg,var(--accent),var(--accent3));margin:0 -24px 0 -24px}
-.prof-av-wrap{position:relative;display:inline-block;margin-top:-46px}
-.prof-av-wrap .prof-av{width:92px;height:92px;font-size:38px;margin:0;border:4px solid var(--bg2);box-shadow:0 6px 18px rgba(0,0,0,.35)}
-.prof-av-cam{position:absolute;bottom:2px;right:2px;width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;border:2px solid var(--bg2);pointer-events:none}
-.prof-section{background:var(--bg3);border-radius:14px;padding:14px;margin-top:14px;text-align:left}
+#profileModal .modal-box{padding-top:0}
+.prof-cover{height:56px;border-radius:20px 20px 0 0;background:linear-gradient(135deg,var(--accent),var(--accent3));margin:0 -24px 0 -24px}
+.prof-av-wrap{position:relative;display:inline-block;margin-top:-38px}
+.prof-av-wrap .prof-av{width:76px;height:76px;font-size:32px;margin:0;border:4px solid var(--bg2);box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.prof-av-cam{position:absolute;bottom:0;right:0;width:24px;height:24px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid var(--bg2);pointer-events:none}
+.prof-tabs{display:flex;gap:6px;margin-top:14px;border-bottom:1px solid var(--border);padding-bottom:0}
+.prof-tab{flex:1;padding:9px 4px;font-size:11px;font-weight:700;color:var(--text2);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
+.prof-tab.active{color:var(--accent);border-color:var(--accent)}
+.prof-section{padding:14px 0;text-align:left;display:none}
+.prof-section.active{display:block}
 .prof-section-title{font-size:12px;color:var(--text2);font-weight:700;margin-bottom:10px;letter-spacing:.2px}
 .prof-invite-box{display:flex;gap:8px;align-items:center;background:var(--bg4);border:1px dashed var(--accent);border-radius:10px;padding:10px 12px;margin-bottom:10px}
 /* USER INFO MODAL */
@@ -214,14 +218,15 @@ img{display:block;max-width:100%}
 /* Call */
 #callModal{position:fixed;inset:0;z-index:800;background:linear-gradient(160deg,#0b141a 0%,#162030 100%);display:none;flex-direction:column;align-items:center;justify-content:space-between;padding:60px 20px 50px;transition:.25s ease}
 #callModal.open{display:flex}
-#callModal.minimized{inset:auto;top:70px;right:16px;left:auto;bottom:auto;width:220px;height:auto;padding:10px 12px;border-radius:18px;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:850;cursor:pointer}
-#callModal.minimized .call-top{flex-direction:row;gap:8px;flex:1;justify-content:flex-start;min-width:0}
-#callModal.minimized .call-av{width:34px;height:34px;font-size:15px;animation:none;flex-shrink:0}
-#callModal.minimized .call-name{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#callModal.minimized{inset:auto;top:70px;right:16px;left:auto;bottom:auto;width:104px;height:104px;padding:0;border-radius:22px;flex-direction:column;align-items:stretch;justify-content:flex-end;box-shadow:0 10px 30px rgba(0,0,0,.5);z-index:850;cursor:pointer;overflow:hidden;background:#0b141a}
+#callModal.minimized .call-top{position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;gap:0;z-index:1}
+#callModal.minimized .call-av{width:100%;height:100%;border-radius:0;font-size:30px;animation:none;flex-shrink:0}
+#callModal.minimized .call-name{display:none}
 #callModal.minimized .call-stat{display:none}
-#callModal.minimized #localVideo,#callModal.minimized #remoteVideo{display:none!important}
-#callModal.minimized .call-btns{background:none;padding:0;width:auto;max-width:none;gap:8px}
-#callModal.minimized .cbtn{width:32px;height:32px;font-size:14px}
+#callModal.minimized #localVideo{display:none!important}
+#callModal.minimized #remoteVideo{position:absolute!important;inset:0!important;top:0!important;left:0!important;width:100%!important;height:100%!important;object-fit:cover;z-index:2}
+#callModal.minimized .call-btns{position:relative;z-index:3;background:linear-gradient(0deg,rgba(0,0,0,.65),transparent 70%);padding:4px 4px 4px;width:100%;max-width:none;gap:4px;justify-content:center}
+#callModal.minimized .cbtn{width:22px;height:22px;font-size:11px}
 #callModal.minimized .cbtn.mute,#callModal.minimized .cbtn.acc{display:none!important}
 #callModal.minimized .call-min-hide{display:none}
 .cbtn.min{background:rgba(255,255,255,.2)}
@@ -441,14 +446,18 @@ img{display:block;max-width:100%}
       <button class="mbtn primary" id="saveProfileBtn">✓ Saqlash</button>
       <button class="mbtn gray" id="closeProfileBtn">Bekor</button>
     </div>
-    <div class="prof-section">
-      <div class="prof-section-title" id="myPhotosTitleLbl">🖼️ Mening rasmlarim</div>
+    <div class="prof-tabs">
+      <div class="prof-tab active" data-ptab="photos" id="myPhotosTitleLbl">🖼️ Rasmlar</div>
+      <div class="prof-tab" data-ptab="invite" id="inviteCodeTitleLbl">🎁 Kod</div>
+      <div class="prof-tab" data-ptab="views" id="profileViewsTitleLbl">👁️ Ko'rganlar</div>
+      <div class="prof-tab" data-ptab="blocked" id="blockedListTitle">🚫 Blok</div>
+    </div>
+    <div class="prof-section active" data-psec="photos">
       <div id="profileGallery" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px"></div>
       <button onclick="document.getElementById('galleryInput').click()" id="addPhotoBtnLbl" style="width:100%;padding:8px;border-radius:8px;background:var(--bg4);font-size:13px;color:var(--text2);cursor:pointer">+ Rasm qo'shish</button>
       <input type="file" id="galleryInput" accept="image/*" style="display:none">
     </div>
-    <div class="prof-section">
-      <div class="prof-section-title" id="inviteCodeTitleLbl">🎁 Taklif kodi</div>
+    <div class="prof-section" data-psec="invite">
       <div class="prof-invite-box">
         <div id="myInviteCode" style="flex:1;font-weight:800;letter-spacing:2px;font-size:15px;color:var(--accent)">------</div>
         <button onclick="copyInviteCode()" id="copyBtnLbl" style="padding:6px 12px;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;cursor:pointer">Nusxa</button>
@@ -458,13 +467,11 @@ img{display:block;max-width:100%}
         <button onclick="addByInviteCode()" id="addFriendBtnLbl" style="padding:0 14px;border-radius:8px;background:var(--bg4);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">+ Qo'shish</button>
       </div>
     </div>
-    <div class="prof-section">
-      <div class="prof-section-title" id="profileViewsTitleLbl">👁️ Profilni ko'rganlar</div>
-      <div id="profileViewsList" style="max-height:160px;overflow-y:auto"></div>
+    <div class="prof-section" data-psec="views">
+      <div id="profileViewsList" style="max-height:220px;overflow-y:auto"></div>
     </div>
-    <div class="prof-section">
-      <div class="prof-section-title" id="blockedListTitle">🚫 Bloklanganlar</div>
-      <div id="blockedUsersList" style="max-height:180px;overflow-y:auto"></div>
+    <div class="prof-section" data-psec="blocked">
+      <div id="blockedUsersList" style="max-height:220px;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -731,11 +738,11 @@ const LANGS={
     autoTrOn:'Avtomatik tarjima: yoniq',autoTrOff:"Avtomatik tarjima: o'chiq",trLangPrefix:'Tarjima tili: ',
     attachImage:'🖼️ Rasm',attachFile:'📄 Fayl / PDF',attachTtl:'⏳ Vaqtli xabar',attachGame:"🎮 XO o'yini",attachImprove:"✨ Matnni yaxshilash",
     optSummary:'📋 Guruh xulosasi',optSecret:'🔓 Maxfiy rejim',optBg:'🖼️ Chat foni',optStats:'📊 Tahlil',optClear:"🗑️ Tozalash",optionsBtn:"Ko'proq",
-    blockUser:'🚫 Blokirovka',unblockUser:"🔓 Blokdan chiqarish",reportUser:'⚠️ Shikoyat',blockedList:'🚫 Bloklanganlar',noBlocked:"Bloklangan foydalanuvchi yo'q",
+    blockUser:'🚫 Blokirovka',unblockUser:"🔓 Blokdan chiqarish",reportUser:'⚠️ Shikoyat',blockedList:'🚫 Blok',noBlocked:"Bloklangan foydalanuvchi yo'q",
     profTitle:'👤 Profil',changeAvatarHint:"Rasmni o'zgartirish uchun bosing",newNamePlaceholder:'Yangi ismingiz',cancelBtn:'Bekor',
-    myPhotosTitle:'🖼️ Mening rasmlarim',addPhotoBtn:"+ Rasm qo'shish",noPhotosYet:'Hali rasm qoshilmagan',
-    inviteCodeTitle:'🎁 Taklif kodi',copyBtn:'Nusxa',friendCodePlaceholder:"Do'stingiz kodi",addFriendBtn:"+ Qo'shish",
-    profileViewsTitle:"👁️ Profilni ko'rganlar"},
+    myPhotosTitle:'🖼️ Rasmlar',addPhotoBtn:"+ Rasm qo'shish",noPhotosYet:'Hali rasm qoshilmagan',
+    inviteCodeTitle:'🎁 Kod',copyBtn:'Nusxa',friendCodePlaceholder:"Do'stingiz kodi",addFriendBtn:"+ Qo'shish",
+    profileViewsTitle:"👁️ Ko'rganlar"},
   ru:{search:'Поиск...',typeMsg:'Написать...',online:'🟢 онлайн',offline:'⚫ офлайн',
     lastSeen:'Был: ',members:'участник',noOne:'Никого не найдено',
     reply:'↩️ Ответить',forward:'↗️ Переслать',download:'⬇️ Скачать',
@@ -760,11 +767,11 @@ const LANGS={
     autoTrOn:'Автоперевод: включён',autoTrOff:'Автоперевод: выключен',trLangPrefix:'Язык перевода: ',
     attachImage:'🖼️ Фото',attachFile:'📄 Файл / PDF',attachTtl:'⏳ Временное сообщение',attachGame:'🎮 Игра Крестики-нолики',attachImprove:'✨ Улучшить текст',
     optSummary:'📋 Итоги группы',optSecret:'🔓 Секретный режим',optBg:'🖼️ Фон чата',optStats:'📊 Аналитика',optClear:'🗑️ Очистить',optionsBtn:'Ещё',
-    blockUser:'🚫 Заблокировать',unblockUser:'🔓 Разблокировать',reportUser:'⚠️ Пожаловаться',blockedList:'🚫 Заблокированные',noBlocked:'Нет заблокированных пользователей',
+    blockUser:'🚫 Заблокировать',unblockUser:'🔓 Разблокировать',reportUser:'⚠️ Пожаловаться',blockedList:'🚫 Блок',noBlocked:'Нет заблокированных пользователей',
     profTitle:'👤 Профиль',changeAvatarHint:'Нажмите, чтобы изменить фото',newNamePlaceholder:'Новое имя',cancelBtn:'Отмена',
-    myPhotosTitle:'🖼️ Мои фото',addPhotoBtn:'+ Добавить фото',noPhotosYet:'Пока нет фото',
-    inviteCodeTitle:'🎁 Код приглашения',copyBtn:'Копировать',friendCodePlaceholder:'Код друга',addFriendBtn:'+ Добавить',
-    profileViewsTitle:'👁️ Кто смотрел профиль'},
+    myPhotosTitle:'🖼️ Фото',addPhotoBtn:'+ Добавить фото',noPhotosYet:'Пока нет фото',
+    inviteCodeTitle:'🎁 Код',copyBtn:'Копировать',friendCodePlaceholder:'Код друга',addFriendBtn:'+ Добавить',
+    profileViewsTitle:'👁️ Смотрели'},
   en:{search:'Search...',typeMsg:'Type a message...',online:'🟢 online',offline:'⚫ offline',
     lastSeen:'Last seen: ',members:'member',noOne:'Nobody found',
     reply:'↩️ Reply',forward:'↗️ Forward',download:'⬇️ Download',
@@ -789,11 +796,11 @@ const LANGS={
     autoTrOn:'Auto-translate: on',autoTrOff:'Auto-translate: off',trLangPrefix:'Translate to: ',
     attachImage:'🖼️ Image',attachFile:'📄 File / PDF',attachTtl:'⏳ Timed message',attachGame:'🎮 XO game',attachImprove:'✨ Improve text',
     optSummary:'📋 Group summary',optSecret:'🔓 Secret mode',optBg:'🖼️ Chat background',optStats:'📊 Analytics',optClear:'🗑️ Clear chat',optionsBtn:'More',
-    blockUser:'🚫 Block',unblockUser:'🔓 Unblock',reportUser:'⚠️ Report',blockedList:'🚫 Blocked users',noBlocked:'No blocked users',
+    blockUser:'🚫 Block',unblockUser:'🔓 Unblock',reportUser:'⚠️ Report',blockedList:'🚫 Blocked',noBlocked:'No blocked users',
     profTitle:'👤 Profile',changeAvatarHint:'Tap to change photo',newNamePlaceholder:'Your new name',cancelBtn:'Cancel',
-    myPhotosTitle:'🖼️ My photos',addPhotoBtn:'+ Add photo',noPhotosYet:'No photos yet',
-    inviteCodeTitle:'🎁 Invite code',copyBtn:'Copy',friendCodePlaceholder:"Friend's code",addFriendBtn:'+ Add',
-    profileViewsTitle:'👁️ Profile viewers'}
+    myPhotosTitle:'🖼️ Photos',addPhotoBtn:'+ Add photo',noPhotosYet:'No photos yet',
+    inviteCodeTitle:'🎁 Code',copyBtn:'Copy',friendCodePlaceholder:"Friend's code",addFriendBtn:'+ Add',
+    profileViewsTitle:'👁️ Viewers'}
 };
 let lang=localStorage.getItem('dc_lang')||'uz';
 const t=k=>LANGS[lang][k]||LANGS.uz[k]||k;
@@ -1326,6 +1333,14 @@ async function openProfile(){
   loadProfileGallery();
   renderBlockedList();
   $('galleryInput').onchange=uploadGalleryImg;
+  document.querySelectorAll('.prof-tab').forEach(tab=>{
+    tab.onclick=()=>{
+      document.querySelectorAll('.prof-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.prof-section').forEach(s=>s.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelector(`.prof-section[data-psec="${tab.dataset.ptab}"]`).classList.add('active');
+    };
+  });
 }
 
 async function loadProfileGallery(){
