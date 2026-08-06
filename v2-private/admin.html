@@ -118,16 +118,18 @@ input{font-family:inherit;border:none;outline:none;background:none;color:var(--t
     <button class="abtn" id="tabGroupsBtn">👨‍👩‍👧 Guruhlar</button>
     <button class="abtn" id="tabBroadcastBtn">📢 Xabar yuborish</button>
     <button class="abtn" id="tabCostBtn">💰 Xarajat</button>
+    <button class="abtn" id="tabStatsBtn">📈 Statistika</button>
   </div>
 
   <div class="search-bar" id="searchBarWrap">
-    <input id="adminSearch" type="text" placeholder="Ism yoki email bo'yicha qidirish...">
+    <input id="adminSearch" type="text" placeholder="Ism bo'yicha qidirish...">
   </div>
 
   <div class="utable" id="userTable"></div>
   <div class="utable" id="reportsTable" style="display:none"></div>
   <div class="utable" id="groupsTable" style="display:none"></div>
   <div class="utable" id="costTable" style="display:none"></div>
+  <div class="utable" id="statsTable" style="display:none"></div>
 
   <div id="broadcastBox" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px">
     <div style="font-weight:700;margin-bottom:10px">Barcha foydalanuvchilarga xabar yuborish</div>
@@ -231,7 +233,7 @@ onAuthStateChanged(auth,user=>{
 });
 
 function startDashboard(){
-  onValue(ref(db,'users'),s=>{allUsers=s.val()||{};renderDashboard();renderReports();});
+  onValue(ref(db,'users'),s=>{allUsers=s.val()||{};renderDashboard();renderReports();renderStats();});
   onValue(ref(db,'groups'),s=>{allGroups=s.val()||{};renderDashboard();renderGroups();});
   onValue(ref(db,'reports'),s=>{allReports=s.val()||{};renderReports();renderDashboard();});
   onValue(ref(db,'usageStats'),s=>{allUsageStats=s.val()||{};renderCost();});
@@ -242,6 +244,7 @@ function startDashboard(){
     tabReportsBtn:{table:'reportsTable',search:false},
     tabGroupsBtn:{table:'groupsTable',search:false},
     tabCostBtn:{table:'costTable',search:false},
+    tabStatsBtn:{table:'statsTable',search:false},
     tabBroadcastBtn:{table:'broadcastBox',search:false}
   };
   function activateTab(activeId){
@@ -403,7 +406,7 @@ function renderDashboard(){
   $('statBanned').textContent=banned;
 
   const q=($('adminSearch').value||'').toLowerCase().trim();
-  let list=entries.filter(([,u])=>!q||u.name.toLowerCase().includes(q)||(u.email||'').toLowerCase().includes(q));
+  let list=entries.filter(([,u])=>!q||u.name.toLowerCase().includes(q));
   list.sort((a,b)=>{
     if(a[1].online&&!b[1].online)return -1;
     if(!a[1].online&&b[1].online)return 1;
@@ -429,11 +432,54 @@ function renderDashboard(){
         <div class="usub">${esc(u.inviteCode||'')}  ·  UID: ${uid.slice(0,10)}...</div>
       </div>
       <div class="urow-btns">
+        <button class="abtn" onclick="window._msgUser('${uid}','${esc(u.name).replace(/'/g,"\\'")}')">✉️ Xabar</button>
         <button class="abtn gold${u.premium?' active':''}" onclick="window._togPrem('${uid}',${!!u.premium})">${u.premium?'💎 Olish':'💎 Berish'}</button>
         <button class="abtn danger${u.banned?' active':''}" onclick="window._togBan('${uid}',${!!u.banned})">${u.banned?'Blokdan chiqarish':'Bloklash'}</button>
       </div>
     </div>`;
   }).join('');
+}
+
+window._msgUser=async(uid,name)=>{
+  const text=prompt(`${name} ga xabar yozing:`);
+  if(!text||!text.trim())return;
+  const chatId=[MY_ADMIN_UID,uid].sort().join('_');
+  try{
+    await push(ref(db,`chats/${chatId}`),{
+      text:text.trim(),sender:MY_ADMIN_UID,senderName:'DoiraChat jamoasi',time:Date.now(),type:'text',status:'sent'
+    });
+    await update(ref(db,`unread/${uid}`),{[MY_ADMIN_UID]:increment(1)});
+    alert('✓ Xabar yuborildi');
+  }catch(e){console.error(e);alert('Xato yuz berdi');}
+};
+
+function renderStats(){
+  const box=$('statsTable');if(!box)return;
+  const entries=Object.entries(allUsers||{}).filter(([,u])=>u&&u.name&&u.created);
+  if(!entries.length){
+    box.innerHTML='<div id="empty2">Hali sana bo\'yicha ma\'lumot yo\'q. Faqat shu tuzatishdan keyin kirgan foydalanuvchilar hisoblanadi.</div>';
+    return;
+  }
+  const byDay={};
+  entries.forEach(([,u])=>{
+    const d=new Date(u.created);
+    const key=d.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+    byDay[key]=(byDay[key]||0)+1;
+  });
+  const days=Object.entries(byDay).sort((a,b)=>{
+    const da=a[0].split('.').reverse().join('');
+    const db_=b[0].split('.').reverse().join('');
+    return db_.localeCompare(da);
+  });
+  box.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:12px">Bu ro'yxat faqat statistika tuzatilgandan keyin (ilk marta) kirgan foydalanuvchilarni hisoblaydi.</div>`+
+    days.map(([day,count])=>`<div class="urow">
+      <div class="uavatar">📅</div>
+      <div class="uinfo">
+        <div class="uname">${day}</div>
+        <div class="usub">Yangi ro'yxatdan o'tganlar</div>
+      </div>
+      <div class="urow-btns"><div style="font-weight:800;color:var(--accent2);font-size:18px">${count}</div></div>
+    </div>`).join('');
 }
 
 window._togPrem=async(uid,current)=>{
