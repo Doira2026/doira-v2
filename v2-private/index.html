@@ -1085,6 +1085,10 @@ async function setupUser(){
     const code=myUid.replace(/[^a-zA-Z0-9]/g,'').slice(-6).toUpperCase();
     await update(ur,{inviteCode:code});
   }
+  const createdSnap=await get(ref(db,`users/${myUid}/created`));
+  if(!createdSnap.exists()){
+    await update(ur,{created:serverTimestamp()});
+  }
   return true;
 }
 
