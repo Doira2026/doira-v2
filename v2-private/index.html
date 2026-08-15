@@ -698,6 +698,7 @@ import { getAuth, onAuthStateChanged, signOut, updateProfile, setPersistence, br
 import { getDatabase, ref, set, get, push, update, remove, onValue, onChildAdded, onDisconnect, serverTimestamp, off }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
+import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js';
 const FB={apiKey:"AIzaSyAksQf3rkeG998TmJj-YuA3WpTDLLZ1ais",authDomain:"doira-chat-v2.firebaseapp.com",databaseURL:"https://doira-chat-v2-default-rtdb.firebaseio.com",projectId:"doira-chat-v2",storageBucket:"doira-chat-v2.firebasestorage.app",messagingSenderId:"885552294238",appId:"1:885552294238:web:8a5d288d1eb57e11b687cf"};
 const STICKERS=[
   '😀','😃','😄','😁','😆','😅','😂','🤣','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','🙂','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','😵','🤯','😎','🤓','🥸','😲','😳','🥺','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩',
@@ -846,6 +847,7 @@ const fbApp=initializeApp(FB);
 const auth=getAuth(fbApp);
 const db=getDatabase(fbApp);
 const functions=getFunctions(fbApp);
+const messaging=getMessaging(fbApp);
 const askGroqFn=httpsCallable(functions,'askGroq');
 const uploadImageFn=httpsCallable(functions,'uploadImage');
 async function uploadToImgBb(file){
@@ -1173,10 +1175,23 @@ async function requestNotifPermission(){
 
 async function saveNotifToken(){
   try{
-    const reg=await navigator.serviceWorker.ready;
-    await update(ref(db,'users/'+myUid),{notifEnabled:true});
-  }catch(e){console.log('Notif token error:',e);}
+    const swReg=await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+    const fcmToken=await getToken(messaging,{
+      vapidKey:'BGTG75_CM8jvXUZD3dnD7n9F0d7KG0az3r5sdY6GW9ZL5Puw708St5Jf8z1JR5pPLSAcLyqVbwoAz7fSz8yW368',
+      serviceWorkerRegistration:swReg
+    });
+    if(fcmToken){
+      await update(ref(db,'users/'+myUid),{notifEnabled:true,fcmToken:fcmToken});
+    }
+  }catch(e){console.log('FCM token error:',e);}
 }
+
+onMessage(messaging,(payload)=>{
+  const title=payload.notification?.title||'DoiraChat';
+  const body=payload.notification?.body||'Yangi xabar keldi';
+  $('notifSnd').play().catch(()=>{});
+  showLocalNotif(title,body,payload.data?.chatId);
+});
 
 function showLocalNotif(title, body, chatId){
   if(Notification.permission!=='granted')return;
