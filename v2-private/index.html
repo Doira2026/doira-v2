@@ -689,13 +689,13 @@ img{display:block;max-width:100%}
   <img id="prevImg" src="" alt="">
   <button class="prev-download" id="downloadImgBtn">⬇️ Yuklab olish</button>
 </div>
-<audio id="notifSnd" src="./notif.mp3" ></audio>
-<audio id="ringSnd" src="./ring.mp3" ></audio>
+<audio id="notifSnd" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3" preload="auto"></audio>
+<audio id="ringSnd" src="https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a7968b45.mp3" loop preload="auto"></audio>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, updateProfile, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import { getDatabase, ref, set, get, push, update, remove, onValue, onChildAdded, onDisconnect, serverTimestamp, off }
+import { getDatabase, ref, set, get, push, update, remove, onValue, onChildAdded, onDisconnect, serverTimestamp, off, increment }
   from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js';
 import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js';
@@ -2227,7 +2227,7 @@ function openForward(msg){
       const fwdData={...fwdMsgData,sender:myUid,senderName:myName,time:serverTimestamp(),status:'sent',forwarded:myName};
       delete fwdData.reactions;delete fwdData.replyTo;
       await push(ref(db,`chats/${targetChatId}`),fwdData);
-      const ur=ref(db,`unread/${uid}/${myUid}`);get(ur).then(s=>set(ur,(s.val()||0)+1));
+      const ur=ref(db,`unread/${uid}/${myUid}`);set(ur,increment(1)).catch(()=>{});
       $('fwdModal').classList.remove('open');
       toast(t('fwdSent'));
     };
@@ -2252,12 +2252,12 @@ function openForward(msg){
 }
 
 function notifyOther(){
-  if(chatUid){const ur=ref(db,`unread/${chatUid}/${myUid}`);get(ur).then(s=>set(ur,(s.val()||0)+1));}
+  if(chatUid){const ur=ref(db,`unread/${chatUid}/${myUid}`);set(ur,increment(1)).catch(()=>{});}
   else if(isGrp&&chatId){
     const g=grps[chatId];
     if(g?.members)Object.keys(g.members).forEach(uid=>{
       if(uid===myUid)return;
-      const ur=ref(db,`unread/${uid}/${chatId}`);get(ur).then(s=>set(ur,(s.val()||0)+1));
+      const ur=ref(db,`unread/${uid}/${chatId}`);set(ur,increment(1)).catch(()=>{});
     });
   }
 }
