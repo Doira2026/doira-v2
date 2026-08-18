@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DoiraChat — Android uchun yuklab olish</title>
+<meta name="theme-color" content="#00c6a2">
+<link rel="icon" href="../v2-private/icons/icon-192.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a1628;--bg2:#0f1f35;--bg3:#162542;
+    --accent:#00c6a2;--accent2:#00e5bb;--accent3:#0088cc;
+    --text:#e8f0fe;--text2:#7a9cc0;--border:#1e3054;
+  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',sans-serif;
+    background:
+      radial-gradient(1100px 700px at 15% -10%, rgba(0,198,162,.16), transparent 60%),
+      radial-gradient(900px 600px at 110% 10%, rgba(0,136,204,.14), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:48px 20px 32px;
+    overflow-x:hidden;
+  }
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  .wrap{width:100%;max-width:460px;display:flex;flex-direction:column;align-items:center;text-align:center}
+
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;
+    color:var(--accent2);background:rgba(0,198,162,.08);
+    border:1px solid rgba(0,198,162,.25);border-radius:100px;
+    padding:6px 14px;margin-bottom:28px;text-transform:uppercase;
+  }
+  .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent2);box-shadow:0 0 8px var(--accent2)}
+
+  .icon{
+    width:96px;height:96px;border-radius:24px;
+    background:linear-gradient(160deg,var(--accent2),var(--accent3));
+    box-shadow:0 16px 40px -12px rgba(0,198,162,.45), 0 0 0 1px rgba(255,255,255,.06) inset;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:22px;
+    animation:float 5s ease-in-out infinite;
+  }
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .icon svg{width:48px;height:48px}
+
+  h1{
+    font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.15;
+    margin-bottom:10px;
+  }
+  h1 span{
+    background:linear-gradient(100deg,var(--accent2),var(--accent3));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .sub{color:var(--text2);font-size:15.5px;line-height:1.55;max-width:340px;margin-bottom:36px}
+
+  .btn{
+    width:100%;position:relative;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    background:linear-gradient(100deg,var(--accent2),var(--accent3));
+    color:#04140f;font-weight:700;font-size:16px;
+    padding:17px 24px;border-radius:14px;border:none;
+    text-decoration:none;cursor:pointer;
+    box-shadow:0 14px 30px -10px rgba(0,198,162,.5);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-2px);box-shadow:0 18px 36px -10px rgba(0,198,162,.6)}
+  .btn:active{transform:translateY(0)}
+  .btn svg{width:19px;height:19px;flex-shrink:0}
+
+  .meta{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    margin-top:14px;font-size:12.5px;color:var(--text2);font-family:'JetBrains Mono',monospace;
+  }
+  .meta span{display:flex;align-items:center;gap:6px}
+  .dot{width:3px;height:3px;border-radius:50%;background:var(--text2);opacity:.5}
+
+  .note{
+    margin-top:18px;font-size:13px;color:var(--text2);
+    background:rgba(255,214,10,.06);border:1px solid rgba(255,214,10,.18);
+    border-radius:10px;padding:11px 14px;line-height:1.5;text-align:left;
+  }
+  .note b{color:#ffd60a;font-weight:600}
+
+  .steps{
+    width:100%;margin-top:52px;text-align:left;
+    border-top:1px solid var(--border);padding-top:32px;
+  }
+  .steps-title{
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--text2);font-family:'JetBrains Mono',monospace;margin-bottom:20px;
+  }
+  .step{display:flex;gap:16px;padding:14px 0}
+  .step + .step{border-top:1px solid rgba(30,48,84,.6)}
+  .num{
+    flex-shrink:0;width:28px;height:28px;border-radius:8px;
+    background:var(--bg3);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;color:var(--accent2);
+  }
+  .step-body h3{font-size:14.5px;font-weight:600;margin-bottom:3px}
+  .step-body p{font-size:13.5px;color:var(--text2);line-height:1.5}
+
+  footer{margin-top:44px;font-size:12.5px;color:var(--text2)}
+  footer a{color:var(--accent2);text-decoration:none}
+  footer a:hover{text-decoration:underline}
+
+  @media (prefers-reduced-motion:reduce){.icon{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="badge">Android · APK</div>
+
+  <div class="icon">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16a1 1 0 011 1v11a1 1 0 01-1 1H9l-5 4V6a1 1 0 011-1z" fill="#fff"/><circle cx="9" cy="10.5" r="1.15" fill="#00c6a2"/><circle cx="12.5" cy="10.5" r="1.15" fill="#00c6a2"/><circle cx="16" cy="10.5" r="1.15" fill="#00c6a2"/></svg>
+  </div>
+
+  <h1>Doira<span>Chat</span>ni<br>telefoningizga o'rnating</h1>
+  <p class="sub">Play Marketsiz, to'g'ridan-to'g'ri saytdan. Xabarlashuv, guruhlar va AI yordamchi — barchasi bir joyda.</p>
+
+  <a href="../DoiraChat.apk" class="btn" download>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0l-4.5-4.5M12 16l4.5-4.5"/><path d="M4 19h16"/></svg>
+    APK faylni yuklab olish
+  </a>
+
+  <div class="meta">
+    <span class="mono">DoiraChat.apk</span>
+    <span class="dot"></span>
+    <span class="mono">Android 7.0+</span>
+  </div>
+
+  <div class="note">
+    <b>Eslatma:</b> o'rnatishda "Noma'lum manba" haqida ogohlantirish chiqishi mumkin — bu normal holat, chunki ilova Play Marketdan tashqarida tarqatilmoqda.
+  </div>
+
+  <div class="steps">
+    <div class="steps-title">O'rnatish tartibi</div>
+
+    <div class="step">
+      <div class="num mono">1</div>
+      <div class="step-body">
+        <h3>APK faylni yuklab oling</h3>
+        <p>Yuqoridagi tugmani bosing, fayl brauzeringiz orqali yuklanadi.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num mono">2</div>
+      <div class="step-body">
+        <h3>O'rnatishga ruxsat bering</h3>
+        <p>Tizim so'rasa, "Ruxsat berish" yoki "Baribir o'rnatish" ni tanlang.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num mono">3</div>
+      <div class="step-body">
+        <h3>Ochib, tizimga kiring</h3>
+        <p>DoiraChat ochiladi — mavjud hisobingiz bilan kirishingiz mumkin.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>Muammo bo'lsa — <a href="../v2-private/index.html">veb-versiyadan</a> foydalanishda davom eting</footer>
+
+</div>
+</body>
+</html>
