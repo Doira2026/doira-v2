@@ -461,10 +461,12 @@ function renderStats(){
     return;
   }
   const byDay={};
-  entries.forEach(([,u])=>{
+  entries.forEach(([uid,u])=>{
     const d=new Date(u.created);
     const key=d.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'});
-    byDay[key]=(byDay[key]||0)+1;
+    if(!byDay[key])byDay[key]={count:0,names:[]};
+    byDay[key].count++;
+    byDay[key].names.push(u.name);
   });
   const days=Object.entries(byDay).sort((a,b)=>{
     const da=a[0].split('.').reverse().join('');
@@ -472,13 +474,13 @@ function renderStats(){
     return db_.localeCompare(da);
   });
   box.innerHTML=`<div style="font-size:12px;color:var(--text2);margin-bottom:12px">Bu ro'yxat faqat statistika tuzatilgandan keyin (ilk marta) kirgan foydalanuvchilarni hisoblaydi.</div>`+
-    days.map(([day,count])=>`<div class="urow">
+    days.map(([day,info])=>`<div class="urow" style="align-items:flex-start">
       <div class="uavatar">📅</div>
       <div class="uinfo">
         <div class="uname">${day}</div>
-        <div class="usub">Yangi ro'yxatdan o'tganlar</div>
+        <div class="usub" style="white-space:normal;line-height:1.6;margin-top:4px">${info.names.map(n=>esc(n)).join(', ')}</div>
       </div>
-      <div class="urow-btns"><div style="font-weight:800;color:var(--accent2);font-size:18px">${count}</div></div>
+      <div class="urow-btns"><div style="font-weight:800;color:var(--accent2);font-size:18px">${info.count}</div></div>
     </div>`).join('');
 }
 
