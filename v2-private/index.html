@@ -315,8 +315,8 @@ img{display:block;max-width:100%}
         <div id="chatSub"></div>
       </div>
       <div class="head-btns">
-        <button class="hbtn" id="audioCallBtn" title="Ovozli">📞</button>
-        <button class="hbtn" id="videoCallBtn" title="Video">📹</button>
+        <button class="hbtn" id="audioCallBtn" title="Ovozli"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+        <button class="hbtn" id="videoCallBtn" title="Video"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg></button>
         <button class="hbtn" id="chatOptionsBtn" title="Ko'proq">⋮</button>
       </div>
     </div>
@@ -610,12 +610,13 @@ img{display:block;max-width:100%}
 
 <!-- YANGILIKLAR MODAL -->
 <div class="modal-bg" id="whatsNewModal">
-  <div class="modal-box" style="text-align:center">
-    <div style="font-size:44px;margin-bottom:8px">🎉</div>
-    <div class="modal-title" style="margin-bottom:10px">Yangiliklar!</div>
-    <div id="whatsNewText" style="text-align:left;font-size:14px;line-height:1.9;color:var(--text);background:var(--bg3);border-radius:10px;padding:14px;margin-bottom:16px"></div>
+  <div class="modal-box" style="text-align:center;max-width:420px">
+    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px;box-shadow:0 8px 24px rgba(0,198,162,.35)">🎉</div>
+    <div class="modal-title" style="margin-bottom:2px;font-size:20px">Yangi yangilanish!</div>
+    <div id="whatsNewVer" style="font-size:12px;color:var(--text2);margin-bottom:16px;font-weight:600"></div>
+    <div id="whatsNewText" style="text-align:left;display:flex;flex-direction:column;gap:10px;margin-bottom:20px"></div>
     <div class="modal-btns">
-      <button class="mbtn primary" onclick="document.getElementById('whatsNewModal').classList.remove('open')">Zo'r, tushunarli!</button>
+      <button class="mbtn primary" style="width:100%" onclick="document.getElementById('whatsNewModal').classList.remove('open')">Ajoyib, tushunarli! 👍</button>
     </div>
   </div>
 </div>
@@ -679,10 +680,10 @@ img{display:block;max-width:100%}
     <div class="call-stat" id="callStat"></div>
   </div>
   <div class="call-btns">
-    <button class="cbtn acc" id="acceptBtn" style="display:none">📞</button>
-    <button class="cbtn mute" id="muteBtn">🎤</button>
-    <button class="cbtn min" id="minimizeCallBtn" title="Kichraytirish">🔽</button>
-    <button class="cbtn end" id="endBtn">📵</button>
+    <button class="cbtn acc" id="acceptBtn" style="display:none"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+    <button class="cbtn mute" id="muteBtn"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg></button>
+    <button class="cbtn min" id="minimizeCallBtn" title="Kichraytirish"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button class="cbtn end" id="endBtn"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.86.31 1.76.53 2.67.65A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" x2="1" y1="1" y2="23"/></svg></button>
   </div>
 </div>
 <audio id="remoteAudio" autoplay playsinline style="display:none"></audio>
@@ -1097,17 +1098,22 @@ async function setupUser(){
   return true;
 }
 
-const APP_VERSION='1.4.0';
+const APP_VERSION='1.5.0';
 const WHATS_NEW=[
-  "🚫 Bloklanganlar ro'yxati — profilda ko'rasiz va istalgan payt blokdan chiqarasiz",
-  "🌐 Til to'liq ishlaydi — menyu, tugmalar endi tanlangan tilda",
-  "🎨 Chat foni tuzatildi — \"Standart\" tugmasi endi ishlaydi",
-  "✍️ Chiqgan xabarlar matni endi har doim aniq ko'rinadi",
+  {icon:'📱',text:"Endi DoiraChat'ni Android ilova (APK) sifatida ham o'rnatishingiz mumkin"},
+  {icon:'🔔',text:"Push-bildirishnomalar yaxshilandi — ilova yopiq bo'lsa ham xabarlardan xabardor bo'lasiz"},
+  {icon:'🔒',text:"Xavfsizlik kuchaytirildi — ma'lumotlaringiz ishonchliroq himoyalanadi"},
+  {icon:'✨',text:"Interfeys va tugmalar barcha qurilmalarda bir xil, tiniq ko'rinadigan qilindi"},
 ];
 function checkWhatsNew(){
   const seen=localStorage.getItem('dc_appVer');
   if(seen===APP_VERSION)return;
-  $('whatsNewText').innerHTML=WHATS_NEW.map(x=>`• ${x}`).join('<br>');
+  $('whatsNewVer').textContent=`Versiya ${APP_VERSION}`;
+  $('whatsNewText').innerHTML=WHATS_NEW.map(x=>`
+    <div style="display:flex;align-items:flex-start;gap:12px;background:var(--bg3);border-radius:12px;padding:12px 14px">
+      <div style="font-size:20px;flex-shrink:0;line-height:1.3">${x.icon}</div>
+      <div style="font-size:13.5px;line-height:1.5;color:var(--text)">${x.text}</div>
+    </div>`).join('');
   $('whatsNewModal').classList.add('open');
   localStorage.setItem('dc_appVer',APP_VERSION);
 }
@@ -2666,10 +2672,13 @@ async function acceptCall(){
   }catch(e){console.error(e);toast(t('callPerm'));endCall();}
 }
 
+const ICON_MIC='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
+const ICON_MIC_OFF='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
+
 function toggleMute(){
   isMuted=!isMuted;
   if(locStream)locStream.getAudioTracks().forEach(tr=>tr.enabled=!isMuted);
-  $('muteBtn').textContent=isMuted?'🔇':'🎤';
+  $('muteBtn').innerHTML=isMuted?ICON_MIC_OFF:ICON_MIC;
   toast(isMuted?t('mutedMic'):t('unmutedMic'));
 }
 
@@ -2685,7 +2694,7 @@ function endCall(){
     setTimeout(()=>remove(ref(db,`calls/${chatUid}/ended`)),3000);
   }
   if(myUid)remove(ref(db,`calls/${myUid}`));
-  callId=null;isMuted=false;$('muteBtn').textContent='🎤';
+  callId=null;isMuted=false;$('muteBtn').innerHTML=ICON_MIC;
 }
 
 function listenCalls(){
