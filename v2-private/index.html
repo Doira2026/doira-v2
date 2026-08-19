@@ -866,7 +866,7 @@ async function uploadToImgBb(file){
 }
 async function askAI(messages,maxTokens=512,temp=0.4){
   try{
-    const r=await askGroqFn({model:'llama-3.3-70b-versatile',messages:messages,max_tokens:maxTokens,temperature:temp});
+    const r=await askGroqFn({model:'openai/gpt-oss-120b',messages:messages,max_tokens:maxTokens,temperature:temp});
     return r.data.result.choices?.[0]?.message?.content?.trim();
   }catch(e){
     console.error('AI xatosi:',e);
