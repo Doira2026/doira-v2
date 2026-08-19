@@ -41,6 +41,10 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
 .btn:active{transform:scale(0.98);opacity:.9}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .note{font-size:11px;color:var(--text2);margin-top:14px;line-height:1.6}
+.pass-wrap{position:relative}
+.pass-wrap .field{padding-right:44px}
+.eye-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:var(--text2);border-radius:8px}
+.eye-btn:active{background:var(--bg4)}
 </style>
 </head>
 <body>
@@ -59,7 +63,13 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;pad
   </div>
   <input id="nameInput" class="field" type="text" placeholder="Ismingiz" style="display:none" autocomplete="name">
   <input id="emailInput" class="field" type="email" placeholder="Email manzilingiz" autocomplete="email">
-  <input id="passInput" class="field" type="password" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password">
+  <div class="pass-wrap">
+    <input id="passInput" class="field" type="password" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password">
+    <button type="button" class="eye-btn" id="eyeBtn" onclick="togglePassVisibility()" tabindex="-1">
+      <svg id="eyeIconOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg id="eyeIconClosed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 0 1-4.24-4.24"/><path d="M6.61 6.61A18.5 18.5 0 0 0 1 13s4 8 11 8a10.4 10.4 0 0 0 5.39-1.61"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+    </button>
+  </div>
   <div class="err" id="errMsg"></div>
   <button class="btn" id="authBtn" onclick="doAuth()">Kirish</button>
   <div class="note" id="noteText">📧 Gmail, Mail.ru yoki istalgan email bilan kiring.</div>
@@ -223,6 +233,16 @@ window.doAuth = async function() {
     };
     errEl.textContent = codes[e.code] || ('❌ ' + e.message);
   }
+};
+
+window.togglePassVisibility = function() {
+  const input = document.getElementById('passInput');
+  const openIcon = document.getElementById('eyeIconOpen');
+  const closedIcon = document.getElementById('eyeIconClosed');
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  openIcon.style.display = isHidden ? 'none' : 'block';
+  closedIcon.style.display = isHidden ? 'block' : 'none';
 };
 
 // Boshlang'ich tilni qo'llash
