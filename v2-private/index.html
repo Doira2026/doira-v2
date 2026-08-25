@@ -1636,7 +1636,47 @@ function openChat(id,name,isGroup){
   remove(ref(db,`unread/${myUid}/${id}`));
   cancelReply();cancelEdit();
   loadMsgs();listenTyping();loadPinned();renderList();
+  dcPushState('chat');
 }
+
+function closeChatView(){
+  $('chatTitle').textContent='DoiraChat';
+  $('chatSub').textContent='';
+  $('messages').innerHTML=`<div id="empty"><div class="empty-icon">💬</div><div style="font-size:14px;text-align:center;line-height:1.6">Suhbatni boshlash uchun<br>chap tarafdan kontakt tanlang</div></div>`;
+  chatId=null;chatUid=null;isGrp=false;
+  ['clearChatBtn','statsBtn','audioCallBtn','videoCallBtn','chatBgBtn','chatPinBtn','grpSummaryBtn','chatOptionsBtn'].forEach(b=>$(''+b).classList.remove('show'));
+  if(window.innerWidth<768){
+    $('sidebar').classList.add('open');
+    $('overlay').classList.add('open');
+  }
+}
+
+// --- Android "Orqaga" tugmasi boshqaruvi ---
+// PWA/APK'da tugma bosilganda ilova to'g'ridan-to'g'ri yopilib ketmasligi uchun,
+// har bir muhim ekran (ochiq chat, ochiq modal) uchun brauzer tarixiga bosqich qo'shamiz.
+function dcPushState(tag){
+  history.pushState({dcTag:tag,t:Date.now()},'');
+}
+window.addEventListener('popstate',()=>{
+  const openModal=document.querySelector('.modal-bg.open');
+  if(openModal){
+    openModal.classList.remove('open');
+    dcPushState('modal-closed');
+    return;
+  }
+  if(window.innerWidth<768&&$('sidebar').classList.contains('open')){
+    togSidebar();
+    dcPushState('sidebar-closed');
+    return;
+  }
+  if(chatId){
+    closeChatView();
+    dcPushState('chat-closed');
+    return;
+  }
+  // Boshqa hech narsa ochiq bo'lmasa - standart harakatga ruxsat (ilovadan chiqish)
+});
+dcPushState('root');
 
 function loadMsgs(){
   offFns.forEach(f=>f());offFns=[];
