@@ -694,7 +694,6 @@ img{display:block;max-width:100%}
   <button class="prev-download" id="downloadImgBtn">⬇️ Yuklab olish</button>
 </div>
 <audio id="notifSnd" src="./notif.mp3" preload="auto"></audio>
-<audio id="ringSnd" src="./ring.mp3" loop preload="auto"></audio>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
@@ -2683,12 +2682,12 @@ async function startCall(withVideo){
     $('acceptBtn').style.display='none';
     $('callModal').classList.remove('minimized');
     $('callModal').classList.add('open');
-    $('ringSnd').play().catch(()=>{});
+    playRingtone();
     onValue(ref(db,`calls/${myUid}/answer`),async snap=>{
       const d=snap.val();if(!d||!peerConn)return;
       if(peerConn.signalingState==='have-local-offer'){
         await peerConn.setRemoteDescription(JSON.parse(d.answer));
-        $('callStat').textContent=t('callConnected');$('ringSnd').pause();
+        $('callStat').textContent=t('callConnected');stopRingtone();
       }
     });
   }catch(e){console.error(e);toast(t('callPerm'));endCall();}
@@ -2696,7 +2695,7 @@ async function startCall(withVideo){
 
 async function acceptCall(){
   if(!callId)return;
-  $('ringSnd').pause();
+  stopRingtone();
   const snap=await get(ref(db,`calls/${myUid}/incoming`));
   const data=snap.val();if(!data)return;
   try{
@@ -2715,6 +2714,44 @@ async function acceptCall(){
 const ICON_MIC='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
 const ICON_MIC_OFF='<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></svg>';
 
+// --- Qo'ng'iroq ovohangi (Web Audio API orqali sintez qilingan, tashqi fayl kerak emas) ---
+let ringAudioCtx=null,ringTimers=[];
+function playRingtone(){
+  stopRingtone();
+  try{
+    ringAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  }catch(e){return;}
+  const ctx=ringAudioCtx;
+  function tone(freq,startTime,duration){
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.type='sine';
+    osc.frequency.value=freq;
+    gain.gain.setValueAtTime(0,startTime);
+    gain.gain.linearRampToValueAtTime(0.22,startTime+0.02);
+    gain.gain.linearRampToValueAtTime(0.22,Math.max(startTime+0.02,startTime+duration-0.04));
+    gain.gain.linearRampToValueAtTime(0,startTime+duration);
+    osc.connect(gain);gain.connect(ctx.destination);
+    osc.start(startTime);osc.stop(startTime+duration+0.02);
+  }
+  function cycle(t0){
+    tone(659.25,t0,0.16);
+    tone(783.99,t0+0.19,0.16);
+    tone(659.25,t0+0.55,0.16);
+    tone(783.99,t0+0.74,0.16);
+  }
+  function loop(){
+    if(!ringAudioCtx)return;
+    cycle(ctx.currentTime+0.03);
+    ringTimers.push(setTimeout(loop,1900));
+  }
+  loop();
+}
+function stopRingtone(){
+  ringTimers.forEach(clearTimeout);ringTimers=[];
+  if(ringAudioCtx){ringAudioCtx.close().catch(()=>{});ringAudioCtx=null;}
+}
+
 function toggleMute(){
   isMuted=!isMuted;
   if(locStream)locStream.getAudioTracks().forEach(tr=>tr.enabled=!isMuted);
@@ -2723,7 +2760,7 @@ function toggleMute(){
 }
 
 function endCall(){
-  $('ringSnd').pause();$('callModal').classList.remove('open');$('callModal').classList.remove('minimized');
+  stopRingtone();$('callModal').classList.remove('open');$('callModal').classList.remove('minimized');
   if(locStream){locStream.getTracks().forEach(tr=>tr.stop());locStream=null;}
   if(peerConn){peerConn.close();peerConn=null;}
   $('localVideo').style.display='none';$('localVideo').srcObject=null;
@@ -2746,7 +2783,7 @@ function listenCalls(){
     $('callAv').textContent=av(d.callerName||'?');
     $('callStat').textContent=d.video?t('callVideo'):t('callAudio');
     $('acceptBtn').style.display='';$('callModal').classList.remove('minimized');$('callModal').classList.add('open');
-    $('ringSnd').play().catch(()=>{});
+    playRingtone();
   });
 
   onValue(ref(db,`calls/${myUid}/ended`),snap=>{
